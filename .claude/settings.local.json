@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sed -i 's/EldenRingSprint/CustomControlz/g; s/<SubSystem>Console<\\\\/SubSystem>/<SubSystem>Windows<\\\\/SubSystem>/g' CustomControlz/CustomControlz.vcxproj)",
+      "Bash(sed -i 's/Resource.rc/Resource.rc/g' CustomControlz/CustomControlz.vcxproj)"
+    ]
+  }
+}

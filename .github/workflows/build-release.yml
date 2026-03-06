@@ -1,0 +1,43 @@
+name: Build and Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g. 1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build Release x64
+        run: msbuild CustomControlz.slnx /p:Configuration=Release /p:Platform=x64 /m
+
+      - name: Create GitHub Release and upload exe
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.event.inputs.version }}
+          name: CustomControlz v${{ github.event.inputs.version }}
+          body: |
+            ## CustomControlz v${{ github.event.inputs.version }}
+
+            Win32 tray application for game key remapping.
+
+            ### Supported Games
+            - **Elden Ring** — sprint/dodge/long-press trigger remapping
+            - **Toxic Commando** — keyboard keys simulate scroll wheel for weapon switching
+
+            ### Installation
+            Download `CustomControlz.exe` and run it. No installer needed.
+          files: CustomControlz/x64/Release/CustomControlz.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

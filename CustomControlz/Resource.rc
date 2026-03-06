@@ -48,7 +48,7 @@ END
 
 
 /////////////////////////////////////////////////////////////////////////////
-// Englisch (Vereinigtes Königreich) resources
+// Englisch (Vereinigtes Kï¿½nigreich) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENG)
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
@@ -60,7 +60,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ICON1               ICON                    "EldenRingSprint.ico"
+IDI_ICON1               ICON                    "CustomControlz.ico"
 IDI_ICON2               ICON                    "idle.ico"
 IDI_ICON3               ICON                    "active.ico"
 
@@ -71,7 +71,7 @@ IDI_ICON3               ICON                    "active.ico"
 
 1                       24                      "app.manifest"
 
-#endif    // Englisch (Vereinigtes Königreich) resources
+#endif    // Englisch (Vereinigtes Kï¿½nigreich) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
