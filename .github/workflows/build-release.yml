@@ -11,6 +11,8 @@ on:
 jobs:
   build-and-release:
     runs-on: windows-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -38,6 +40,6 @@ jobs:
 
             ### Installation
             Download `CustomControlz.exe` and run it. No installer needed.
-          files: CustomControlz/x64/Release/CustomControlz.exe
+          files: CustomControlz/**/Release/CustomControlz.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
