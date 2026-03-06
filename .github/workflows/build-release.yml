@@ -24,6 +24,13 @@ jobs:
       - name: Build Release x64
         run: msbuild CustomControlz.slnx /p:Configuration=Release /p:Platform=x64 /m
 
+      - name: Locate and stage exe
+        run: |
+          echo "Searching for built exe..."
+          Get-ChildItem -Recurse -Filter "CustomControlz.exe" | Select-Object FullName
+          Copy-Item -Path (Get-ChildItem -Recurse -Filter "CustomControlz.exe" | Select-Object -First 1 -ExpandProperty FullName) -Destination "CustomControlz.exe"
+        shell: pwsh
+
       - name: Create GitHub Release and upload exe
         uses: softprops/action-gh-release@v2
         with:
@@ -40,6 +47,6 @@ jobs:
 
             ### Installation
             Download `CustomControlz.exe` and run it. No installer needed.
-          files: CustomControlz/**/Release/CustomControlz.exe
+          files: CustomControlz.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
