@@ -63,29 +63,29 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BEH-01 | — | Pending |
-| BEH-02 | — | Pending |
-| BEH-03 | — | Pending |
-| BEH-04 | — | Pending |
-| BEH-05 | — | Pending |
-| BEH-06 | — | Pending |
-| BEH-07 | — | Pending |
-| PROF-01 | — | Pending |
-| PROF-02 | — | Pending |
-| PROF-03 | — | Pending |
-| PROF-04 | — | Pending |
-| GAME-01 | — | Pending |
-| GAME-02 | — | Pending |
-| GAME-03 | — | Pending |
-| GAME-04 | — | Pending |
-| FIX-01 | — | Pending |
-| FIX-02 | — | Pending |
+| BEH-01 | Phase 1 | Pending |
+| BEH-02 | Phase 1 | Pending |
+| BEH-03 | Phase 1 | Pending |
+| BEH-04 | Phase 1 | Pending |
+| BEH-05 | Phase 3 | Pending |
+| BEH-06 | Phase 3 | Pending |
+| BEH-07 | Phase 3 | Pending |
+| PROF-01 | Phase 2 | Pending |
+| PROF-02 | Phase 2 | Pending |
+| PROF-03 | Phase 2 | Pending |
+| PROF-04 | Phase 2 | Pending |
+| GAME-01 | Phase 4 | Pending |
+| GAME-02 | Phase 4 | Pending |
+| GAME-03 | Phase 4 | Pending |
+| GAME-04 | Phase 4 | Pending |
+| FIX-01 | Phase 1 | Pending |
+| FIX-02 | Phase 1 | Pending |
 
 **Coverage:**
 - v1 requirements: 17 total
-- Mapped to phases: 0
-- Unmapped: 17 ⚠️
+- Mapped to phases: 17
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-11*
-*Last updated: 2026-03-11 after initial definition*
+*Last updated: 2026-03-11 after roadmap creation*
