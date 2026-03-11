@@ -13,7 +13,7 @@ constexpr int TC_GAME_CHECK_IDLE_MS  = 1000;
 constexpr DWORD TC_SCROLL_DELTA_UP   = 120;
 constexpr DWORD TC_SCROLL_DELTA_DOWN = static_cast<DWORD>(-120);
 
-// Forward declarations of helpers defined in CustomControlz.cpp
+// Forward declarations of helpers defined in CustomControlZ.cpp
 bool IsGameRunning(GameProfile* profile);
 void SetTrayIconState(bool active, GameProfile* profile);
 inline bool IsKeyDown(WORD vk);
@@ -88,8 +88,8 @@ static GameProfile g_ToxicCommandoProfile = {
     /* iniSection    */ L"ToxicCommando",
     /* processName1  */ L"ToxicCommando.exe",  // UPDATE with real process name before release
     /* processName2  */ nullptr,
-    /* tipActive     */ L"CustomControlz - Toxic Commando: ACTIVE",
-    /* tipIdle       */ L"CustomControlz: Waiting...",
+    /* tipActive     */ L"CustomControlZ - Toxic Commando: ACTIVE",
+    /* tipIdle       */ L"CustomControlZ: Waiting...",
     /* settingsTitle */ L"Toxic Commando - Key Bindings",
     /* theme */ {
         RGB(30, 50, 20),    // bg         - dark olive

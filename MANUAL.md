@@ -1,4 +1,4 @@
-# CustomControlz — Manual
+# CustomControlZ — Manual
 
 ## Table of Contents
 
@@ -20,7 +20,7 @@
 
 ## Overview
 
-CustomControlz is a Windows system tray utility that intercepts and remaps keyboard and mouse input for specific games. It works by:
+CustomControlZ is a Windows system tray utility that intercepts and remaps keyboard and mouse input for specific games. It works by:
 
 1. Detecting whether a supported game process is running
 2. Activating a game-specific logic thread that monitors key states
@@ -32,9 +32,9 @@ The application uses no kernel-mode drivers or injection — it operates entirel
 
 ## Installation
 
-1. Download `CustomControlz.exe` from the [Releases](../../releases) page.
-2. Place the executable anywhere on your system (e.g., `C:\Tools\CustomControlz\`).
-3. Run `CustomControlz.exe`.
+1. Download `CustomControlZ.exe` from the [Releases](../../releases) page.
+2. Place the executable anywhere on your system (e.g., `C:\Tools\CustomControlZ\`).
+3. Run `CustomControlZ.exe`.
 
 No installer is required. Settings are saved to `settings.ini` in the same directory as the executable.
 
@@ -122,7 +122,7 @@ Values are Windows virtual key codes in decimal. You can edit this file manually
 
 **Theme:** Dark brown/gold
 
-CustomControlz replaces the standard dodge-roll button with a more ergonomic sprint/dodge split across two separate keys.
+CustomControlZ replaces the standard dodge-roll button with a more ergonomic sprint/dodge split across two separate keys.
 
 | Binding | Default Key | Description |
 |---------|-------------|-------------|
@@ -172,20 +172,20 @@ Each key press generates a single mouse scroll wheel event (delta +120 or -120).
 
 **Via Visual Studio:**
 
-1. Open `CustomControlz.slnx` in Visual Studio 2022.
+1. Open `CustomControlZ.slnx` in Visual Studio 2022.
 2. Set the configuration to **Release** and the platform to **x64**.
 3. Select **Build → Build Solution** (or press `Ctrl+Shift+B`).
 
 **Via command line (MSBuild):**
 
 ```batch
-msbuild CustomControlz.slnx /p:Configuration=Release /p:Platform=x64
+msbuild CustomControlZ.slnx /p:Configuration=Release /p:Platform=x64
 ```
 
 The compiled executable is written to:
 
 ```
-CustomControlz\bin\x64\Release\CustomControlz.exe
+CustomControlZ\bin\x64\Release\CustomControlZ.exe
 ```
 
 ### Automated releases
@@ -199,8 +199,8 @@ The repository includes a GitHub Actions workflow (`.github/workflows/build-rele
 ### Project layout
 
 ```
-CustomControlz/
-├── CustomControlz.cpp      # Application entry point, UI, tray, config I/O
+CustomControlZ/
+├── CustomControlZ.cpp      # Application entry point, UI, tray, config I/O
 ├── GameProfiles.h          # Core data structures (KeyBinding, Theme, GameProfile)
 ├── games/
 │   ├── EldenRing.h         # Elden Ring profile and logic thread
@@ -276,7 +276,7 @@ The logic thread calls `CreateToolhelp32Snapshot` + `Process32Next` in a loop to
 
 ### 1. Create a header file
 
-Create `CustomControlz/games/YourGame.h`:
+Create `CustomControlZ/games/YourGame.h`:
 
 ```cpp
 #pragma once
@@ -286,7 +286,7 @@ Create `CustomControlz/games/YourGame.h`:
 #include <atomic>
 #include <thread>
 
-// Forward declarations needed from CustomControlz.cpp
+// Forward declarations needed from CustomControlZ.cpp
 extern std::atomic<bool> g_logicRunning;
 extern void SetTrayIcon(bool active);
 extern bool IsGameRunning(const wchar_t* name1, const wchar_t* name2);
@@ -337,9 +337,9 @@ GameProfile YourGameProfile = {
 };
 ```
 
-### 2. Register the profile in `CustomControlz.cpp`
+### 2. Register the profile in `CustomControlZ.cpp`
 
-At the top of `CustomControlz.cpp`, include your header and add the profile to the `g_profiles` array:
+At the top of `CustomControlZ.cpp`, include your header and add the profile to the `g_profiles` array:
 
 ```cpp
 #include "games/YourGame.h"

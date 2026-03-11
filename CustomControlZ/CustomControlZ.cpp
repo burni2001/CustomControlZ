@@ -119,7 +119,7 @@ constexpr int SELECT_BOTTOM_MARGIN = 20;
 // --- GLOBAL STATE ---
 
 const wchar_t* CONFIG_FILE = L".\\settings.ini";
-const wchar_t* MUTEX_NAME  = L"CustomControlz_Unique_ID";
+const wchar_t* MUTEX_NAME  = L"CustomControlZ_Unique_ID";
 
 std::mutex g_configMutex;
 wchar_t g_fontName[FONT_NAME_BUFFER] = L"Palatino Linotype";
@@ -669,7 +669,7 @@ bool CreateSettingsWindow(HINSTANCE hInstance, GameProfile* profile) {
         WNDCLASS wc = {};
         wc.lpfnWndProc   = SettingsProc;
         wc.hInstance     = hInstance;
-        wc.lpszClassName = L"CustomControlzSettingsClass";
+        wc.lpszClassName = L"CustomControlZSettingsClass";
         wc.hbrBackground = nullptr; // Handled in WM_ERASEBKGND
         wc.hCursor       = LoadCursor(nullptr, IDC_ARROW);
         wc.hIcon         = LoadIcon(hInstance, MAKEINTRESOURCE(ICON_ID_EXE));
@@ -688,7 +688,7 @@ bool CreateSettingsWindow(HINSTANCE hInstance, GameProfile* profile) {
 
     g_hSettingsWnd = CreateWindowEx(
         WS_EX_DLGMODALFRAME,
-        L"CustomControlzSettingsClass",
+        L"CustomControlZSettingsClass",
         profile->settingsTitle,
         WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
         CW_USEDEFAULT, CW_USEDEFAULT, WINDOW_WIDTH, windowHeight,
@@ -748,7 +748,7 @@ LRESULT CALLBACK GameSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         HFONT* fonts = new HFONT[3]{ hFontTitle, hFontSubtitle, hFontGameBtn };
         SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)fonts);
 
-        HWND hTitle = CreateWindow(L"STATIC", L"CustomControlz",
+        HWND hTitle = CreateWindow(L"STATIC", L"CustomControlZ",
             WS_VISIBLE | WS_CHILD | SS_CENTER,
             0, SELECT_TITLE_Y, SELECT_WIN_WIDTH, 42, hwnd,
             (HMENU)(INT_PTR)ID_SELECT_TITLE, nullptr, nullptr);
@@ -875,7 +875,7 @@ bool CreateGameSelectionWindow(HINSTANCE hInstance) {
     WNDCLASS wc = {};
     wc.lpfnWndProc   = GameSelectProc;
     wc.hInstance     = hInstance;
-    wc.lpszClassName = L"CustomControlzSelectClass";
+    wc.lpszClassName = L"CustomControlZSelectClass";
     wc.hbrBackground = nullptr;
     wc.hCursor       = LoadCursor(nullptr, IDC_ARROW);
     wc.hIcon         = LoadIcon(hInstance, MAKEINTRESOURCE(ICON_ID_EXE));
@@ -889,8 +889,8 @@ bool CreateGameSelectionWindow(HINSTANCE hInstance) {
 
     g_hGameSelectWnd = CreateWindowEx(
         WS_EX_DLGMODALFRAME,
-        L"CustomControlzSelectClass",
-        L"CustomControlz",
+        L"CustomControlZSelectClass",
+        L"CustomControlZ",
         WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
         CW_USEDEFAULT, CW_USEDEFAULT, SELECT_WIN_WIDTH, winHeight,
         nullptr, nullptr, hInstance, nullptr
@@ -1031,14 +1031,14 @@ int APIENTRY wWinMain(
     WNDCLASS wcTray = {};
     wcTray.lpfnWndProc   = WindowProc;
     wcTray.hInstance     = hInstance;
-    wcTray.lpszClassName = L"CustomControlzTrayClass";
+    wcTray.lpszClassName = L"CustomControlZTrayClass";
     wcTray.hIcon         = LoadIcon(hInstance, MAKEINTRESOURCE(ICON_ID_EXE));
     if (!RegisterClass(&wcTray)) {
         SafeCloseMutex(hMutex);
         return -1;
     }
 
-    g_hMainWindow = CreateWindowEx(0, L"CustomControlzTrayClass", L"CustomControlz",
+    g_hMainWindow = CreateWindowEx(0, L"CustomControlZTrayClass", L"CustomControlZ",
                                    0, 0, 0, 0, 0, nullptr, nullptr, hInstance, nullptr);
     if (!g_hMainWindow) {
         SafeCloseMutex(hMutex);
@@ -1052,7 +1052,7 @@ int APIENTRY wWinMain(
     g_nid.uFlags           = NIF_ICON | NIF_MESSAGE | NIF_TIP;
     g_nid.uCallbackMessage = WM_TRAYICON;
     g_nid.hIcon            = g_hIconIdle;
-    StringCchCopy(g_nid.szTip, ARRAYSIZE(g_nid.szTip), L"CustomControlz");
+    StringCchCopy(g_nid.szTip, ARRAYSIZE(g_nid.szTip), L"CustomControlZ");
     AddTrayIconWithRetry(&g_nid);
 
     // Show game selection window

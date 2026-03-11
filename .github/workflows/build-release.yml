@@ -22,22 +22,22 @@ jobs:
         uses: microsoft/setup-msbuild@v2
 
       - name: Build Release x64
-        run: msbuild CustomControlz.slnx /p:Configuration=Release /p:Platform=x64 /m
+        run: msbuild CustomControlZ.slnx /p:Configuration=Release /p:Platform=x64 /m
 
       - name: Locate and stage exe
         run: |
           echo "Searching for built exe..."
-          Get-ChildItem -Recurse -Filter "CustomControlz.exe" | Select-Object FullName
-          Copy-Item -Path (Get-ChildItem -Recurse -Filter "CustomControlz.exe" | Select-Object -First 1 -ExpandProperty FullName) -Destination "CustomControlz.exe"
+          Get-ChildItem -Recurse -Filter "CustomControlZ.exe" | Select-Object FullName
+          Copy-Item -Path (Get-ChildItem -Recurse -Filter "CustomControlZ.exe" | Select-Object -First 1 -ExpandProperty FullName) -Destination "CustomControlZ.exe"
         shell: pwsh
 
       - name: Create GitHub Release and upload exe
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ github.event.inputs.version }}
-          name: CustomControlz v${{ github.event.inputs.version }}
+          name: CustomControlZ v${{ github.event.inputs.version }}
           body: |
-            ## CustomControlz v${{ github.event.inputs.version }}
+            ## CustomControlZ v${{ github.event.inputs.version }}
 
             Win32 tray application for game key remapping.
 
@@ -46,7 +46,7 @@ jobs:
             - **Toxic Commando** — keyboard keys simulate scroll wheel for weapon switching
 
             ### Installation
-            Download `CustomControlz.exe` and run it. No installer needed.
-          files: CustomControlz.exe
+            Download `CustomControlZ.exe` and run it. No installer needed.
+          files: CustomControlZ.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CustomControlz.cpp">
+    <ClCompile Include="CustomControlZ.cpp">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
@@ -39,7 +39,7 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="CustomControlz.ico">
+    <Image Include="CustomControlZ.ico">
       <Filter>Ressourcendateien</Filter>
     </Image>
     <Image Include="idle.ico">

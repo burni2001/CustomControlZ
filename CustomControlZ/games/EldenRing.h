@@ -22,7 +22,7 @@ constexpr int ER_DODGE_DURATION_MS    = 50;
 constexpr int ER_SPRINT_DODGE_PAUSE_MS = 20;
 constexpr int ER_ACTION_DURATION_MS   = 30;
 
-// Forward declarations of helpers defined in CustomControlz.cpp
+// Forward declarations of helpers defined in CustomControlZ.cpp
 bool IsGameRunning(GameProfile* profile);
 void SetTrayIconState(bool active, GameProfile* profile);
 inline void PressKey(WORD vk);
@@ -143,8 +143,8 @@ static GameProfile g_EldenRingProfile = {
     /* iniSection    */ L"EldenRing",
     /* processName1  */ L"eldenring.exe",
     /* processName2  */ L"ersc_launcher.exe",
-    /* tipActive     */ L"CustomControlz - Elden Ring: ACTIVE",
-    /* tipIdle       */ L"CustomControlz: Waiting...",
+    /* tipActive     */ L"CustomControlZ - Elden Ring: ACTIVE",
+    /* tipIdle       */ L"CustomControlZ: Waiting...",
     /* settingsTitle */ L"Elden Ring - Key Bindings",
     /* theme */ {
         RGB(25, 20, 15),    // bg

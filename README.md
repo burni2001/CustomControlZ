@@ -1,6 +1,6 @@
-# CustomControlz
+# CustomControlZ
 
-A Windows system tray application for advanced game key remapping and control customization. CustomControlz runs silently in the background, detects when a supported game is active, and applies custom input mappings in real-time.
+A Windows system tray application for advanced game key remapping and control customization. CustomControlZ runs silently in the background, detects when a supported game is active, and applies custom input mappings in real-time.
 
 ## Features
 
@@ -20,17 +20,17 @@ A Windows system tray application for advanced game key remapping and control cu
 
 ## Download
 
-Download the latest `CustomControlz.exe` from the [Releases](../../releases) page. No installer required — just run the executable.
+Download the latest `CustomControlZ.exe` from the [Releases](../../releases) page. No installer required — just run the executable.
 
 **Requirements:** Windows 10 or later (Windows 11 recommended for dark mode)
 
 ## Quick Start
 
-1. Run `CustomControlz.exe`
+1. Run `CustomControlZ.exe`
 2. Select your game from the game selection screen
 3. Customize key bindings in the settings window
 4. Click **Minimize** — the app moves to the system tray
-5. Launch your game — CustomControlz activates automatically
+5. Launch your game — CustomControlZ activates automatically
 
 Right-click the tray icon at any time to access settings, change game, or exit.
 

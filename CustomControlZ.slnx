@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="CustomControlz/CustomControlz.vcxproj" Id="e80235ec-91fb-4510-8abe-1849abbcaabd" />
+  <Project Path="CustomControlZ/CustomControlZ.vcxproj" Id="e80235ec-91fb-4510-8abe-1849abbcaabd" />
 </Solution>
