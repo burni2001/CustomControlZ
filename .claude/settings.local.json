@@ -2,7 +2,13 @@
   "permissions": {
     "allow": [
       "Bash(sed -i 's/EldenRingSprint/CustomControlz/g; s/<SubSystem>Console<\\\\/SubSystem>/<SubSystem>Windows<\\\\/SubSystem>/g' CustomControlz/CustomControlz.vcxproj)",
-      "Bash(sed -i 's/Resource.rc/Resource.rc/g' CustomControlz/CustomControlz.vcxproj)"
+      "Bash(sed -i 's/Resource.rc/Resource.rc/g' CustomControlz/CustomControlz.vcxproj)",
+      "Bash(convert --version)",
+      "Bash(python3 -c \"from PIL import Image; print\\(''''Pillow OK''''\\)\")",
+      "Bash(pip3 show:*)",
+      "Bash(brew list:*)",
+      "Bash(pip3 install:*)",
+      "Bash(python3 -c \":*)"
     ]
   }
 }
