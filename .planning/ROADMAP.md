@@ -45,7 +45,12 @@ Plans:
   2. Elden Ring and Toxic Commando load from JSON files and behave identically to their previous hardcoded implementations
   3. The app starts with no settings.ini binding data — all binding values come from the JSON profile files
   4. Adding a new `.json` file to `profiles\` and restarting the app causes that game to appear in the tray menu without any code change
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Create EldenRing.json + ToxicCommando.json profile data files and ProfileLoader.h (parser, loader, saver, migrator)
+- [ ] 02-02-PLAN.md — Wire CustomControlZ.cpp: replace static g_gameProfiles array with runtime discovery, update SaveConfig/LoadConfig, delete games/*.h
+- [ ] 02-03-PLAN.md — Human smoke test: verify all 4 PROF success criteria (file discovery, behavior parity, settings.ini migration)
 
 ### Phase 3: Profile Editor
 **Goal**: Users can configure behavior type and parameters for each binding, enable or disable individual bindings, and are warned when a duplicate key assignment is detected — all within the existing settings window
@@ -76,6 +81,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Behavior Engine | 3/3 | Complete | 2026-03-12 |
-| 2. Profile Persistence | 0/TBD | Not started | - |
+| 2. Profile Persistence | 0/3 | Not started | - |
 | 3. Profile Editor | 0/TBD | Not started | - |
 | 4. Add Game UI | 0/TBD | Not started | - |
