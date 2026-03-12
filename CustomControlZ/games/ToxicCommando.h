@@ -8,79 +8,8 @@ enum ToxicCommandoBinding {
     TC_BINDING_COUNT   = 2
 };
 
-constexpr int TC_LOGIC_TICK_MS       = 10;
-constexpr int TC_GAME_CHECK_IDLE_MS  = 1000;
 constexpr DWORD TC_SCROLL_DELTA_UP   = 120;
 constexpr DWORD TC_SCROLL_DELTA_DOWN = static_cast<DWORD>(-120);
-
-// Forward declarations of helpers defined in CustomControlZ.cpp
-bool IsGameRunning(GameProfile* profile);
-void SetTrayIconState(bool active, GameProfile* profile);
-inline bool IsKeyDown(WORD vk);
-extern std::mutex g_configMutex;
-extern std::atomic<int> g_waitingForBindID;
-
-static void ToxicCommandoLogicThread(GameProfile* profile, std::atomic<bool>& running) {
-    bool scrollUpPressed   = false;
-    bool scrollDownPressed = false;
-    bool lastGameState     = false;
-
-    while (running) {
-        if (g_waitingForBindID != 0) {
-            Sleep(TC_LOGIC_TICK_MS);
-            continue;
-        }
-
-        bool currentGameState = IsGameRunning(profile);
-
-        if (currentGameState != lastGameState) {
-            SetTrayIconState(currentGameState, profile);
-            lastGameState = currentGameState;
-        }
-
-        if (!currentGameState) {
-            Sleep(TC_GAME_CHECK_IDLE_MS);
-            continue;
-        }
-
-        WORD keyUp, keyDown;
-        {
-            std::lock_guard<std::mutex> lock(g_configMutex);
-            keyUp   = profile->bindings[TC_KEY_SCROLL_UP].currentVk;
-            keyDown = profile->bindings[TC_KEY_SCROLL_DOWN].currentVk;
-        }
-
-        // Scroll up (next weapon) - edge triggered: fires once per key press
-        if (IsKeyDown(keyUp)) {
-            if (!scrollUpPressed) {
-                scrollUpPressed = true;
-                INPUT input = {};
-                input.type = INPUT_MOUSE;
-                input.mi.dwFlags = MOUSEEVENTF_WHEEL;
-                input.mi.mouseData = TC_SCROLL_DELTA_UP;
-                SendInput(1, &input, sizeof(INPUT));
-            }
-        } else {
-            scrollUpPressed = false;
-        }
-
-        // Scroll down (prev weapon) - edge triggered
-        if (IsKeyDown(keyDown)) {
-            if (!scrollDownPressed) {
-                scrollDownPressed = true;
-                INPUT input = {};
-                input.type = INPUT_MOUSE;
-                input.mi.dwFlags = MOUSEEVENTF_WHEEL;
-                input.mi.mouseData = TC_SCROLL_DELTA_DOWN;
-                SendInput(1, &input, sizeof(INPUT));
-            }
-        } else {
-            scrollDownPressed = false;
-        }
-
-        Sleep(TC_LOGIC_TICK_MS);
-    }
-}
 
 static GameProfile g_ToxicCommandoProfile = {
     /* id            */ L"ToxicCommando",
@@ -106,8 +35,15 @@ static GameProfile g_ToxicCommandoProfile = {
     },
     /* bindingCount */ TC_BINDING_COUNT,
     /* bindings */ {
-        { L"ScrollUpKey",   L"Next Weapon (Scroll Up Key)",   VK_PRIOR, VK_PRIOR }, // Page Up default
-        { L"ScrollDownKey", L"Prev Weapon (Scroll Down Key)", VK_NEXT,  VK_NEXT  }, // Page Down default
+        // TC_KEY_SCROLL_UP: WheelToKey — rising edge fires mouse wheel up (next weapon)
+        { L"ScrollUpKey",   L"Next Weapon (Scroll Up Key)",   VK_PRIOR, VK_PRIOR,
+          { BehaviorType::WheelToKey, /*outputVk=*/0, /*longOutputVk=*/0,
+            /*thresholdMs=*/400, /*durationMs=*/50, /*wheelDelta=*/TC_SCROLL_DELTA_UP } },
+
+        // TC_KEY_SCROLL_DOWN: WheelToKey — rising edge fires mouse wheel down (prev weapon)
+        { L"ScrollDownKey", L"Prev Weapon (Scroll Down Key)", VK_NEXT,  VK_NEXT,
+          { BehaviorType::WheelToKey, /*outputVk=*/0, /*longOutputVk=*/0,
+            /*thresholdMs=*/400, /*durationMs=*/50, /*wheelDelta=*/TC_SCROLL_DELTA_DOWN } },
     },
-    /* logicFn */ ToxicCommandoLogicThread,
+    /* logicFn */ GenericLogicThreadFn,
 };
