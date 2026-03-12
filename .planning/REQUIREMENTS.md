@@ -7,10 +7,10 @@
 
 ### Behavior Engine
 
-- [ ] **BEH-01**: App supports HoldToToggle binding behavior — hold key activates action, release deactivates it
-- [ ] **BEH-02**: App supports EdgeTrigger binding behavior — action fires on key release, not press
-- [ ] **BEH-03**: App supports LongPress binding behavior — short press vs. long press trigger different output keys
-- [ ] **BEH-04**: App supports WheelToKey binding behavior — mouse scroll up/down mapped to configurable key press(es)
+- [x] **BEH-01**: App supports HoldToToggle binding behavior — hold key activates action, release deactivates it
+- [x] **BEH-02**: App supports EdgeTrigger binding behavior — action fires on key release, not press
+- [x] **BEH-03**: App supports LongPress binding behavior — short press vs. long press trigger different output keys
+- [x] **BEH-04**: App supports WheelToKey binding behavior — mouse scroll up/down mapped to configurable key press(es)
 - [ ] **BEH-05**: Settings window shows a behavior type picker per binding (dropdown: HoldToToggle / EdgeTrigger / LongPress / WheelToKey)
 - [ ] **BEH-06**: Settings window warns user when the same key is assigned to more than one binding
 - [ ] **BEH-07**: User can enable or disable individual bindings without deleting them
@@ -31,7 +31,7 @@
 
 ### Reliability Fixes
 
-- [ ] **FIX-01**: All injected key presses are guaranteed released on app exit or game stop (RAII key tracking)
+- [x] **FIX-01**: All injected key presses are guaranteed released on app exit or game stop (RAII key tracking)
 - [ ] **FIX-02**: App detects when `SendInput` is blocked by UIPI (game running elevated) and displays a warning to the user
 
 ## v2 Requirements
@@ -63,10 +63,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BEH-01 | Phase 1 | Pending |
-| BEH-02 | Phase 1 | Pending |
-| BEH-03 | Phase 1 | Pending |
-| BEH-04 | Phase 1 | Pending |
+| BEH-01 | Phase 1 | Complete (01-01) |
+| BEH-02 | Phase 1 | Complete (01-01) |
+| BEH-03 | Phase 1 | Complete (01-01) |
+| BEH-04 | Phase 1 | Complete (01-01) |
 | BEH-05 | Phase 3 | Pending |
 | BEH-06 | Phase 3 | Pending |
 | BEH-07 | Phase 3 | Pending |
@@ -78,7 +78,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GAME-02 | Phase 4 | Pending |
 | GAME-03 | Phase 4 | Pending |
 | GAME-04 | Phase 4 | Pending |
-| FIX-01 | Phase 1 | Pending |
+| FIX-01 | Phase 1 | Complete (01-01) |
 | FIX-02 | Phase 1 | Pending |
 
 **Coverage:**
@@ -88,4 +88,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-03-11*
-*Last updated: 2026-03-11 after roadmap creation*
+*Last updated: 2026-03-12 after 01-01 completion (BEH-01, BEH-02, BEH-03, BEH-04, FIX-01 marked complete)*

@@ -10,27 +10,27 @@ See: .planning/PROJECT.md (updated 2026-03-11)
 ## Current Position
 
 Phase: 1 of 4 (Behavior Engine)
-Plan: 0 of 3 in current phase
-Status: Ready to execute
-Last activity: 2026-03-12 — Phase 1 planned (3 plans, 3 waves)
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-03-12 — Completed 01-01 (BehaviorEngine.h + GameProfiles.h extension)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█░░░░░░░░░] 8%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
-- Average duration: —
-- Total execution time: 0 hours
+- Total plans completed: 1
+- Average duration: 2 min
+- Total execution time: 0.03 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 01-behavior-engine | 1 | 2 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: —
+- Last 5 plans: 01-01 (2 min)
 - Trend: —
 
 *Updated after each plan completion*
@@ -46,6 +46,9 @@ Recent decisions affecting current work:
 - [Init]: In-app UI editor is the primary authoring surface; JSON files are storage
 - [Init]: Start with four preset behavior types; scripting deferred to later milestone
 - [Init]: Rebuild Elden Ring + Toxic Commando as JSON profiles; hardcoded implementations removed
+- [01-01]: BehaviorEngine.h uses forward declaration of GameProfile to avoid circular include with GameProfiles.h
+- [01-01]: MAX_BINDINGS flows into BehaviorEngine.h from GameProfiles.h include order (no redefinition)
+- [01-01]: LongPress fires shortOutputVk on falling edge (tap) only, not rising edge
 
 ### Pending Todos
 
@@ -59,5 +62,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-12
-Stopped at: Phase 1 planned, ready to execute
+Stopped at: Completed 01-01-PLAN.md (BehaviorEngine.h + GameProfiles.h extension)
 Resume file: None

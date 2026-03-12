@@ -32,7 +32,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 3 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Create BehaviorEngine.h (GenericLogicThreadFn, KeyTracker, all behavior types) + extend GameProfiles.h KeyBinding with BehaviorDescriptor
+- [x] 01-01-PLAN.md — Create BehaviorEngine.h (GenericLogicThreadFn, KeyTracker, all behavior types) + extend GameProfiles.h KeyBinding with BehaviorDescriptor
 - [ ] 01-02-PLAN.md — Rebuild EldenRing.h and ToxicCommando.h as pure descriptor data, remove hardcoded logic threads
 - [ ] 01-03-PLAN.md — Add UIPI detection (IsProcessRunningElevated) to CustomControlZ.cpp + human verification of all 6 smoke tests
 
@@ -75,7 +75,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Behavior Engine | 0/3 | In progress | - |
+| 1. Behavior Engine | 1/3 | In progress | - |
 | 2. Profile Persistence | 0/TBD | Not started | - |
 | 3. Profile Editor | 0/TBD | Not started | - |
 | 4. Add Game UI | 0/TBD | Not started | - |
