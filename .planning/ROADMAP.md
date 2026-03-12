@@ -29,7 +29,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Force-killing the app while a key is held down does not leave that key stuck in the OS — the key is released before the process exits
   4. When the target game runs elevated and SendInput is blocked, a visible warning is shown to the user rather than silently failing
   5. LongPress behavior fires the short-press output on a tap and the long-press output on a sustained hold
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Create BehaviorEngine.h (GenericLogicThreadFn, KeyTracker, all behavior types) + extend GameProfiles.h KeyBinding with BehaviorDescriptor
+- [ ] 01-02-PLAN.md — Rebuild EldenRing.h and ToxicCommando.h as pure descriptor data, remove hardcoded logic threads
+- [ ] 01-03-PLAN.md — Add UIPI detection (IsProcessRunningElevated) to CustomControlZ.cpp + human verification of all 6 smoke tests
 
 ### Phase 2: Profile Persistence
 **Goal**: Game profiles live as JSON files on disk; the app discovers and loads them automatically at startup with no hardcoded profile list in source code
@@ -70,7 +75,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Behavior Engine | 0/TBD | Not started | - |
+| 1. Behavior Engine | 0/3 | In progress | - |
 | 2. Profile Persistence | 0/TBD | Not started | - |
 | 3. Profile Editor | 0/TBD | Not started | - |
 | 4. Add Game UI | 0/TBD | Not started | - |
