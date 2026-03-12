@@ -12,7 +12,7 @@ This milestone replaces two hardcoded C++ game profiles with a fully data-driven
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Behavior Engine** - Generic behavior engine with all four preset state machines, RAII key cleanup, and UIPI detection
+- [x] **Phase 1: Behavior Engine** - Generic behavior engine with all four preset state machines, RAII key cleanup, and UIPI detection
 - [ ] **Phase 2: Profile Persistence** - JSON profile schema, auto-discovery, Elden Ring and Toxic Commando ported, settings.ini migrated
 - [ ] **Phase 3: Profile Editor** - Existing settings window extended with behavior type picker, duplicate warning, and enable/disable toggle
 - [ ] **Phase 4: Add Game UI** - New profile creation and management wizard with anti-cheat disclaimer
@@ -75,7 +75,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Behavior Engine | 3/3 | Awaiting smoke test | - |
+| 1. Behavior Engine | 3/3 | Complete | 2026-03-12 |
 | 2. Profile Persistence | 0/TBD | Not started | - |
 | 3. Profile Editor | 0/TBD | Not started | - |
 | 4. Add Game UI | 0/TBD | Not started | - |

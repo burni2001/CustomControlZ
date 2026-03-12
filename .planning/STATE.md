@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: "Completed 01-03-PLAN.md (UIPI detection + smoke test checkpoint)"
-last_updated: "2026-03-12T10:52:03.000Z"
-last_activity: "2026-03-12 — Completed 01-03 (IsProcessRunningElevated + UIPI warning; awaiting human smoke test)"
+status: phase-complete
+stopped_at: "Completed Phase 1 (01-03-PLAN.md) — all smoke tests approved, Phase 1 done"
+last_updated: "2026-03-12T11:05:00.000Z"
+last_activity: "2026-03-12 — Completed Phase 1: all 6 smoke tests approved; behavior engine complete"
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
   completed_plans: 3
   percent: 100
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** All remapping behavior types (hold-to-toggle, combos/sequences, mouse wheel → key, timing/delays) work reliably for any game profile the user creates.
-**Current focus:** Phase 1 — Behavior Engine
+**Current focus:** Phase 2 — Profile Persistence (Phase 1 complete)
 
 ## Current Position
 
-Phase: 1 of 4 (Behavior Engine)
-Plan: 3 of 3 in current phase (all plans complete; awaiting Phase 1 smoke test checkpoint)
-Status: Awaiting human verification
-Last activity: 2026-03-12 — Completed 01-03 (IsProcessRunningElevated + UIPI warning; awaiting human smoke test)
+Phase: 1 of 4 (Behavior Engine) — COMPLETE
+Plan: 3 of 3 in current phase (all plans complete; all smoke tests approved)
+Status: Phase 1 complete; ready to begin Phase 2 (Profile Persistence)
+Last activity: 2026-03-12 — Phase 1 complete: all 6 smoke tests approved
 
 Progress: [██████████] 100% (Phase 1 plans complete)
 
@@ -81,6 +81,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-12T10:52:03Z
-Stopped at: "Completed 01-03-PLAN.md Task 1; paused at checkpoint:human-verify for Phase 1 smoke tests"
+Last session: 2026-03-12T11:05:00Z
+Stopped at: "Completed Phase 1 — all 6 smoke tests human-approved; ready for Phase 2"
 Resume file: None

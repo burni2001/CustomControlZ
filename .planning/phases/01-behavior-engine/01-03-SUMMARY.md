@@ -52,10 +52,10 @@ completed: 2026-03-12
 
 ## Performance
 
-- **Duration:** 1 min
+- **Duration:** ~10 min (Task 1 automated + human smoke test checkpoint)
 - **Started:** 2026-03-12T10:51:03Z
-- **Completed:** 2026-03-12T10:52:03Z
-- **Tasks:** 1 (Task 2 is checkpoint:human-verify — awaiting)
+- **Completed:** 2026-03-12T11:05:00Z
+- **Tasks:** 2 (1 auto + 1 checkpoint:human-verify, approved)
 - **Files modified:** 2
 
 ## Accomplishments
@@ -65,12 +65,14 @@ completed: 2026-03-12
 - Added UIPI elevation check in `GenericLogicThreadFn` at the game-start state transition (fires once per game activation, not per tick)
 - `MessageBox` warning displayed when game process runs at High integrity level, explaining UIPI restriction and suggesting running as Administrator
 - Confirmed FIX-01 (no stuck keys on exit) is satisfied by the existing `tracker.releaseAll()` call after the `while (running)` loop in `GenericLogicThreadFn` — no changes needed to `StopGameLogicThread`
+- All 6 Phase 1 smoke tests human-verified and approved: BEH-01 (HoldToToggle), BEH-02 (EdgeTrigger), BEH-03 (LongPress), BEH-04 (WheelToKey), FIX-01 (no stuck keys on exit), FIX-02 (UIPI warning when elevated)
 
 ## Task Commits
 
 Each task was committed atomically:
 
 1. **Task 1: Add IsProcessRunningElevated and UIPI warning in OnGameSelected** - `c0b28ad` (feat)
+2. **Task 2: checkpoint:human-verify** - _(no code commit; all 6 smoke tests human-approved)_
 
 **Plan metadata:** _(committed with docs commit after summary)_
 
@@ -97,9 +99,10 @@ None.
 None - no external service configuration required.
 
 ## Next Phase Readiness
-- Phase 1 behavior engine is feature-complete; all four behavior types implemented, RAII key release in place, UIPI detection wired
-- Smoke tests (Task 2 checkpoint) must pass on Windows before Phase 1 can be closed
-- Blocker carried forward: Toxic Commando actual process name is still a placeholder (`ToxicCommando.exe`) — must be confirmed before Phase 2 JSON profile
+- Phase 1 behavior engine is complete: all four behavior types implemented, RAII key release verified, UIPI detection wired, all 6 smoke tests passed
+- Phase 2 (Profile Persistence) can begin: JSON profile schema, auto-discovery, Elden Ring and Toxic Commando ported from .h files to JSON
+- Blocker carried forward: Toxic Commando actual process name is still a placeholder (`ToxicCommando.exe`) — must be confirmed before Phase 2 JSON profile is authoritative
+- Owner-drawn combobox dark-mode handling (Phase 3) — potential spike needed before settings window layout is committed
 
 ## Self-Check: PASSED
 
