@@ -402,6 +402,48 @@ void SetTrayIconState(bool active, GameProfile* profile) {
     Shell_NotifyIcon(NIM_MODIFY, &g_nid);
 }
 
+// Returns true if the named process is running at High integrity (elevated / as Administrator).
+// Uses OpenProcessToken + GetTokenInformation(TokenIntegrityLevel).
+// NOTE: GetLastError after SendInput does NOT distinguish UIPI failures from other failures.
+// This proactive check is the only reliable way to detect UIPI risk. (FIX-02)
+bool IsProcessRunningElevated(const wchar_t* processName) {
+    HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (hSnap == INVALID_HANDLE_VALUE) return false;
+
+    PROCESSENTRY32W pe = {};
+    pe.dwSize = sizeof(PROCESSENTRY32W);
+    bool elevated = false;
+
+    if (Process32FirstW(hSnap, &pe)) {
+        do {
+            if (_wcsicmp(pe.szExeFile, processName) == 0) {
+                HANDLE hProc = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pe.th32ProcessID);
+                if (hProc) {
+                    HANDLE hToken = nullptr;
+                    if (OpenProcessToken(hProc, TOKEN_QUERY, &hToken)) {
+                        DWORD infoLen = 0;
+                        GetTokenInformation(hToken, TokenIntegrityLevel, nullptr, 0, &infoLen);
+                        if (infoLen > 0) {
+                            auto* label = static_cast<TOKEN_MANDATORY_LABEL*>(_alloca(infoLen));
+                            if (GetTokenInformation(hToken, TokenIntegrityLevel, label, infoLen, &infoLen)) {
+                                DWORD level = *GetSidSubAuthority(
+                                    label->Label.Sid,
+                                    *GetSidSubAuthorityCount(label->Label.Sid) - 1);
+                                elevated = (level >= SECURITY_MANDATORY_HIGH_RID);
+                            }
+                        }
+                        CloseHandle(hToken);
+                    }
+                    CloseHandle(hProc);
+                }
+                break;
+            }
+        } while (Process32NextW(hSnap, &pe));
+    }
+    CloseHandle(hSnap);
+    return elevated;
+}
+
 // --- GAME LOGIC THREAD MANAGEMENT ---
 
 void StopGameLogicThread() {

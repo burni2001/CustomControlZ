@@ -17,6 +17,7 @@ inline void ReleaseKey(WORD vk);
 inline bool IsKeyDown(WORD vk);
 bool IsGameRunning(GameProfile* profile);
 void SetTrayIconState(bool active, GameProfile* profile);
+bool IsProcessRunningElevated(const wchar_t* processName);  // FIX-02: UIPI detection
 extern std::mutex g_configMutex;
 extern std::atomic<int> g_waitingForBindID;
 
@@ -107,6 +108,21 @@ void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& running) {
             } else {
                 // Game just started
                 SetTrayIconState(true, profile);
+
+                // Check if game is running elevated (FIX-02: UIPI detection)
+                bool elevated = IsProcessRunningElevated(profile->processName1);
+                if (!elevated && profile->processName2)
+                    elevated = IsProcessRunningElevated(profile->processName2);
+                if (elevated) {
+                    MessageBox(nullptr,
+                        L"Warning: The game is running as Administrator.\n\n"
+                        L"CustomControlZ cannot inject inputs into elevated processes without "
+                        L"also running as Administrator (UIPI restriction).\n\n"
+                        L"Key remapping may not work. Run CustomControlZ as Administrator "
+                        L"if you need remapping to function.",
+                        L"Elevation Warning \u2014 UIPI Detected",
+                        MB_OK | MB_ICONWARNING);
+                }
             }
             lastGameState = currentGameState;
         }
