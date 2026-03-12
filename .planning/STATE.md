@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-02-PLAN.md (EldenRing.h + ToxicCommando.h migrated to pure data)
-last_updated: "2026-03-12T10:50:04.608Z"
-last_activity: 2026-03-12 — Completed 01-01 (BehaviorEngine.h + GameProfiles.h extension)
+stopped_at: "Completed 01-03-PLAN.md (UIPI detection + smoke test checkpoint)"
+last_updated: "2026-03-12T10:52:03.000Z"
+last_activity: "2026-03-12 — Completed 01-03 (IsProcessRunningElevated + UIPI warning; awaiting human smoke test)"
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 3
-  completed_plans: 2
-  percent: 67
+  completed_plans: 3
+  percent: 100
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-11)
 ## Current Position
 
 Phase: 1 of 4 (Behavior Engine)
-Plan: 1 of 3 in current phase
-Status: In progress
-Last activity: 2026-03-12 — Completed 01-01 (BehaviorEngine.h + GameProfiles.h extension)
+Plan: 3 of 3 in current phase (all plans complete; awaiting Phase 1 smoke test checkpoint)
+Status: Awaiting human verification
+Last activity: 2026-03-12 — Completed 01-03 (IsProcessRunningElevated + UIPI warning; awaiting human smoke test)
 
-Progress: [███████░░░] 67%
+Progress: [██████████] 100% (Phase 1 plans complete)
 
 ## Performance Metrics
 
@@ -68,6 +68,7 @@ Recent decisions affecting current work:
 - [01-01]: LongPress fires shortOutputVk on falling edge (tap) only, not rising edge
 - [Phase 01-02]: ER_KEY_INGAME uses HoldToToggle/outputVk=0 as no-op sentinel; sprint/dodge outputVk hardcoded to 'F' in Phase 1 (dynamic ref deferred to Phase 2 JSON)
 - [Phase 01-02]: ER_KEY_TRIGGER LongPress: tap fires VK_ESCAPE (close/back), hold fires Q (action) — improvement over original which did nothing on tap
+- [Phase 01-03]: IsProcessRunningElevated is non-static free function so BehaviorEngine.h can forward-declare and call it; UIPI check in game-start transition fires once per game activation
 
 ### Pending Todos
 
@@ -80,6 +81,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-12T10:50:04.605Z
-Stopped at: Completed 01-02-PLAN.md (EldenRing.h + ToxicCommando.h migrated to pure data)
+Last session: 2026-03-12T10:52:03Z
+Stopped at: "Completed 01-03-PLAN.md Task 1; paused at checkpoint:human-verify for Phase 1 smoke tests"
 Resume file: None

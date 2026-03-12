@@ -32,7 +32,7 @@
 ### Reliability Fixes
 
 - [x] **FIX-01**: All injected key presses are guaranteed released on app exit or game stop (RAII key tracking)
-- [ ] **FIX-02**: App detects when `SendInput` is blocked by UIPI (game running elevated) and displays a warning to the user
+- [x] **FIX-02**: App detects when `SendInput` is blocked by UIPI (game running elevated) and displays a warning to the user
 
 ## v2 Requirements
 
@@ -79,7 +79,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GAME-03 | Phase 4 | Pending |
 | GAME-04 | Phase 4 | Pending |
 | FIX-01 | Phase 1 | Complete (01-01) |
-| FIX-02 | Phase 1 | Pending |
+| FIX-02 | Phase 1 | Complete (01-03) |
 
 **Coverage:**
 - v1 requirements: 17 total
@@ -88,4 +88,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-03-11*
-*Last updated: 2026-03-12 after 01-01 completion (BEH-01, BEH-02, BEH-03, BEH-04, FIX-01 marked complete)*
+*Last updated: 2026-03-12 after 01-03 completion (FIX-02 marked complete; all Phase 1 requirements done)*

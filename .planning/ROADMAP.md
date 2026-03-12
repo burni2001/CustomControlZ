@@ -33,8 +33,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 Plans:
 - [x] 01-01-PLAN.md — Create BehaviorEngine.h (GenericLogicThreadFn, KeyTracker, all behavior types) + extend GameProfiles.h KeyBinding with BehaviorDescriptor
-- [ ] 01-02-PLAN.md — Rebuild EldenRing.h and ToxicCommando.h as pure descriptor data, remove hardcoded logic threads
-- [ ] 01-03-PLAN.md — Add UIPI detection (IsProcessRunningElevated) to CustomControlZ.cpp + human verification of all 6 smoke tests
+- [x] 01-02-PLAN.md — Rebuild EldenRing.h and ToxicCommando.h as pure descriptor data, remove hardcoded logic threads
+- [x] 01-03-PLAN.md — Add UIPI detection (IsProcessRunningElevated) to CustomControlZ.cpp + human verification of all 6 smoke tests
 
 ### Phase 2: Profile Persistence
 **Goal**: Game profiles live as JSON files on disk; the app discovers and loads them automatically at startup with no hardcoded profile list in source code
@@ -75,7 +75,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Behavior Engine | 2/3 | In Progress|  |
+| 1. Behavior Engine | 3/3 | Awaiting smoke test | - |
 | 2. Profile Persistence | 0/TBD | Not started | - |
 | 3. Profile Editor | 0/TBD | Not started | - |
 | 4. Add Game UI | 0/TBD | Not started | - |
