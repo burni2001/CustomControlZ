@@ -6,11 +6,17 @@
 // Maximum configurable key bindings per game
 constexpr int MAX_BINDINGS = 8;
 
+// BehaviorEngine.h is included here so KeyBinding can carry a BehaviorDescriptor.
+// BehaviorEngine.h does NOT include GameProfiles.h (uses forward declaration only)
+// to keep the include chain acyclic: GameProfiles.h -> BehaviorEngine.h.
+#include "BehaviorEngine.h"
+
 struct KeyBinding {
-    const wchar_t* iniKey;    // Key name in settings.ini, e.g. L"SprintKey"
-    const wchar_t* label;     // UI label shown next to the button
-    WORD           defaultVk; // Default virtual key code
-    WORD           currentVk; // Live value - written by UI, read by logic thread
+    const wchar_t*     iniKey;    // Key name in settings.ini, e.g. L"SprintKey"
+    const wchar_t*     label;     // UI label shown next to the button
+    WORD               defaultVk; // Default virtual key code
+    WORD               currentVk; // Live value - written by UI, read by logic thread
+    BehaviorDescriptor behavior;  // Behavior type and parameters for this binding
 };
 
 struct Theme {
