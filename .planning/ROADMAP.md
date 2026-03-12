@@ -75,7 +75,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Behavior Engine | 1/3 | In progress | - |
+| 1. Behavior Engine | 2/3 | In Progress|  |
 | 2. Profile Persistence | 0/TBD | Not started | - |
 | 3. Profile Editor | 0/TBD | Not started | - |
 | 4. Add Game UI | 0/TBD | Not started | - |
