@@ -15,7 +15,7 @@ static GameProfile g_ToxicCommandoProfile = {
     /* id            */ L"ToxicCommando",
     /* displayName   */ L"Toxic Commando",
     /* iniSection    */ L"ToxicCommando",
-    /* processName1  */ L"ToxicCommando.exe",  // UPDATE with real process name before release
+    /* processName1  */ L"John Carpenter's Toxic Commando.exe",
     /* processName2  */ nullptr,
     /* tipActive     */ L"CustomControlZ - Toxic Commando: ACTIVE",
     /* tipIdle       */ L"CustomControlZ: Waiting...",
