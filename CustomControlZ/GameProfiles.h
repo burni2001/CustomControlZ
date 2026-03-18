@@ -212,10 +212,9 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
                         ULONGLONG elapsed = GetTickCount64() - s.pressTime;
                         if ((int)elapsed >= desc.thresholdMs) {
                             s.thresholdHit = true;
-                            // Switch to weapon and start holding the attack button
+                            // Switch to weapon (keep held), then start holding attack button.
+                            // outputVk stays pressed until the falling edge cleans up.
                             PressKey(desc.outputVk);
-                            Sleep(desc.durationMs);
-                            ReleaseKey(desc.outputVk);
                             Sleep(desc.durationMs);
                             PressMouse(desc.attackVk);
                             s.holding = true;
@@ -225,21 +224,24 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
                     if (s.keyDown) {
                         // Falling edge
                         if (s.holding) {
-                            // Long press: release attack and switch back
+                            // Long press: release attack, then release weapon key, then switch back
                             ReleaseMouse(desc.attackVk);
+                            Sleep(desc.durationMs);
+                            ReleaseKey(desc.outputVk);
                             Sleep(desc.durationMs);
                             PressKey(desc.longOutputVk);
                             Sleep(desc.durationMs);
                             ReleaseKey(desc.longOutputVk);
                         } else if (!s.thresholdHit) {
-                            // Tap: switch to weapon, click, switch back
+                            // Tap: press weapon key, wait, click attack while key is still held,
+                            // then release weapon key, then switch back explicitly.
                             PressKey(desc.outputVk);
-                            Sleep(desc.durationMs);
-                            ReleaseKey(desc.outputVk);
                             Sleep(desc.durationMs);
                             PressMouse(desc.attackVk);
                             Sleep(50);
                             ReleaseMouse(desc.attackVk);
+                            Sleep(desc.durationMs);
+                            ReleaseKey(desc.outputVk);
                             Sleep(desc.durationMs);
                             PressKey(desc.longOutputVk);
                             Sleep(desc.durationMs);
@@ -269,6 +271,77 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
                 break;
             }
 
+            case BehaviorType::KeyToggle: {
+                KeyToggleState& s = state[i].keyToggle;
+                if (keyDown && !s.pressed) {
+                    WORD vk = s.useAlt ? desc.longOutputVk : desc.outputVk;
+                    PressKey(vk);
+                    Sleep(desc.durationMs);
+                    ReleaseKey(vk);
+                    s.useAlt  = !s.useAlt;
+                    s.pressed = true;
+                } else if (!keyDown) {
+                    s.pressed = false;
+                }
+                break;
+            }
+
+            case BehaviorType::MeleeBurst: {
+                MeleeBurstState& s = state[i].meleeBurst;
+
+                if (keyDown && !s.keyDown) {
+                    // Rising edge
+                    s.keyDown      = true;
+                    s.thresholdHit = false;
+                    s.pressTime    = GetTickCount64();
+
+                    if (!s.inMelee) {
+                        PressKey(desc.outputVk);   // press ^ — keep held throughout burst
+                        Sleep(desc.durationMs);
+                        s.inMelee = true;
+                    }
+                    s.lastPressTime = GetTickCount64();
+
+                } else if (keyDown && s.keyDown && !s.thresholdHit) {
+                    // Held: check long-press threshold
+                    ULONGLONG elapsed = GetTickCount64() - s.pressTime;
+                    if ((int)elapsed >= desc.thresholdMs) {
+                        s.thresholdHit = true;
+                        PressMouse(desc.attackVk);
+                        s.holding = true;
+                    }
+
+                } else if (!keyDown && s.keyDown) {
+                    // Falling edge
+                    if (s.holding) {
+                        ReleaseMouse(desc.attackVk);
+                        s.holding = false;
+                    } else if (!s.thresholdHit) {
+                        // Tap: single click
+                        PressMouse(desc.attackVk);
+                        Sleep(50);
+                        ReleaseMouse(desc.attackVk);
+                    }
+                    s.keyDown      = false;
+                    s.thresholdHit = false;
+                    s.lastPressTime = GetTickCount64();
+                }
+
+                // Return timer: auto-switch back after idle
+                if (s.inMelee && !s.keyDown) {
+                    ULONGLONG elapsed = GetTickCount64() - s.lastPressTime;
+                    if ((int)elapsed >= desc.returnDelayMs) {
+                        ReleaseKey(desc.outputVk);    // release ^
+                        Sleep(30);
+                        PressKey(desc.longOutputVk);  // press 2
+                        Sleep(30);
+                        ReleaseKey(desc.longOutputVk);
+                        s.inMelee = false;
+                    }
+                }
+                break;
+            }
+
             } // switch
         }
 
@@ -278,11 +351,17 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
     // Thread exiting: release any keys still held
     tracker.releaseAll();
 
-    // Release held mouse buttons for any WeaponCombo bindings mid-hold
+    // Release held inputs for any WeaponCombo/MeleeBurst bindings mid-hold
     for (int i = 0; i < profile->bindingCount; i++) {
-        if (profile->bindings[i].behavior.type == BehaviorType::WeaponCombo
-            && state[i].weaponCombo.holding) {
-            ReleaseMouse(profile->bindings[i].behavior.attackVk);
+        const auto& b = profile->bindings[i].behavior;
+        if (b.type == BehaviorType::WeaponCombo && state[i].weaponCombo.holding) {
+            ReleaseMouse(b.attackVk);
+            ReleaseKey(b.outputVk);
+        }
+        if (b.type == BehaviorType::MeleeBurst && state[i].meleeBurst.inMelee) {
+            if (state[i].meleeBurst.holding)
+                ReleaseMouse(b.attackVk);
+            ReleaseKey(b.outputVk);
         }
     }
 }

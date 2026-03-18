@@ -32,6 +32,8 @@ enum class BehaviorType : uint8_t {
     WheelToKey,    // rising edge on inputVk -> send mouse wheel delta (wheelDelta)
     WheelToggle,   // rising edge on inputVk -> alternate between +wheelDelta and -wheelDelta each press
     WeaponCombo,   // tap -> switch weapon + click + switch back; hold -> switch weapon + hold attack + switch back on release
+    MeleeBurst,    // repeated taps stay on melee weapon; auto-switch back after returnDelayMs of idle
+    KeyToggle,     // rising edge on inputVk -> alternate between pulsing outputVk and longOutputVk each press
 };
 
 struct BehaviorDescriptor {
@@ -40,8 +42,9 @@ struct BehaviorDescriptor {
     WORD         longOutputVk = 0;      // LongPress: output on sustained hold; WeaponCombo: switch-back key
     int          thresholdMs  = 400;    // LongPress/WeaponCombo: hold threshold in milliseconds
     int          durationMs   = 50;     // EdgeTrigger: pulse duration; WeaponCombo: delay after weapon switch key (ms)
-    DWORD        wheelDelta   = 120;    // WheelToKey/WheelToggle: MOUSEEVENTF_WHEEL mouseData
-    WORD         attackVk     = 0;      // WeaponCombo: attack button VK (e.g. VK_LBUTTON)
+    DWORD        wheelDelta    = 120;   // WheelToKey/WheelToggle: MOUSEEVENTF_WHEEL mouseData
+    WORD         attackVk      = 0;    // WeaponCombo/MeleeBurst: attack button VK (e.g. VK_LBUTTON)
+    int          returnDelayMs = 500;  // MeleeBurst: ms of idle before auto-switching back to main weapon
 };
 
 // --- PER-BINDING STATE STRUCTS ---
@@ -76,6 +79,20 @@ struct WeaponComboState {
     ULONGLONG pressTime    = 0;
 };
 
+struct KeyToggleState {
+    bool pressed = false; // tracks rising edge (prevents repeat while held)
+    bool useAlt  = false; // alternates: false = outputVk, true = longOutputVk
+};
+
+struct MeleeBurstState {
+    bool      inMelee       = false; // currently switched to melee weapon (outputVk held)
+    bool      keyDown       = false;
+    bool      thresholdHit  = false; // true once long-press threshold exceeded
+    bool      holding       = false; // true while attack button is held (long-press mode)
+    ULONGLONG pressTime     = 0;     // time of current rising edge (for long-press threshold)
+    ULONGLONG lastPressTime = 0;     // time of last key event (for return-to-main timer)
+};
+
 union BindingState {
     HoldToToggleState holdToggle;
     EdgeTriggerState  edgeTrigger;
@@ -83,6 +100,8 @@ union BindingState {
     WheelToKeyState   wheelToKey;
     WheelToggleState  wheelToggle;
     WeaponComboState  weaponCombo;
+    KeyToggleState    keyToggle;
+    MeleeBurstState   meleeBurst;
     BindingState() { memset(this, 0, sizeof(*this)); }
 };
 
