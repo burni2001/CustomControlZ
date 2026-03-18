@@ -3,13 +3,14 @@
 
 // Binding indices for Toxic Commando
 enum ToxicCommandoBinding {
-    TC_KEY_SCROLL_UP   = 0, // Key that simulates scroll wheel up (next weapon)
-    TC_KEY_SCROLL_DOWN = 1, // Key that simulates scroll wheel down (prev weapon)
-    TC_BINDING_COUNT   = 2
+    TC_KEY_SCROLL_TOGGLE = 0, // Key that alternates scroll wheel up/down each press
+    TC_KEY_MELEE         = 1, // Melee combo: tap = switch+click+switch back; hold = switch+hold+switch back on release
+    TC_BINDING_COUNT     = 2
 };
 
-constexpr DWORD TC_SCROLL_DELTA_UP   = 120;
-constexpr DWORD TC_SCROLL_DELTA_DOWN = static_cast<DWORD>(-120);
+constexpr DWORD TC_SCROLL_DELTA        = 120;       // Base delta; WheelToggle alternates sign each press
+constexpr int   TC_WEAPON_SWITCH_MS    = 100;        // Delay after weapon-switch key before firing attack (ms)
+constexpr int   TC_MELEE_THRESHOLD_MS  = 400;        // Hold duration to trigger long-press melee mode (ms)
 
 static GameProfile g_ToxicCommandoProfile = {
     /* id            */ L"ToxicCommando",
@@ -35,15 +36,19 @@ static GameProfile g_ToxicCommandoProfile = {
     },
     /* bindingCount */ TC_BINDING_COUNT,
     /* bindings */ {
-        // TC_KEY_SCROLL_UP: WheelToKey — rising edge fires mouse wheel up (next weapon)
-        { L"ScrollUpKey",   L"Next Weapon (Scroll Up Key)",   VK_PRIOR, VK_PRIOR,
-          { BehaviorType::WheelToKey, /*outputVk=*/0, /*longOutputVk=*/0,
-            /*thresholdMs=*/400, /*durationMs=*/50, /*wheelDelta=*/TC_SCROLL_DELTA_UP } },
+        // TC_KEY_SCROLL_TOGGLE: WheelToggle — each rising edge alternates scroll up / scroll down
+        { L"ScrollToggleKey", L"Cycle Weapon (Scroll Toggle Key)", VK_PRIOR, VK_PRIOR,
+          { BehaviorType::WheelToggle, /*outputVk=*/0, /*longOutputVk=*/0,
+            /*thresholdMs=*/400, /*durationMs=*/50, /*wheelDelta=*/TC_SCROLL_DELTA } },
 
-        // TC_KEY_SCROLL_DOWN: WheelToKey — rising edge fires mouse wheel down (prev weapon)
-        { L"ScrollDownKey", L"Prev Weapon (Scroll Down Key)", VK_NEXT,  VK_NEXT,
-          { BehaviorType::WheelToKey, /*outputVk=*/0, /*longOutputVk=*/0,
-            /*thresholdMs=*/400, /*durationMs=*/50, /*wheelDelta=*/TC_SCROLL_DELTA_DOWN } },
+        // TC_KEY_MELEE: WeaponCombo — tap: switch to melee (^), click LMB, switch back (2)
+        //                             hold: switch to melee, hold LMB until released, switch back
+        // outputVk = switch-to-melee key; longOutputVk = switch-back key; attackVk = LMB
+        // Default keys are configurable in the settings window.
+        { L"MeleeKey", L"Melee Attack (Combo Key)", 'V', 'V',
+          { BehaviorType::WeaponCombo, /*outputVk=*/VK_OEM_5, /*longOutputVk=*/'2',
+            /*thresholdMs=*/TC_MELEE_THRESHOLD_MS, /*durationMs=*/TC_WEAPON_SWITCH_MS,
+            /*wheelDelta=*/0, /*attackVk=*/VK_LBUTTON } },
     },
     /* logicFn */ GenericLogicThreadFn,
 };

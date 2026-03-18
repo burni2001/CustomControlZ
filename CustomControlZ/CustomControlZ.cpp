@@ -395,6 +395,30 @@ inline void PressKey(WORD vk)   { SendKeyInput(vk, false); }
 inline void ReleaseKey(WORD vk) { SendKeyInput(vk, true);  }
 inline bool IsKeyDown(WORD vk)  { return (GetAsyncKeyState(vk) & 0x8000) != 0; }
 
+inline void PressMouse(WORD vk) {
+    INPUT inp = {};
+    inp.type = INPUT_MOUSE;
+    switch (vk) {
+        case VK_LBUTTON: inp.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;   break;
+        case VK_RBUTTON: inp.mi.dwFlags = MOUSEEVENTF_RIGHTDOWN;  break;
+        case VK_MBUTTON: inp.mi.dwFlags = MOUSEEVENTF_MIDDLEDOWN; break;
+        default: return;
+    }
+    SendInput(1, &inp, sizeof(INPUT));
+}
+
+inline void ReleaseMouse(WORD vk) {
+    INPUT inp = {};
+    inp.type = INPUT_MOUSE;
+    switch (vk) {
+        case VK_LBUTTON: inp.mi.dwFlags = MOUSEEVENTF_LEFTUP;   break;
+        case VK_RBUTTON: inp.mi.dwFlags = MOUSEEVENTF_RIGHTUP;  break;
+        case VK_MBUTTON: inp.mi.dwFlags = MOUSEEVENTF_MIDDLEUP; break;
+        default: return;
+    }
+    SendInput(1, &inp, sizeof(INPUT));
+}
+
 void SetTrayIconState(bool active, GameProfile* profile) {
     g_nid.hIcon = active ? g_hIconActive : g_hIconIdle;
     StringCchCopy(g_nid.szTip, ARRAYSIZE(g_nid.szTip),

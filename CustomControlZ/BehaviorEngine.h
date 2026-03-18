@@ -15,6 +15,8 @@ struct GameProfile;
 inline void PressKey(WORD vk);
 inline void ReleaseKey(WORD vk);
 inline bool IsKeyDown(WORD vk);
+inline void PressMouse(WORD vk);    // Sends MOUSEEVENTF_*DOWN for VK_LBUTTON / VK_RBUTTON / VK_MBUTTON
+inline void ReleaseMouse(WORD vk);  // Sends MOUSEEVENTF_*UP
 bool IsGameRunning(GameProfile* profile);
 void SetTrayIconState(bool active, GameProfile* profile);
 bool IsProcessRunningElevated(const wchar_t* processName);  // FIX-02: UIPI detection
@@ -28,15 +30,18 @@ enum class BehaviorType : uint8_t {
     EdgeTrigger,   // rising edge on inputVk -> pulse outputVk for durationMs
     LongPress,     // tap -> pulse shortOutputVk; hold >= thresholdMs -> pulse longOutputVk
     WheelToKey,    // rising edge on inputVk -> send mouse wheel delta (wheelDelta)
+    WheelToggle,   // rising edge on inputVk -> alternate between +wheelDelta and -wheelDelta each press
+    WeaponCombo,   // tap -> switch weapon + click + switch back; hold -> switch weapon + hold attack + switch back on release
 };
 
 struct BehaviorDescriptor {
     BehaviorType type         = BehaviorType::HoldToToggle;
-    WORD         outputVk     = 0;      // HoldToToggle, EdgeTrigger, LongPress short output
-    WORD         longOutputVk = 0;      // LongPress only: output on sustained hold
-    int          thresholdMs  = 400;    // LongPress: hold threshold in milliseconds
-    int          durationMs   = 50;     // EdgeTrigger: output pulse duration in milliseconds
-    DWORD        wheelDelta   = 120;    // WheelToKey: MOUSEEVENTF_WHEEL mouseData (120 = up, (DWORD)-120 = down)
+    WORD         outputVk     = 0;      // HoldToToggle, EdgeTrigger, LongPress short output; WeaponCombo: switch-to key
+    WORD         longOutputVk = 0;      // LongPress: output on sustained hold; WeaponCombo: switch-back key
+    int          thresholdMs  = 400;    // LongPress/WeaponCombo: hold threshold in milliseconds
+    int          durationMs   = 50;     // EdgeTrigger: pulse duration; WeaponCombo: delay after weapon switch key (ms)
+    DWORD        wheelDelta   = 120;    // WheelToKey/WheelToggle: MOUSEEVENTF_WHEEL mouseData
+    WORD         attackVk     = 0;      // WeaponCombo: attack button VK (e.g. VK_LBUTTON)
 };
 
 // --- PER-BINDING STATE STRUCTS ---
@@ -59,11 +64,25 @@ struct WheelToKeyState {
     bool pressed = false;
 };
 
+struct WheelToggleState {
+    bool pressed   = false;  // tracks rising edge (prevents repeat while held)
+    bool scrollUp  = true;   // alternates each press: true = +wheelDelta, false = -wheelDelta
+};
+
+struct WeaponComboState {
+    bool      keyDown      = false;
+    bool      thresholdHit = false;  // true once long-press threshold exceeded
+    bool      holding      = false;  // true while attack button is held (long-press mode)
+    ULONGLONG pressTime    = 0;
+};
+
 union BindingState {
     HoldToToggleState holdToggle;
     EdgeTriggerState  edgeTrigger;
     LongPressState    longPress;
     WheelToKeyState   wheelToKey;
+    WheelToggleState  wheelToggle;
+    WeaponComboState  weaponCombo;
     BindingState() { memset(this, 0, sizeof(*this)); }
 };
 
@@ -85,157 +104,5 @@ private:
 // --- GENERIC LOGIC THREAD ---
 // Implements all four behavior types in one dispatcher.
 // Drop-in replacement for LogicThreadFn (GameProfiles.h).
-
-void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& running) {
-    BindingState state[MAX_BINDINGS];    // zero-initialised via BindingState()
-    KeyTracker   tracker;
-    bool         lastGameState = false;
-
-    while (running) {
-        // Pause while the UI is capturing a new key binding
-        if (g_waitingForBindID != 0) {
-            Sleep(50);
-            continue;
-        }
-
-        bool currentGameState = IsGameRunning(profile);
-
-        if (currentGameState != lastGameState) {
-            if (lastGameState && !currentGameState) {
-                // Game just stopped: release all held outputs
-                tracker.releaseAll();
-                SetTrayIconState(false, profile);
-            } else {
-                // Game just started
-                SetTrayIconState(true, profile);
-
-                // Check if game is running elevated (FIX-02: UIPI detection)
-                bool elevated = IsProcessRunningElevated(profile->processName1);
-                if (!elevated && profile->processName2)
-                    elevated = IsProcessRunningElevated(profile->processName2);
-                if (elevated) {
-                    MessageBox(nullptr,
-                        L"Warning: The game is running as Administrator.\n\n"
-                        L"CustomControlZ cannot inject inputs into elevated processes without "
-                        L"also running as Administrator (UIPI restriction).\n\n"
-                        L"Key remapping may not work. Run CustomControlZ as Administrator "
-                        L"if you need remapping to function.",
-                        L"Elevation Warning \u2014 UIPI Detected",
-                        MB_OK | MB_ICONWARNING);
-                }
-            }
-            lastGameState = currentGameState;
-        }
-
-        if (!currentGameState) {
-            Sleep(1000);
-            continue;
-        }
-
-        // Snapshot VKs under mutex to avoid data races with UI thread
-        WORD localVk[MAX_BINDINGS] = {};
-        {
-            std::lock_guard<std::mutex> lock(g_configMutex);
-            for (int i = 0; i < profile->bindingCount; i++) {
-                localVk[i] = profile->bindings[i].currentVk;
-            }
-        }
-
-        // Per-binding dispatch
-        for (int i = 0; i < profile->bindingCount; i++) {
-            const BehaviorDescriptor& desc = profile->bindings[i].behavior;
-            bool keyDown = IsKeyDown(localVk[i]);
-
-            switch (desc.type) {
-
-            case BehaviorType::HoldToToggle: {
-                HoldToToggleState& s = state[i].holdToggle;
-                if (keyDown && !s.active) {
-                    PressKey(desc.outputVk);
-                    tracker.press(desc.outputVk);
-                    s.active = true;
-                } else if (!keyDown && s.active) {
-                    ReleaseKey(desc.outputVk);
-                    tracker.release(desc.outputVk);
-                    s.active = false;
-                }
-                break;
-            }
-
-            case BehaviorType::EdgeTrigger: {
-                EdgeTriggerState& s = state[i].edgeTrigger;
-                if (keyDown && !s.fired) {
-                    PressKey(desc.outputVk);
-                    tracker.press(desc.outputVk);
-                    Sleep(desc.durationMs);
-                    ReleaseKey(desc.outputVk);
-                    tracker.release(desc.outputVk);
-                    s.fired = true;
-                } else if (!keyDown) {
-                    s.fired = false;
-                }
-                break;
-            }
-
-            case BehaviorType::LongPress: {
-                LongPressState& s = state[i].longPress;
-                if (keyDown) {
-                    if (!s.keyDown) {
-                        // Rising edge: record press start
-                        s.pressTime = GetTickCount64();
-                        s.keyDown   = true;
-                        s.longFired = false;
-                    } else if (!s.longFired) {
-                        // Still held: check if threshold elapsed
-                        ULONGLONG elapsed = GetTickCount64() - s.pressTime;
-                        if ((int)elapsed >= desc.thresholdMs) {
-                            PressKey(desc.longOutputVk);
-                            tracker.press(desc.longOutputVk);
-                            Sleep(30);
-                            ReleaseKey(desc.longOutputVk);
-                            tracker.release(desc.longOutputVk);
-                            s.longFired = true;
-                        }
-                    }
-                } else {
-                    if (s.keyDown) {
-                        // Falling edge
-                        if (!s.longFired) {
-                            // Tap: fire short output
-                            PressKey(desc.outputVk);
-                            tracker.press(desc.outputVk);
-                            Sleep(30);
-                            ReleaseKey(desc.outputVk);
-                            tracker.release(desc.outputVk);
-                        }
-                        s.keyDown   = false;
-                        s.longFired = false;
-                    }
-                }
-                break;
-            }
-
-            case BehaviorType::WheelToKey: {
-                WheelToKeyState& s = state[i].wheelToKey;
-                if (keyDown && !s.pressed) {
-                    INPUT inp = {};
-                    inp.type         = INPUT_MOUSE;
-                    inp.mi.dwFlags   = MOUSEEVENTF_WHEEL;
-                    inp.mi.mouseData = desc.wheelDelta;
-                    SendInput(1, &inp, sizeof(INPUT));
-                    s.pressed = true;
-                } else if (!keyDown) {
-                    s.pressed = false;
-                }
-                break;
-            }
-
-            } // switch
-        }
-
-        Sleep(10);
-    }
-
-    // Thread exiting: release any keys still held
-    tracker.releaseAll();
-}
+// Body is defined in GameProfiles.h after GameProfile is fully defined.
+void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& running);

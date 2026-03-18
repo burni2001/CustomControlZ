@@ -50,3 +50,239 @@ struct GameProfile {
     KeyBinding     bindings[MAX_BINDINGS];
     LogicThreadFn  logicFn;
 };
+
+// --- GENERIC LOGIC THREAD IMPLEMENTATION ---
+// Defined here (after GameProfile) so the body can dereference GameProfile members.
+// Declared in BehaviorEngine.h.
+inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& running) {
+    BindingState state[MAX_BINDINGS];    // zero-initialised via BindingState()
+    KeyTracker   tracker;
+    bool         lastGameState = false;
+
+    while (running) {
+        // Pause while the UI is capturing a new key binding
+        if (g_waitingForBindID != 0) {
+            Sleep(50);
+            continue;
+        }
+
+        bool currentGameState = IsGameRunning(profile);
+
+        if (currentGameState != lastGameState) {
+            if (lastGameState && !currentGameState) {
+                // Game just stopped: release all held outputs
+                tracker.releaseAll();
+                SetTrayIconState(false, profile);
+            } else {
+                // Game just started
+                SetTrayIconState(true, profile);
+
+                // Check if game is running elevated (FIX-02: UIPI detection)
+                bool elevated = IsProcessRunningElevated(profile->processName1);
+                if (!elevated && profile->processName2)
+                    elevated = IsProcessRunningElevated(profile->processName2);
+                if (elevated) {
+                    MessageBox(nullptr,
+                        L"Warning: The game is running as Administrator.\n\n"
+                        L"CustomControlZ cannot inject inputs into elevated processes without "
+                        L"also running as Administrator (UIPI restriction).\n\n"
+                        L"Key remapping may not work. Run CustomControlZ as Administrator "
+                        L"if you need remapping to function.",
+                        L"Elevation Warning \u2014 UIPI Detected",
+                        MB_OK | MB_ICONWARNING);
+                }
+            }
+            lastGameState = currentGameState;
+        }
+
+        if (!currentGameState) {
+            Sleep(1000);
+            continue;
+        }
+
+        // Snapshot VKs under mutex to avoid data races with UI thread
+        WORD localVk[MAX_BINDINGS] = {};
+        {
+            std::lock_guard<std::mutex> lock(g_configMutex);
+            for (int i = 0; i < profile->bindingCount; i++) {
+                localVk[i] = profile->bindings[i].currentVk;
+            }
+        }
+
+        // Per-binding dispatch
+        for (int i = 0; i < profile->bindingCount; i++) {
+            const BehaviorDescriptor& desc = profile->bindings[i].behavior;
+            bool keyDown = IsKeyDown(localVk[i]);
+
+            switch (desc.type) {
+
+            case BehaviorType::HoldToToggle: {
+                HoldToToggleState& s = state[i].holdToggle;
+                if (keyDown && !s.active) {
+                    PressKey(desc.outputVk);
+                    tracker.press(desc.outputVk);
+                    s.active = true;
+                } else if (!keyDown && s.active) {
+                    ReleaseKey(desc.outputVk);
+                    tracker.release(desc.outputVk);
+                    s.active = false;
+                }
+                break;
+            }
+
+            case BehaviorType::EdgeTrigger: {
+                EdgeTriggerState& s = state[i].edgeTrigger;
+                if (keyDown && !s.fired) {
+                    PressKey(desc.outputVk);
+                    tracker.press(desc.outputVk);
+                    Sleep(desc.durationMs);
+                    ReleaseKey(desc.outputVk);
+                    tracker.release(desc.outputVk);
+                    s.fired = true;
+                } else if (!keyDown) {
+                    s.fired = false;
+                }
+                break;
+            }
+
+            case BehaviorType::LongPress: {
+                LongPressState& s = state[i].longPress;
+                if (keyDown) {
+                    if (!s.keyDown) {
+                        // Rising edge: record press start
+                        s.pressTime = GetTickCount64();
+                        s.keyDown   = true;
+                        s.longFired = false;
+                    } else if (!s.longFired) {
+                        // Still held: check if threshold elapsed
+                        ULONGLONG elapsed = GetTickCount64() - s.pressTime;
+                        if ((int)elapsed >= desc.thresholdMs) {
+                            PressKey(desc.longOutputVk);
+                            tracker.press(desc.longOutputVk);
+                            Sleep(30);
+                            ReleaseKey(desc.longOutputVk);
+                            tracker.release(desc.longOutputVk);
+                            s.longFired = true;
+                        }
+                    }
+                } else {
+                    if (s.keyDown) {
+                        // Falling edge
+                        if (!s.longFired) {
+                            // Tap: fire short output
+                            PressKey(desc.outputVk);
+                            tracker.press(desc.outputVk);
+                            Sleep(30);
+                            ReleaseKey(desc.outputVk);
+                            tracker.release(desc.outputVk);
+                        }
+                        s.keyDown   = false;
+                        s.longFired = false;
+                    }
+                }
+                break;
+            }
+
+            case BehaviorType::WheelToKey: {
+                WheelToKeyState& s = state[i].wheelToKey;
+                if (keyDown && !s.pressed) {
+                    INPUT inp = {};
+                    inp.type         = INPUT_MOUSE;
+                    inp.mi.dwFlags   = MOUSEEVENTF_WHEEL;
+                    inp.mi.mouseData = desc.wheelDelta;
+                    SendInput(1, &inp, sizeof(INPUT));
+                    s.pressed = true;
+                } else if (!keyDown) {
+                    s.pressed = false;
+                }
+                break;
+            }
+
+            case BehaviorType::WeaponCombo: {
+                WeaponComboState& s = state[i].weaponCombo;
+                if (keyDown) {
+                    if (!s.keyDown) {
+                        // Rising edge: start timing
+                        s.pressTime    = GetTickCount64();
+                        s.keyDown      = true;
+                        s.thresholdHit = false;
+                        s.holding      = false;
+                    } else if (!s.thresholdHit) {
+                        // Still held: check if long-press threshold reached
+                        ULONGLONG elapsed = GetTickCount64() - s.pressTime;
+                        if ((int)elapsed >= desc.thresholdMs) {
+                            s.thresholdHit = true;
+                            // Switch to weapon and start holding the attack button
+                            PressKey(desc.outputVk);
+                            Sleep(desc.durationMs);
+                            ReleaseKey(desc.outputVk);
+                            Sleep(desc.durationMs);
+                            PressMouse(desc.attackVk);
+                            s.holding = true;
+                        }
+                    }
+                } else {
+                    if (s.keyDown) {
+                        // Falling edge
+                        if (s.holding) {
+                            // Long press: release attack and switch back
+                            ReleaseMouse(desc.attackVk);
+                            Sleep(desc.durationMs);
+                            PressKey(desc.longOutputVk);
+                            Sleep(desc.durationMs);
+                            ReleaseKey(desc.longOutputVk);
+                        } else if (!s.thresholdHit) {
+                            // Tap: switch to weapon, click, switch back
+                            PressKey(desc.outputVk);
+                            Sleep(desc.durationMs);
+                            ReleaseKey(desc.outputVk);
+                            Sleep(desc.durationMs);
+                            PressMouse(desc.attackVk);
+                            Sleep(50);
+                            ReleaseMouse(desc.attackVk);
+                            Sleep(desc.durationMs);
+                            PressKey(desc.longOutputVk);
+                            Sleep(desc.durationMs);
+                            ReleaseKey(desc.longOutputVk);
+                        }
+                        s.keyDown      = false;
+                        s.thresholdHit = false;
+                        s.holding      = false;
+                    }
+                }
+                break;
+            }
+
+            case BehaviorType::WheelToggle: {
+                WheelToggleState& s = state[i].wheelToggle;
+                if (keyDown && !s.pressed) {
+                    INPUT inp = {};
+                    inp.type         = INPUT_MOUSE;
+                    inp.mi.dwFlags   = MOUSEEVENTF_WHEEL;
+                    inp.mi.mouseData = s.scrollUp ? desc.wheelDelta : static_cast<DWORD>(-(int)desc.wheelDelta);
+                    SendInput(1, &inp, sizeof(INPUT));
+                    s.scrollUp = !s.scrollUp;
+                    s.pressed  = true;
+                } else if (!keyDown) {
+                    s.pressed = false;
+                }
+                break;
+            }
+
+            } // switch
+        }
+
+        Sleep(10);
+    }
+
+    // Thread exiting: release any keys still held
+    tracker.releaseAll();
+
+    // Release held mouse buttons for any WeaponCombo bindings mid-hold
+    for (int i = 0; i < profile->bindingCount; i++) {
+        if (profile->bindings[i].behavior.type == BehaviorType::WeaponCombo
+            && state[i].weaponCombo.holding) {
+            ReleaseMouse(profile->bindings[i].behavior.attackVk);
+        }
+    }
+}
