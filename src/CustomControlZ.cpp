@@ -52,6 +52,7 @@ void EnableDarkTitleBar(HWND hwnd) {
 #define ID_TRAY_SETTINGS    1001
 #define ID_TRAY_EXIT        1002
 #define ID_TRAY_CHANGE_GAME 1003
+#define ID_TRAY_AUTOSTART   1004
 
 // Settings window control IDs
 #define BTN_BIND_BASE               2001  // Bind buttons: BTN_BIND_BASE + binding index
@@ -198,6 +199,8 @@ void UpdateAllControlFonts(HWND hwnd) {
             SendMessage(GetDlgItem(hwnd, ID_LABEL_BASE + i), WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
             InvalidateRect(GetDlgItem(hwnd, BTN_BIND_BASE + i), nullptr, TRUE);
             InvalidateRect(GetDlgItem(hwnd, BTN_CLEAR_BASE + i), nullptr, TRUE);
+            InvalidateRect(GetDlgItem(hwnd, BTN_CLEAR_OUTPUT_BASE + i), nullptr, TRUE);
+            InvalidateRect(GetDlgItem(hwnd, BTN_CLEAR_LONG_OUTPUT_BASE + i), nullptr, TRUE);
             if (g_activeProfile->bindings[i].behavior.type == BehaviorType::MeleeBurst) {
                 SendMessage(GetDlgItem(hwnd, ID_TIMING_SWITCH_BASE + i), WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
                 SendMessage(GetDlgItem(hwnd, ID_TIMING_RETURN_BASE + i), WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
@@ -236,7 +239,9 @@ ButtonStyle GetButtonStyle(UINT ctlID) {
     if (ctlID == BTN_EXIT_SETTINGS) return { g_hBrushButton, t.minimizeBorder, t.text,     g_hFontNormal };
     if (ctlID == BTN_FONT_SETTINGS) return { g_hBrushButton, t.border,         t.accent,   g_hFontButton };
     // × clear buttons: reddish border to signal destructive action
-    if (ctlID >= BTN_CLEAR_BASE && ctlID < BTN_CLEAR_BASE + MAX_BINDINGS)
+    if ((ctlID >= BTN_CLEAR_BASE            && ctlID < BTN_CLEAR_BASE            + MAX_BINDINGS) ||
+        (ctlID >= BTN_CLEAR_OUTPUT_BASE     && ctlID < BTN_CLEAR_OUTPUT_BASE     + MAX_BINDINGS) ||
+        (ctlID >= BTN_CLEAR_LONG_OUTPUT_BASE && ctlID < BTN_CLEAR_LONG_OUTPUT_BASE + MAX_BINDINGS))
         return { g_hBrushButton, t.exitBorder, t.exitText, g_hFontButton };
     return { g_hBrushButton, t.border, t.accent, g_hFontButton };
 }
@@ -269,6 +274,46 @@ void RebuildThemeBrushes(GameProfile* profile) {
     g_hBrushExit   = CreateSolidBrush(profile->theme.exitFill);
 }
 
+// --- AUTOSTART ---
+
+static const wchar_t* AUTOSTART_KEY  = L"Software\\Microsoft\\Windows\\CurrentVersion\\Run";
+static const wchar_t* AUTOSTART_NAME = L"CustomControlZ";
+
+bool IsAutostartEnabled() {
+    HKEY hKey;
+    if (RegOpenKeyExW(HKEY_CURRENT_USER, AUTOSTART_KEY, 0, KEY_READ, &hKey) != ERROR_SUCCESS)
+        return false;
+
+    wchar_t exePath[MAX_PATH] = {};
+    GetModuleFileNameW(nullptr, exePath, MAX_PATH);
+
+    wchar_t value[MAX_PATH] = {};
+    DWORD size = sizeof(value);
+    DWORD type = REG_SZ;
+    bool enabled = (RegQueryValueExW(hKey, AUTOSTART_NAME, nullptr, &type,
+                        (LPBYTE)value, &size) == ERROR_SUCCESS)
+                   && (_wcsicmp(value, exePath) == 0);
+    RegCloseKey(hKey);
+    return enabled;
+}
+
+void SetAutostart(bool enable) {
+    HKEY hKey;
+    if (RegOpenKeyExW(HKEY_CURRENT_USER, AUTOSTART_KEY, 0, KEY_WRITE, &hKey) != ERROR_SUCCESS)
+        return;
+
+    if (enable) {
+        wchar_t exePath[MAX_PATH] = {};
+        GetModuleFileNameW(nullptr, exePath, MAX_PATH);
+        RegSetValueExW(hKey, AUTOSTART_NAME, 0, REG_SZ,
+            reinterpret_cast<const BYTE*>(exePath),
+            static_cast<DWORD>((wcslen(exePath) + 1) * sizeof(wchar_t)));
+    } else {
+        RegDeleteValueW(hKey, AUTOSTART_NAME);
+    }
+    RegCloseKey(hKey);
+}
+
 // --- TRAY MENU ---
 
 HMENU CreateTrayMenu() {
@@ -280,6 +325,9 @@ HMENU CreateTrayMenu() {
             AppendMenu(hMenu, MF_STRING, ID_TRAY_SETTINGS, L"Choose Game");
         }
         AppendMenu(hMenu, MF_STRING, ID_TRAY_CHANGE_GAME, L"Select Game");
+        AppendMenu(hMenu, MF_SEPARATOR, 0, nullptr);
+        AppendMenu(hMenu, MF_STRING | (IsAutostartEnabled() ? MF_CHECKED : MF_UNCHECKED),
+                   ID_TRAY_AUTOSTART, L"Start with Windows");
         AppendMenu(hMenu, MF_SEPARATOR, 0, nullptr);
         AppendMenu(hMenu, MF_STRING, ID_TRAY_EXIT, L"Exit");
     }
@@ -445,6 +493,17 @@ void GetKeyName(WORD vk, wchar_t* buffer, size_t size) {
     case VK_END:     StringCchCopy(buffer, size, L"End");         return;
     case VK_INSERT:  StringCchCopy(buffer, size, L"Insert");      return;
     case VK_DELETE:  StringCchCopy(buffer, size, L"Delete");      return;
+    }
+
+    // For OEM keys, prefer the actual character over the locale-specific scan-code name
+    // (e.g. German "ZIRKUMFLEX" → "^")
+    if ((vk >= VK_OEM_1 && vk <= VK_OEM_8) || vk == VK_OEM_102) {
+        UINT ch = MapVirtualKey(vk, MAPVK_VK_TO_CHAR) & 0x7FFF; // mask dead-key flag
+        if (ch >= 0x21 && ch <= 0x7E) {  // printable ASCII
+            buffer[0] = static_cast<wchar_t>(ch);
+            buffer[1] = L'\0';
+            return;
+        }
     }
 
     UINT scanCode = MapVirtualKey(vk, MAPVK_VK_TO_VSC);
@@ -717,7 +776,7 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             if (beh.outputVkLabel) {
                 HWND hOL = CreateWindow(L"STATIC", beh.outputVkLabel,
                     WS_VISIBLE | WS_CHILD | SS_CENTERIMAGE,
-                    LAYOUT_LEFT_MARGIN + 20, rowY + subLabelY, LAYOUT_LABEL_WIDTH - 20, LAYOUT_BUTTON_HEIGHT,
+                    LAYOUT_LEFT_MARGIN, rowY + subLabelY, LAYOUT_LABEL_WIDTH, LAYOUT_BUTTON_HEIGHT,
                     hwnd, (HMENU)(INT_PTR)(ID_OUTPUT_LABEL_BASE + i), nullptr, nullptr);
                 SendMessage(hOL, WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
 
@@ -726,13 +785,18 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                     buttonX, rowY + subLabelY, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT,
                     hwnd, (HMENU)(INT_PTR)(BTN_OUTPUT_KEY_BASE + i), nullptr, nullptr);
 
+                CreateWindow(L"BUTTON", L"\u00d7",
+                    WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
+                    clearX, rowY + subLabelY, LAYOUT_CLEAR_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT,
+                    hwnd, (HMENU)(INT_PTR)(BTN_CLEAR_OUTPUT_BASE + i), nullptr, nullptr);
+
                 rowY += LAYOUT_OUTPUT_ROW_HEIGHT;
             }
 
             if (beh.longOutputVkLabel) {
                 HWND hLOL = CreateWindow(L"STATIC", beh.longOutputVkLabel,
                     WS_VISIBLE | WS_CHILD | SS_CENTERIMAGE,
-                    LAYOUT_LEFT_MARGIN + 20, rowY + subLabelY, LAYOUT_LABEL_WIDTH - 20, LAYOUT_BUTTON_HEIGHT,
+                    LAYOUT_LEFT_MARGIN, rowY + subLabelY, LAYOUT_LABEL_WIDTH, LAYOUT_BUTTON_HEIGHT,
                     hwnd, (HMENU)(INT_PTR)(ID_LONG_OUTPUT_LABEL_BASE + i), nullptr, nullptr);
                 SendMessage(hLOL, WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
 
@@ -740,6 +804,11 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                     WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
                     buttonX, rowY + subLabelY, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT,
                     hwnd, (HMENU)(INT_PTR)(BTN_LONG_OUTPUT_KEY_BASE + i), nullptr, nullptr);
+
+                CreateWindow(L"BUTTON", L"\u00d7",
+                    WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
+                    clearX, rowY + subLabelY, LAYOUT_CLEAR_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT,
+                    hwnd, (HMENU)(INT_PTR)(BTN_CLEAR_LONG_OUTPUT_BASE + i), nullptr, nullptr);
 
                 rowY += LAYOUT_OUTPUT_ROW_HEIGHT;
             }
@@ -846,8 +915,39 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                 const auto& beh = g_activeProfile->bindings[i].behavior;
                 if (beh.type == BehaviorType::MeleeBurst)
                     rowY += LAYOUT_TIMING_ROWS_HEIGHT;
-                if (beh.outputVkLabel)     rowY += LAYOUT_OUTPUT_ROW_HEIGHT;
-                if (beh.longOutputVkLabel) rowY += LAYOUT_OUTPUT_ROW_HEIGHT;
+
+                // Output sub-row highlights (always accent stripe — these are always in-game keys)
+                const int subOffset = (LAYOUT_OUTPUT_ROW_HEIGHT - LAYOUT_BUTTON_HEIGHT) / 2;
+                if (beh.outputVkLabel) {
+                    RECT subRect = {
+                        LAYOUT_LEFT_MARGIN - LAYOUT_ROW_PADDING, rowY + subOffset,
+                        LAYOUT_LEFT_MARGIN + LAYOUT_LINE_WIDTH + LAYOUT_ROW_PADDING, rowY + subOffset + LAYOUT_BUTTON_HEIGHT
+                    };
+                    FillRect(hdc, &subRect, hRowBrush);
+                    HBRUSH hSub = CreateSolidBrush(g_activeProfile->theme.accent);
+                    RECT stripeRect = {
+                        LAYOUT_LEFT_MARGIN - LAYOUT_ROW_PADDING, rowY + subOffset,
+                        LAYOUT_LEFT_MARGIN - LAYOUT_ROW_PADDING + 5, rowY + subOffset + LAYOUT_BUTTON_HEIGHT
+                    };
+                    FillRect(hdc, &stripeRect, hSub);
+                    DeleteObject(hSub);
+                    rowY += LAYOUT_OUTPUT_ROW_HEIGHT;
+                }
+                if (beh.longOutputVkLabel) {
+                    RECT subRect = {
+                        LAYOUT_LEFT_MARGIN - LAYOUT_ROW_PADDING, rowY + subOffset,
+                        LAYOUT_LEFT_MARGIN + LAYOUT_LINE_WIDTH + LAYOUT_ROW_PADDING, rowY + subOffset + LAYOUT_BUTTON_HEIGHT
+                    };
+                    FillRect(hdc, &subRect, hRowBrush);
+                    HBRUSH hSub = CreateSolidBrush(g_activeProfile->theme.accent);
+                    RECT stripeRect = {
+                        LAYOUT_LEFT_MARGIN - LAYOUT_ROW_PADDING, rowY + subOffset,
+                        LAYOUT_LEFT_MARGIN - LAYOUT_ROW_PADDING + 5, rowY + subOffset + LAYOUT_BUTTON_HEIGHT
+                    };
+                    FillRect(hdc, &stripeRect, hSub);
+                    DeleteObject(hSub);
+                    rowY += LAYOUT_OUTPUT_ROW_HEIGHT;
+                }
             }
 
             SelectObject(hdc, hOldPen);
@@ -945,6 +1045,24 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                 g_activeProfile->bindings[idx].currentVk = 0;
             }
             UpdateButtonText(GetDlgItem(hwnd, BTN_BIND_BASE + idx), 0);
+            SaveConfig(g_activeProfile);
+        } else if (id >= BTN_CLEAR_OUTPUT_BASE && g_activeProfile &&
+                   id < BTN_CLEAR_OUTPUT_BASE + g_activeProfile->bindingCount) {
+            int idx = id - BTN_CLEAR_OUTPUT_BASE;
+            {
+                std::lock_guard<std::mutex> lock(g_configMutex);
+                g_activeProfile->bindings[idx].behavior.outputVk = 0;
+            }
+            UpdateButtonText(GetDlgItem(hwnd, BTN_OUTPUT_KEY_BASE + idx), 0);
+            SaveConfig(g_activeProfile);
+        } else if (id >= BTN_CLEAR_LONG_OUTPUT_BASE && g_activeProfile &&
+                   id < BTN_CLEAR_LONG_OUTPUT_BASE + g_activeProfile->bindingCount) {
+            int idx = id - BTN_CLEAR_LONG_OUTPUT_BASE;
+            {
+                std::lock_guard<std::mutex> lock(g_configMutex);
+                g_activeProfile->bindings[idx].behavior.longOutputVk = 0;
+            }
+            UpdateButtonText(GetDlgItem(hwnd, BTN_LONG_OUTPUT_KEY_BASE + idx), 0);
             SaveConfig(g_activeProfile);
         } else if (HIWORD(wParam) == EN_KILLFOCUS && g_activeProfile) {
             // Timing edit lost focus — validate and save
@@ -1363,6 +1481,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                     }
                 } else if (cmd == ID_TRAY_CHANGE_GAME) {
                     ShowChangeGameUI();
+                } else if (cmd == ID_TRAY_AUTOSTART) {
+                    SetAutostart(!IsAutostartEnabled());
                 } else if (cmd == ID_TRAY_EXIT) {
                     DestroyWindow(hwnd);
                 }
