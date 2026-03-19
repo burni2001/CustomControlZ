@@ -24,7 +24,7 @@ jobs:
       - name: Inject version into source
         run: |
           $ver = '${{ github.event.inputs.version }}'
-          (Get-Content CustomControlZ/CustomControlZ.cpp) -replace '#define APP_VERSION L"[^"]*"', "#define APP_VERSION L`"$ver`"" | Set-Content CustomControlZ/CustomControlZ.cpp
+          (Get-Content src/CustomControlZ.cpp) -replace '#define APP_VERSION L"[^"]*"', "#define APP_VERSION L`"$ver`"" | Set-Content src/CustomControlZ.cpp
         shell: pwsh
 
       - name: Build Release x64
