@@ -16,8 +16,9 @@ struct KeyBinding {
     const wchar_t*     label;     // UI label shown next to the button
     WORD               defaultVk; // Default virtual key code
     WORD               currentVk; // Live value - written by UI, read by logic thread
-    BehaviorDescriptor behavior;  // Behavior type and parameters for this binding
-    bool               isAppOnly; // true = user picks freely (no in-game counterpart); false = must match in-game key
+    BehaviorDescriptor behavior;       // Behavior type and parameters for this binding
+    bool               isAppOnly;      // true = user picks freely (no in-game counterpart); false = must match in-game key
+    bool               separatorAbove; // Draw a separator line above this row in the settings UI
 };
 
 struct Theme {

@@ -104,7 +104,7 @@ constexpr int LAYOUT_ROW_HEIGHT           = 50;
 constexpr int LAYOUT_BUTTON_HEIGHT        = 34;
 constexpr int LAYOUT_TITLE_START          = 43;
 constexpr int LAYOUT_TITLE_HEIGHT         = 43;
-constexpr int LAYOUT_TITLE_SPACING        = 79;  // includes room for legend below title
+constexpr int LAYOUT_TITLE_SPACING        = 97;  // includes room for legend and info text below title
 constexpr int LAYOUT_BOTTOM_BUTTON_HEIGHT = 42;
 constexpr int LAYOUT_BOTTOM_BUTTON_WIDTH  = 168;
 constexpr int LAYOUT_BOTTOM_BUTTON_GAP    = 24;
@@ -853,7 +853,17 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             FillRect(hdc, &rAP, hBrApp);
             DeleteObject(hBrApp);
             RECT tAP = { LAYOUT_LEFT_MARGIN + 198, legendY, LAYOUT_LEFT_MARGIN + 408, legendY + LAYOUT_LEGEND_HEIGHT };
-            DrawText(hdc, L"App Key (custom)", -1, &tAP, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+            DrawText(hdc, L"Custom Key", -1, &tAP, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+
+            // Info hint below legend
+            COLORREF dimColor = RGB(
+                (GetRValue(g_activeProfile->theme.text) + GetRValue(g_activeProfile->theme.bg)) / 2,
+                (GetGValue(g_activeProfile->theme.text) + GetGValue(g_activeProfile->theme.bg)) / 2,
+                (GetBValue(g_activeProfile->theme.text) + GetBValue(g_activeProfile->theme.bg)) / 2);
+            SetTextColor(hdc, dimColor);
+            RECT tHint = { LAYOUT_LEFT_MARGIN, legendY + LAYOUT_LEGEND_HEIGHT + 3,
+                           LAYOUT_LEFT_MARGIN + LAYOUT_LINE_WIDTH, legendY + LAYOUT_LEGEND_HEIGHT + 3 + LAYOUT_LEGEND_HEIGHT };
+            DrawText(hdc, L"Make sure to match In-Game Keys with your actual Settings in the Game.", -1, &tHint, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
 
             SelectObject(hdc, hOldFont);
 
@@ -865,9 +875,11 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             int rowBaseY = LAYOUT_TITLE_START + LAYOUT_TITLE_SPACING;
             int rowY = rowBaseY;
             for (int i = 0; i < g_activeProfile->bindingCount; i++) {
-                // Separator line
-                MoveToEx(hdc, LAYOUT_LEFT_MARGIN, rowY, nullptr);
-                LineTo(hdc, LAYOUT_LEFT_MARGIN + LAYOUT_LINE_WIDTH, rowY);
+                // Separator line (only when explicitly requested by binding)
+                if (g_activeProfile->bindings[i].separatorAbove) {
+                    MoveToEx(hdc, LAYOUT_LEFT_MARGIN, rowY, nullptr);
+                    LineTo(hdc, LAYOUT_LEFT_MARGIN + LAYOUT_LINE_WIDTH, rowY);
+                }
 
                 // Row background highlight
                 RECT rowRect = {
