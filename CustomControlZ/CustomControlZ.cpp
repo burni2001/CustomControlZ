@@ -11,6 +11,8 @@
 #pragma comment(lib, "uxtheme.lib")
 #pragma comment(lib, "dwmapi.lib")
 #pragma comment(linker, "/SUBSYSTEM:WINDOWS /ENTRY:wWinMainCRTStartup")
+#include <gdiplus.h>
+#pragma comment(lib, "gdiplus.lib")
 
 // --- DARK MODE ---
 
@@ -67,6 +69,7 @@ void EnableDarkTitleBar(HWND hwnd) {
 #define BTN_EXIT_SETTINGS           3001
 #define BTN_EXIT_APP                3002
 #define BTN_FONT_SETTINGS           3003
+#define BTN_CHANGE_GAME             3004
 
 // Game selection window control IDs
 #define BTN_GAME_BASE       4000  // Game buttons: BTN_GAME_BASE + profile index
@@ -106,6 +109,7 @@ constexpr int LAYOUT_IMPRINT_SPACING      = 24;
 constexpr int LAYOUT_ROW_PADDING          = 10;
 constexpr int LAYOUT_LINE_WIDTH           = 620;
 constexpr int WINDOW_WIDTH                = 720;
+constexpr int WINDOW_HEIGHT               = 720;
 constexpr int LAYOUT_FONT_BUTTON_WIDTH    = 120;
 constexpr int LAYOUT_FONT_BUTTON_HEIGHT   = 35;
 constexpr int LAYOUT_TIMING_ROW_HEIGHT    = 34;   // Height of each timing sub-row (ms delay inputs)
@@ -125,7 +129,9 @@ constexpr int SELECT_BTN_SPACING   = 85;
 constexpr int SELECT_BTN_MARGIN_X  = 40;
 constexpr int SELECT_EXIT_HEIGHT   = 40;
 constexpr int SELECT_EXIT_WIDTH    = 120;
-constexpr int SELECT_BOTTOM_MARGIN = 20;
+constexpr int SELECT_BOTTOM_MARGIN   = 20;
+constexpr int SELECT_POSTER_HEIGHT   = 210;
+constexpr int SELECT_POSTER_SPACING  = 222; // poster height (210) + 12px gap
 
 // --- GAME PROFILE ARCHITECTURE ---
 
@@ -164,6 +170,9 @@ HFONT  g_hFontImprint = nullptr;
 std::thread       g_logicThread;
 std::atomic<bool> g_logicRunning(false);
 
+ULONG_PTR           g_gdiplusToken = 0;
+Gdiplus::Image*     g_gamePosters[8] = {};
+
 // --- FONT HELPERS ---
 
 inline HFONT CreateUIFont(int height, int weight = FW_NORMAL) {
@@ -186,9 +195,7 @@ void RecreateAllFonts() {
 }
 
 void UpdateAllControlFonts(HWND hwnd) {
-    SendMessage(GetDlgItem(hwnd, ID_TITLE_STATIC),    WM_SETFONT, (WPARAM)g_hFontTitle,   TRUE);
-    SendMessage(GetDlgItem(hwnd, ID_IMPRINT1_STATIC), WM_SETFONT, (WPARAM)g_hFontImprint, TRUE);
-    SendMessage(GetDlgItem(hwnd, ID_IMPRINT2_STATIC), WM_SETFONT, (WPARAM)g_hFontImprint, TRUE);
+    SendMessage(GetDlgItem(hwnd, ID_TITLE_STATIC), WM_SETFONT, (WPARAM)g_hFontTitle, TRUE);
 
     if (g_activeProfile) {
         for (int i = 0; i < g_activeProfile->bindingCount; i++) {
@@ -212,6 +219,7 @@ void UpdateAllControlFonts(HWND hwnd) {
     }
 
     InvalidateRect(GetDlgItem(hwnd, BTN_FONT_SETTINGS), nullptr, TRUE);
+    InvalidateRect(GetDlgItem(hwnd, BTN_CHANGE_GAME),   nullptr, TRUE);
     InvalidateRect(GetDlgItem(hwnd, BTN_EXIT_SETTINGS), nullptr, TRUE);
     InvalidateRect(GetDlgItem(hwnd, BTN_EXIT_APP),      nullptr, TRUE);
     InvalidateRect(hwnd, nullptr, TRUE);
@@ -604,6 +612,8 @@ constexpr int g_gameProfileCount = static_cast<int>(ARRAYSIZE(g_gameProfiles));
 
 // --- SETTINGS WINDOW ---
 
+void ShowChangeGameUI(); // Forward declaration
+
 inline bool IsModifierOnlyKey(WORD vk) {
     return vk == VK_SHIFT || vk == VK_CONTROL || vk == VK_MENU ||
            vk == VK_LSHIFT || vk == VK_RSHIFT ||
@@ -734,35 +744,27 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             }
         }
 
-        // Bottom buttons
+        // Bottom buttons: Change Game | Minimize | Exit (3-button row)
         int bottomY = rowY + 15;
-        int buttonsStartX = (WINDOW_WIDTH - LAYOUT_BOTTOM_BUTTON_WIDTH * 2 - LAYOUT_BOTTOM_BUTTON_GAP) / 2;
+        constexpr int BTN3_WIDTH = 180;
+        constexpr int BTN3_GAP   = 20;
+        int buttonsStartX = (WINDOW_WIDTH - BTN3_WIDTH * 3 - BTN3_GAP * 2) / 2;
+
+        CreateWindow(L"BUTTON", L"Change Game",
+            WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
+            buttonsStartX, bottomY, BTN3_WIDTH, LAYOUT_BOTTOM_BUTTON_HEIGHT,
+            hwnd, (HMENU)(INT_PTR)BTN_CHANGE_GAME, nullptr, nullptr);
 
         CreateWindow(L"BUTTON", L"Minimize",
             WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
-            buttonsStartX, bottomY, LAYOUT_BOTTOM_BUTTON_WIDTH, LAYOUT_BOTTOM_BUTTON_HEIGHT,
+            buttonsStartX + BTN3_WIDTH + BTN3_GAP, bottomY, BTN3_WIDTH, LAYOUT_BOTTOM_BUTTON_HEIGHT,
             hwnd, (HMENU)(INT_PTR)BTN_EXIT_SETTINGS, nullptr, nullptr);
 
         CreateWindow(L"BUTTON", L"Exit",
             WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
-            buttonsStartX + LAYOUT_BOTTOM_BUTTON_WIDTH + LAYOUT_BOTTOM_BUTTON_GAP, bottomY,
-            LAYOUT_BOTTOM_BUTTON_WIDTH, LAYOUT_BOTTOM_BUTTON_HEIGHT,
+            buttonsStartX + 2 * (BTN3_WIDTH + BTN3_GAP), bottomY,
+            BTN3_WIDTH, LAYOUT_BOTTOM_BUTTON_HEIGHT,
             hwnd, (HMENU)(INT_PTR)BTN_EXIT_APP, nullptr, nullptr);
-
-        // Imprint
-        int imprintY = bottomY + LAYOUT_BOTTOM_SPACING;
-        HWND hImp1 = CreateWindow(L"STATIC", L"Idea and development: B\u00e9rni (burni2001)",
-            WS_VISIBLE | WS_CHILD | SS_CENTER,
-            0, imprintY, WINDOW_WIDTH, LAYOUT_IMPRINT_HEIGHT,
-            hwnd, (HMENU)(INT_PTR)ID_IMPRINT1_STATIC, nullptr, nullptr);
-        SendMessage(hImp1, WM_SETFONT, (WPARAM)g_hFontImprint, TRUE);
-
-        imprintY += LAYOUT_IMPRINT_SPACING;
-        HWND hImp2 = CreateWindow(L"STATIC", L"Development tools: Visual Studio, GitHub Copilot",
-            WS_VISIBLE | WS_CHILD | SS_CENTER,
-            0, imprintY, WINDOW_WIDTH, LAYOUT_IMPRINT_HEIGHT,
-            hwnd, (HMENU)(INT_PTR)ID_IMPRINT2_STATIC, nullptr, nullptr);
-        SendMessage(hImp2, WM_SETFONT, (WPARAM)g_hFontImprint, TRUE);
 
         // Set initial button texts
         std::lock_guard<std::mutex> lock(g_configMutex);
@@ -874,7 +876,9 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
     case WM_COMMAND: {
         int id = LOWORD(wParam);
-        if (id == BTN_EXIT_SETTINGS) {
+        if (id == BTN_CHANGE_GAME) {
+            ShowChangeGameUI();
+        } else if (id == BTN_EXIT_SETTINGS) {
             ShowWindow(hwnd, SW_HIDE);
             g_waitingForBindID = 0;
         } else if (id == BTN_EXIT_APP) {
@@ -1006,30 +1010,12 @@ bool CreateSettingsWindow(HINSTANCE hInstance, GameProfile* profile) {
         classRegistered = true;
     }
 
-    int subRowExtra = 0;
-    for (int i = 0; i < profile->bindingCount; i++) {
-        const auto& beh = profile->bindings[i].behavior;
-        if (beh.type == BehaviorType::MeleeBurst) subRowExtra += LAYOUT_TIMING_ROWS_HEIGHT;
-        if (beh.outputVkLabel)                    subRowExtra += LAYOUT_OUTPUT_ROW_HEIGHT;
-        if (beh.longOutputVkLabel)                subRowExtra += LAYOUT_OUTPUT_ROW_HEIGHT;
-    }
-
-    int windowHeight = LAYOUT_TITLE_START + LAYOUT_TITLE_SPACING
-                     + profile->bindingCount * LAYOUT_ROW_HEIGHT
-                     + subRowExtra
-                     + 15
-                     + LAYOUT_BOTTOM_BUTTON_HEIGHT
-                     + LAYOUT_BOTTOM_SPACING
-                     + LAYOUT_IMPRINT_HEIGHT + LAYOUT_IMPRINT_SPACING
-                     + LAYOUT_IMPRINT_HEIGHT
-                     + 40;
-
     g_hSettingsWnd = CreateWindowEx(
         WS_EX_DLGMODALFRAME,
         L"CustomControlZSettingsClass",
         profile->settingsTitle,
         WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
-        CW_USEDEFAULT, CW_USEDEFAULT, WINDOW_WIDTH, windowHeight,
+        CW_USEDEFAULT, CW_USEDEFAULT, WINDOW_WIDTH, WINDOW_HEIGHT,
         nullptr, nullptr, hInstance, nullptr
     );
     return g_hSettingsWnd != nullptr;
@@ -1078,43 +1064,68 @@ LRESULT CALLBACK GameSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         HFONT hFontSubtitle = CreateFont(18, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
                                          DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
                                          CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
-        HFONT hFontGameBtn  = CreateFont(24, 0, 0, 0, FW_SEMIBOLD, FALSE, FALSE, FALSE,
+        HFONT hFontImprint  = CreateFont(15, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
                                          DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
                                          CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
 
-        // Store fonts in GWLP_USERDATA for cleanup
-        HFONT* fonts = new HFONT[3]{ hFontTitle, hFontSubtitle, hFontGameBtn };
+        // Store fonts in GWLP_USERDATA for cleanup (idx 0=title, 1=subtitle, 2=imprint)
+        HFONT* fonts = new HFONT[3]{ hFontTitle, hFontSubtitle, hFontImprint };
         SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)fonts);
+
+        // Load poster images for each game profile
+        for (int i = 0; i < g_gameProfileCount; i++) {
+            g_gamePosters[i] = new Gdiplus::Image(g_gameProfiles[i]->posterFile);
+            if (g_gamePosters[i]->GetLastStatus() != Gdiplus::Ok) {
+                delete g_gamePosters[i];
+                g_gamePosters[i] = nullptr;
+            }
+        }
 
         HWND hTitle = CreateWindow(L"STATIC", L"CustomControlZ",
             WS_VISIBLE | WS_CHILD | SS_CENTER,
-            0, SELECT_TITLE_Y, SELECT_WIN_WIDTH, 42, hwnd,
+            0, SELECT_TITLE_Y, WINDOW_WIDTH, 42, hwnd,
             (HMENU)(INT_PTR)ID_SELECT_TITLE, nullptr, nullptr);
         SendMessage(hTitle, WM_SETFONT, (WPARAM)hFontTitle, TRUE);
 
         HWND hSub = CreateWindow(L"STATIC", L"Choose your game:",
             WS_VISIBLE | WS_CHILD | SS_CENTER,
-            0, SELECT_SUBTITLE_Y, SELECT_WIN_WIDTH, 28, hwnd,
+            0, SELECT_SUBTITLE_Y, WINDOW_WIDTH, 28, hwnd,
             (HMENU)(INT_PTR)ID_SELECT_SUBTITLE, nullptr, nullptr);
         SendMessage(hSub, WM_SETFONT, (WPARAM)hFontSubtitle, TRUE);
 
+        // Poster-sized owner-draw buttons (one per game)
         for (int i = 0; i < g_gameProfileCount; i++) {
-            int btnY = SELECT_FIRST_BTN_Y + i * SELECT_BTN_SPACING;
+            int btnY = SELECT_FIRST_BTN_Y + i * SELECT_POSTER_SPACING;
             CreateWindow(L"BUTTON", g_gameProfiles[i]->displayName,
                 WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
                 SELECT_BTN_MARGIN_X, btnY,
-                SELECT_WIN_WIDTH - 2 * SELECT_BTN_MARGIN_X, SELECT_BTN_HEIGHT,
+                WINDOW_WIDTH - 2 * SELECT_BTN_MARGIN_X, SELECT_POSTER_HEIGHT,
                 hwnd, (HMENU)(INT_PTR)(BTN_GAME_BASE + i), nullptr, nullptr);
         }
 
-        // Exit button at the bottom
+        // Credits at bottom (above exit button)
         RECT clientRect;
         GetClientRect(hwnd, &clientRect);
-        int exitY = clientRect.bottom - SELECT_EXIT_HEIGHT - SELECT_BOTTOM_MARGIN;
+        int exitY    = clientRect.bottom - SELECT_EXIT_HEIGHT - SELECT_BOTTOM_MARGIN;
+        int creditY2 = exitY - 5 - LAYOUT_IMPRINT_HEIGHT;
+        int creditY1 = creditY2 - 4 - LAYOUT_IMPRINT_HEIGHT;
 
+        HWND hImp1 = CreateWindow(L"STATIC", L"Idea and development: B\u00e9rni (burni2001)",
+            WS_VISIBLE | WS_CHILD | SS_CENTER,
+            0, creditY1, WINDOW_WIDTH, LAYOUT_IMPRINT_HEIGHT, hwnd,
+            (HMENU)(INT_PTR)ID_IMPRINT1_STATIC, nullptr, nullptr);
+        SendMessage(hImp1, WM_SETFONT, (WPARAM)hFontImprint, TRUE);
+
+        HWND hImp2 = CreateWindow(L"STATIC", L"Development tools: Visual Studio, GitHub Copilot",
+            WS_VISIBLE | WS_CHILD | SS_CENTER,
+            0, creditY2, WINDOW_WIDTH, LAYOUT_IMPRINT_HEIGHT, hwnd,
+            (HMENU)(INT_PTR)ID_IMPRINT2_STATIC, nullptr, nullptr);
+        SendMessage(hImp2, WM_SETFONT, (WPARAM)hFontImprint, TRUE);
+
+        // Exit button at bottom right
         CreateWindow(L"BUTTON", L"Exit",
             WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
-            SELECT_WIN_WIDTH - SELECT_EXIT_WIDTH - 15, exitY,
+            WINDOW_WIDTH - SELECT_EXIT_WIDTH - 15, exitY,
             SELECT_EXIT_WIDTH, SELECT_EXIT_HEIGHT,
             hwnd, (HMENU)(INT_PTR)BTN_SELECT_EXIT, nullptr, nullptr);
         break;
@@ -1141,10 +1152,9 @@ LRESULT CALLBACK GameSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         LPDRAWITEMSTRUCT pDIS = (LPDRAWITEMSTRUCT)lParam;
         if (pDIS->CtlType != ODT_BUTTON) break;
 
-        HDC hdc = pDIS->hDC;
-        RECT rc = pDIS->rcItem;
-        HFONT* fonts    = (HFONT*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
-        HFONT hBtnFont  = fonts ? fonts[2] : nullptr;
+        HDC  hdc = pDIS->hDC;
+        RECT rc  = pDIS->rcItem;
+        HFONT* fonts = (HFONT*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
 
         if (pDIS->CtlID == BTN_SELECT_EXIT) {
             HBRUSH hBr = CreateSolidBrush(RGB(140, 30, 30));
@@ -1156,7 +1166,7 @@ LRESULT CALLBACK GameSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
             Rectangle(hdc, rc.left, rc.top, rc.right, rc.bottom);
             SelectObject(hdc, hOldPen); SelectObject(hdc, hOldBr);
             DeleteObject(hPen);
-            if (hBtnFont) SelectObject(hdc, hBtnFont);
+            if (fonts && fonts[1]) SelectObject(hdc, fonts[1]);
             SetTextColor(hdc, RGB(255, 210, 210));
             SetBkMode(hdc, TRANSPARENT);
             DrawText(hdc, L"Exit", -1, &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
@@ -1164,19 +1174,45 @@ LRESULT CALLBACK GameSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
             int idx = (int)pDIS->CtlID - BTN_GAME_BASE;
             if (idx >= 0 && idx < g_gameProfileCount) {
                 GameProfile* gp = g_gameProfiles[idx];
-                HBRUSH hBr = CreateSolidBrush(gp->theme.button);
-                FillRect(hdc, &rc, hBr);
-                DeleteObject(hBr);
-                HPEN hPen    = CreatePen(PS_SOLID, 2, gp->theme.border);
-                HPEN hOldPen = (HPEN)SelectObject(hdc, hPen);
-                HBRUSH hOldBr = (HBRUSH)SelectObject(hdc, GetStockObject(NULL_BRUSH));
-                Rectangle(hdc, rc.left, rc.top, rc.right, rc.bottom);
-                SelectObject(hdc, hOldPen); SelectObject(hdc, hOldBr);
-                DeleteObject(hPen);
-                if (hBtnFont) SelectObject(hdc, hBtnFont);
-                SetTextColor(hdc, gp->theme.accent);
-                SetBkMode(hdc, TRANSPARENT);
-                DrawText(hdc, gp->displayName, -1, &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+                int btnW = rc.right  - rc.left;
+                int btnH = rc.bottom - rc.top;
+
+                if (g_gamePosters[idx]) {
+                    // Draw poster image scaled to button area
+                    Gdiplus::Graphics g(hdc);
+                    g.SetInterpolationMode(Gdiplus::InterpolationModeHighQualityBicubic);
+                    Gdiplus::Rect destRect(rc.left, rc.top, btnW, btnH);
+                    g.DrawImage(g_gamePosters[idx], destRect);
+
+                    // Semi-transparent name overlay at bottom
+                    constexpr int OVERLAY_H = 42;
+                    Gdiplus::SolidBrush overlayBrush(Gdiplus::Color(190, 0, 0, 0));
+                    g.FillRectangle(&overlayBrush, rc.left, rc.bottom - OVERLAY_H, btnW, OVERLAY_H);
+
+                    Gdiplus::Font gFont(L"Segoe UI", 18, Gdiplus::FontStyleBold, Gdiplus::UnitPixel);
+                    Gdiplus::SolidBrush textBrush(Gdiplus::Color(255, 255, 255, 255));
+                    Gdiplus::StringFormat sf;
+                    sf.SetAlignment(Gdiplus::StringAlignmentCenter);
+                    sf.SetLineAlignment(Gdiplus::StringAlignmentCenter);
+                    Gdiplus::RectF textRect((float)rc.left, (float)(rc.bottom - OVERLAY_H),
+                                            (float)btnW, (float)OVERLAY_H);
+                    g.DrawString(gp->displayName, -1, &gFont, textRect, &sf, &textBrush);
+                } else {
+                    // Fallback: colored rectangle with game name
+                    HBRUSH hBr = CreateSolidBrush(gp->theme.button);
+                    FillRect(hdc, &rc, hBr);
+                    DeleteObject(hBr);
+                    HPEN hPen    = CreatePen(PS_SOLID, 2, gp->theme.border);
+                    HPEN hOldPen = (HPEN)SelectObject(hdc, hPen);
+                    HBRUSH hOldBr = (HBRUSH)SelectObject(hdc, GetStockObject(NULL_BRUSH));
+                    Rectangle(hdc, rc.left, rc.top, rc.right, rc.bottom);
+                    SelectObject(hdc, hOldPen); SelectObject(hdc, hOldBr);
+                    DeleteObject(hPen);
+                    if (fonts && fonts[1]) SelectObject(hdc, fonts[1]);
+                    SetTextColor(hdc, gp->theme.accent);
+                    SetBkMode(hdc, TRANSPARENT);
+                    DrawText(hdc, gp->displayName, -1, &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+                }
             }
         }
         return TRUE;
@@ -1203,6 +1239,10 @@ LRESULT CALLBACK GameSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
             delete[] fonts;
             SetWindowLongPtr(hwnd, GWLP_USERDATA, 0);
         }
+        for (int i = 0; i < g_gameProfileCount; i++) {
+            delete g_gamePosters[i];
+            g_gamePosters[i] = nullptr;
+        }
         break;
     }
     }
@@ -1219,18 +1259,12 @@ bool CreateGameSelectionWindow(HINSTANCE hInstance) {
     wc.hIcon         = LoadIcon(hInstance, MAKEINTRESOURCE(ICON_ID_EXE));
     if (!RegisterClass(&wc)) return false;
 
-    int winHeight = SELECT_FIRST_BTN_Y
-                  + g_gameProfileCount * SELECT_BTN_SPACING
-                  + 20
-                  + SELECT_EXIT_HEIGHT
-                  + SELECT_BOTTOM_MARGIN + 40;
-
     g_hGameSelectWnd = CreateWindowEx(
         WS_EX_DLGMODALFRAME,
         L"CustomControlZSelectClass",
         L"CustomControlZ",
         WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
-        CW_USEDEFAULT, CW_USEDEFAULT, SELECT_WIN_WIDTH, winHeight,
+        CW_USEDEFAULT, CW_USEDEFAULT, WINDOW_WIDTH, WINDOW_HEIGHT,
         nullptr, nullptr, hInstance, nullptr
     );
     return g_hGameSelectWnd != nullptr;
@@ -1337,6 +1371,9 @@ int APIENTRY wWinMain(
 {
     EnableWindows11DarkMode();
 
+    Gdiplus::GdiplusStartupInput gdiplusInput;
+    Gdiplus::GdiplusStartup(&g_gdiplusToken, &gdiplusInput, nullptr);
+
     HANDLE hMutex = CreateMutexW(nullptr, TRUE, MUTEX_NAME);
     if (!hMutex || GetLastError() == ERROR_ALREADY_EXISTS) {
         if (hMutex) CloseHandle(hMutex);
@@ -1406,6 +1443,7 @@ int APIENTRY wWinMain(
     g_isAppRunning = false;
     StopGameLogicThread();
     SafeCloseMutex(hMutex);
+    Gdiplus::GdiplusShutdown(g_gdiplusToken);
 
     return static_cast<int>(msg.wParam);
 }

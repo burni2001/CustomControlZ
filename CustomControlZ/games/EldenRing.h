@@ -26,6 +26,7 @@ static GameProfile g_EldenRingProfile = {
     /* tipActive     */ L"CustomControlZ - Elden Ring: ACTIVE",
     /* tipIdle       */ L"CustomControlZ: Waiting...",
     /* settingsTitle */ L"Elden Ring - Key Bindings",
+    /* posterFile    */ L"assets\\eldenring.png",
     /* theme */ {
         RGB(25, 20, 15),    // bg
         RGB(220, 195, 145), // text

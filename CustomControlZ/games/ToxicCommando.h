@@ -21,18 +21,19 @@ static GameProfile g_ToxicCommandoProfile = {
     /* tipActive     */ L"CustomControlZ - Toxic Commando: ACTIVE",
     /* tipIdle       */ L"CustomControlZ: Waiting...",
     /* settingsTitle */ L"Toxic Commando - Key Bindings",
+    /* posterFile    */ L"assets\\toxic.png",
     /* theme */ {
-        RGB(30, 50, 20),    // bg         - dark olive
-        RGB(180, 200, 140), // text        - light olive/sage
-        RGB(100, 180, 50),  // accent      - bright military green
-        RGB(45, 65, 30),    // button
-        RGB(70, 110, 40),   // border
-        RGB(40, 60, 25),    // rowBg
-        RGB(85, 130, 50),   // separator
-        RGB(160, 40, 40),   // exitFill
-        RGB(190, 70, 70),   // exitBorder
-        RGB(255, 210, 210), // exitText
-        RGB(60, 90, 40),    // minimizeBorder
+        RGB(0, 0, 0),       // bg         - black
+        RGB(255, 255, 255), // text        - white
+        RGB(255, 255, 255), // accent      - white
+        RGB(20, 20, 20),    // button      - near black
+        RGB(200, 50, 50),   // border      - red
+        RGB(10, 10, 10),    // rowBg       - near black
+        RGB(180, 30, 30),   // separator   - red
+        RGB(160, 20, 20),   // exitFill    - dark red
+        RGB(220, 50, 50),   // exitBorder  - bright red
+        RGB(255, 255, 255), // exitText    - white
+        RGB(200, 50, 50),   // minimizeBorder - red
     },
     /* bindingCount */ TC_BINDING_COUNT,
     /* bindings */ {

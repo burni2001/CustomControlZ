@@ -45,6 +45,7 @@ struct GameProfile {
     const wchar_t* tipActive;    // Tray tooltip when game is running
     const wchar_t* tipIdle;      // Tray tooltip when game is not running
     const wchar_t* settingsTitle;// Settings window title bar text
+    const wchar_t* posterFile;   // Relative path to game poster PNG, e.g. L"assets\\eldenring.png"
     Theme          theme;
     int            bindingCount;
     KeyBinding     bindings[MAX_BINDINGS];
