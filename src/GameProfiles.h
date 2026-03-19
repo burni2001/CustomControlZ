@@ -111,9 +111,29 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
             }
         }
 
+        // Pre-pass: handle GlobalSuspend bindings first (always active regardless of suspend state)
+        bool suspended = false;
+        for (int i = 0; i < profile->bindingCount; i++) {
+            if (profile->bindings[i].behavior.type != BehaviorType::GlobalSuspend) continue;
+            GlobalSuspendState& s = state[i].globalSuspend;
+            bool keyDown = IsKeyDown(localVk[i]);
+            if (keyDown && !s.pressed) {
+                bool wasSuspended = s.suspended;
+                s.suspended = !s.suspended;
+                s.pressed   = true;
+                if (s.suspended && !wasSuspended)
+                    tracker.releaseAll();   // release any held keys on entering suspend
+            } else if (!keyDown) {
+                s.pressed = false;
+            }
+            if (s.suspended) suspended = true;
+        }
+
         // Per-binding dispatch
         for (int i = 0; i < profile->bindingCount; i++) {
             const BehaviorDescriptor& desc = profile->bindings[i].behavior;
+            if (desc.type == BehaviorType::GlobalSuspend) continue; // handled above
+            if (suspended) continue;                                 // all others paused
             bool keyDown = IsKeyDown(localVk[i]);
 
             switch (desc.type) {

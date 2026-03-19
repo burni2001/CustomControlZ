@@ -26,14 +26,15 @@ extern std::atomic<int> g_waitingForBindID;
 // --- BEHAVIOR TYPES ---
 
 enum class BehaviorType : uint8_t {
-    HoldToToggle,  // hold inputVk -> hold outputVk continuously
-    EdgeTrigger,   // rising edge on inputVk -> pulse outputVk for durationMs
-    LongPress,     // tap -> pulse shortOutputVk; hold >= thresholdMs -> pulse longOutputVk
-    WheelToKey,    // rising edge on inputVk -> send mouse wheel delta (wheelDelta)
-    WheelToggle,   // rising edge on inputVk -> alternate between +wheelDelta and -wheelDelta each press
-    WeaponCombo,   // tap -> switch weapon + click + switch back; hold -> switch weapon + hold attack + switch back on release
-    MeleeBurst,    // repeated taps stay on melee weapon; auto-switch back after returnDelayMs of idle
-    KeyToggle,     // rising edge on inputVk -> alternate between pulsing outputVk and longOutputVk each press
+    HoldToToggle,   // hold inputVk -> hold outputVk continuously
+    EdgeTrigger,    // rising edge on inputVk -> pulse outputVk for durationMs
+    LongPress,      // tap -> pulse shortOutputVk; hold >= thresholdMs -> pulse longOutputVk
+    WheelToKey,     // rising edge on inputVk -> send mouse wheel delta (wheelDelta)
+    WheelToggle,    // rising edge on inputVk -> alternate between +wheelDelta and -wheelDelta each press
+    WeaponCombo,    // tap -> switch weapon + click + switch back; hold -> switch weapon + hold attack + switch back on release
+    MeleeBurst,     // repeated taps stay on melee weapon; auto-switch back after returnDelayMs of idle
+    KeyToggle,      // rising edge on inputVk -> alternate between pulsing outputVk and longOutputVk each press
+    GlobalSuspend,  // toggle: first press suspends all other bindings; second press re-enables
 };
 
 struct BehaviorDescriptor {
@@ -95,6 +96,11 @@ struct MeleeBurstState {
     ULONGLONG lastPressTime = 0;     // time of last key event (for return-to-main timer)
 };
 
+struct GlobalSuspendState {
+    bool pressed   = false; // tracks rising edge (prevents repeat while held)
+    bool suspended = false; // current toggle state
+};
+
 union BindingState {
     HoldToToggleState holdToggle;
     EdgeTriggerState  edgeTrigger;
@@ -104,6 +110,7 @@ union BindingState {
     WeaponComboState  weaponCombo;
     KeyToggleState    keyToggle;
     MeleeBurstState   meleeBurst;
+    GlobalSuspendState globalSuspend;
     BindingState() { memset(this, 0, sizeof(*this)); }
 };
 

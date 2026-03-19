@@ -5,7 +5,8 @@
 enum ToxicCommandoBinding {
     TC_KEY_SCROLL_TOGGLE = 0, // Key that cycles weapon each press (single in-game key)
     TC_KEY_MELEE         = 1, // Melee combo: tap = switch+click+switch back; hold = switch+hold+switch back on release
-    TC_BINDING_COUNT     = 2
+    TC_KEY_OVERRIDE      = 2, // Toggle: first press suspends all custom bindings; second press re-enables
+    TC_BINDING_COUNT     = 3
 };
 
 constexpr DWORD TC_SCROLL_DELTA        = 120;       // Base delta; WheelToggle alternates sign each press
@@ -55,6 +56,14 @@ static GameProfile g_ToxicCommandoProfile = {
             /*thresholdMs=*/TC_MELEE_THRESHOLD_MS, /*durationMs=*/TC_WEAPON_SWITCH_MS,
             /*wheelDelta=*/0, /*attackVk=*/VK_LBUTTON, /*returnDelayMs=*/750,
             /*outputVkLabel=*/L"Melee", /*longOutputVkLabel=*/nullptr },
+          /*isAppOnly=*/true },
+
+        // TC_KEY_OVERRIDE: GlobalSuspend — first press suspends all custom bindings (Return passes through to game);
+        //   second press re-enables. Any held keys are released on entering suspend.
+        { L"OverrideKey", L"Suspend / Resume All", VK_RETURN, VK_RETURN,
+          { BehaviorType::GlobalSuspend, /*outputVk=*/0, /*longOutputVk=*/0,
+            /*thresholdMs=*/0, /*durationMs=*/0, /*wheelDelta=*/0, /*attackVk=*/0, /*returnDelayMs=*/0,
+            /*outputVkLabel=*/nullptr, /*longOutputVkLabel=*/nullptr },
           /*isAppOnly=*/true },
     },
     /* logicFn */ GenericLogicThreadFn,
