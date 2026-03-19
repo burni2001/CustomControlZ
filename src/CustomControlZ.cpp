@@ -219,8 +219,6 @@ void UpdateAllControlFonts(HWND hwnd) {
 
     InvalidateRect(GetDlgItem(hwnd, BTN_FONT_SETTINGS), nullptr, TRUE);
     InvalidateRect(GetDlgItem(hwnd, BTN_CHANGE_GAME),   nullptr, TRUE);
-    InvalidateRect(GetDlgItem(hwnd, BTN_EXIT_SETTINGS), nullptr, TRUE);
-    InvalidateRect(GetDlgItem(hwnd, BTN_EXIT_APP),      nullptr, TRUE);
     InvalidateRect(hwnd, nullptr, TRUE);
     UpdateWindow(hwnd);
 }
@@ -319,11 +317,8 @@ void SetAutostart(bool enable) {
 HMENU CreateTrayMenu() {
     HMENU hMenu = CreatePopupMenu();
     if (hMenu) {
-        if (g_activeProfile && g_hSettingsWnd) {
+        if (g_activeProfile && g_hSettingsWnd)
             AppendMenu(hMenu, MF_STRING, ID_TRAY_SETTINGS, L"Settings");
-        } else {
-            AppendMenu(hMenu, MF_STRING, ID_TRAY_SETTINGS, L"Choose Game");
-        }
         AppendMenu(hMenu, MF_STRING, ID_TRAY_CHANGE_GAME, L"Select Game");
         AppendMenu(hMenu, MF_SEPARATOR, 0, nullptr);
         AppendMenu(hMenu, MF_STRING | (IsAutostartEnabled() ? MF_CHECKED : MF_UNCHECKED),
@@ -814,20 +809,6 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             }
         }
 
-        // Bottom buttons: Minimize | Exit (2-button row, centered) — fixed position
-        int bottomY    = WINDOW_HEIGHT - LAYOUT_BOTTOM_SPACING;
-        int btn2StartX = (WINDOW_WIDTH - LAYOUT_BOTTOM_BUTTON_WIDTH * 2 - LAYOUT_BOTTOM_BUTTON_GAP) / 2;
-
-        CreateWindow(L"BUTTON", L"Minimize",
-            WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
-            btn2StartX, bottomY, LAYOUT_BOTTOM_BUTTON_WIDTH, LAYOUT_BOTTOM_BUTTON_HEIGHT,
-            hwnd, (HMENU)(INT_PTR)BTN_EXIT_SETTINGS, nullptr, nullptr);
-
-        CreateWindow(L"BUTTON", L"Exit",
-            WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
-            btn2StartX + LAYOUT_BOTTOM_BUTTON_WIDTH + LAYOUT_BOTTOM_BUTTON_GAP, bottomY,
-            LAYOUT_BOTTOM_BUTTON_WIDTH, LAYOUT_BOTTOM_BUTTON_HEIGHT,
-            hwnd, (HMENU)(INT_PTR)BTN_EXIT_APP, nullptr, nullptr);
 
         // Set initial button texts
         std::lock_guard<std::mutex> lock(g_configMutex);
@@ -1009,14 +990,6 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         int id = LOWORD(wParam);
         if (id == BTN_CHANGE_GAME) {
             ShowChangeGameUI();
-        } else if (id == BTN_EXIT_SETTINGS) {
-            ShowWindow(hwnd, SW_HIDE);
-            g_waitingForBindID = 0;
-        } else if (id == BTN_EXIT_APP) {
-            if (MessageBox(hwnd, L"Are you sure you want to exit?", L"Exit",
-                           MB_YESNO | MB_ICONQUESTION) == IDYES) {
-                DestroyWindow(g_hMainWindow);
-            }
         } else if (id == BTN_FONT_SETTINGS) {
             CycleFontToNext();
             RecreateAllFonts();
@@ -1133,9 +1106,19 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         break;
     }
 
+    case WM_SYSCOMMAND:
+        if ((wParam & 0xFFF0) == SC_MINIMIZE) {
+            ShowWindow(hwnd, SW_HIDE);
+            g_waitingForBindID = 0;
+            return 0;
+        }
+        break;
+
     case WM_CLOSE:
-        ShowWindow(hwnd, SW_HIDE);
-        g_waitingForBindID = 0;
+        if (MessageBox(hwnd, L"Are you sure you want to exit?", L"Exit",
+                       MB_YESNO | MB_ICONQUESTION) == IDYES) {
+            DestroyWindow(g_hMainWindow);
+        }
         return 0;
 
     case WM_DESTROY:
@@ -1273,28 +1256,12 @@ LRESULT CALLBACK GameSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
                 hwnd, (HMENU)(INT_PTR)(BTN_GAME_BASE + i), nullptr, nullptr);
         }
 
-        // Bottom buttons at fixed position (same as settings window)
-        int bottomY    = WINDOW_HEIGHT - LAYOUT_BOTTOM_SPACING;
-        int btn2StartX = (WINDOW_WIDTH - LAYOUT_BOTTOM_BUTTON_WIDTH * 2 - LAYOUT_BOTTOM_BUTTON_GAP) / 2;
-
         // Credits button (bottom-left)
+        int bottomY = WINDOW_HEIGHT - LAYOUT_BOTTOM_SPACING;
         CreateWindow(L"BUTTON", L"Credits",
             WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
             10, bottomY, LAYOUT_FONT_BUTTON_WIDTH, LAYOUT_BOTTOM_BUTTON_HEIGHT,
             hwnd, (HMENU)(INT_PTR)BTN_SELECT_CREDITS, nullptr, nullptr);
-
-        // Minimize button
-        CreateWindow(L"BUTTON", L"Minimize",
-            WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
-            btn2StartX, bottomY, LAYOUT_BOTTOM_BUTTON_WIDTH, LAYOUT_BOTTOM_BUTTON_HEIGHT,
-            hwnd, (HMENU)(INT_PTR)BTN_SELECT_MINIMIZE, nullptr, nullptr);
-
-        // Exit button
-        CreateWindow(L"BUTTON", L"Exit",
-            WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
-            btn2StartX + LAYOUT_BOTTOM_BUTTON_WIDTH + LAYOUT_BOTTOM_BUTTON_GAP, bottomY,
-            LAYOUT_BOTTOM_BUTTON_WIDTH, LAYOUT_BOTTOM_BUTTON_HEIGHT,
-            hwnd, (HMENU)(INT_PTR)BTN_SELECT_EXIT, nullptr, nullptr);
         break;
     }
 
@@ -1380,13 +1347,16 @@ LRESULT CALLBACK GameSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         return TRUE;
     }
 
+    case WM_SYSCOMMAND:
+        if ((wParam & 0xFFF0) == SC_MINIMIZE) {
+            ShowWindow(hwnd, SW_HIDE);
+            return 0;
+        }
+        break;
+
     case WM_COMMAND: {
         int id = LOWORD(wParam);
-        if (id == BTN_SELECT_EXIT) {
-            DestroyWindow(g_hMainWindow);
-        } else if (id == BTN_SELECT_MINIMIZE) {
-            ShowWindow(hwnd, SW_HIDE);
-        } else if (id == BTN_SELECT_CREDITS) {
+        if (id == BTN_SELECT_CREDITS) {
             MessageBox(hwnd,
                 L"CustomControlZ v" APP_VERSION L"\n\n"
                 L"Idea and development: B\u00f6rni (burni2001)\n\n"
