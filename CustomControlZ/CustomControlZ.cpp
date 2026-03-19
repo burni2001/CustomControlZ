@@ -91,47 +91,45 @@ constexpr size_t FONT_NAME_BUFFER   = 64;
 
 // --- LAYOUT CONSTANTS (settings window) ---
 
-constexpr int LAYOUT_LEFT_MARGIN          = 50;
-constexpr int LAYOUT_LABEL_WIDTH          = 420;
-constexpr int LAYOUT_BUTTON_WIDTH         = 180;
-constexpr int LAYOUT_BUTTON_GAP           = 10;
-constexpr int LAYOUT_ROW_HEIGHT           = 60;
-constexpr int LAYOUT_BUTTON_HEIGHT        = 40;
-constexpr int LAYOUT_TITLE_START          = 30;
-constexpr int LAYOUT_TITLE_HEIGHT         = 55;
-constexpr int LAYOUT_TITLE_SPACING        = 75;
-constexpr int LAYOUT_BOTTOM_BUTTON_HEIGHT = 50;
-constexpr int LAYOUT_BOTTOM_BUTTON_WIDTH  = 200;
-constexpr int LAYOUT_BOTTOM_BUTTON_GAP    = 30;
-constexpr int LAYOUT_BOTTOM_SPACING       = 70;
-constexpr int LAYOUT_IMPRINT_HEIGHT       = 22;
-constexpr int LAYOUT_IMPRINT_SPACING      = 24;
-constexpr int LAYOUT_ROW_PADDING          = 10;
-constexpr int LAYOUT_LINE_WIDTH           = 620;
-constexpr int WINDOW_WIDTH                = 720;
-constexpr int WINDOW_HEIGHT               = 720;
-constexpr int LAYOUT_FONT_BUTTON_WIDTH    = 120;
-constexpr int LAYOUT_FONT_BUTTON_HEIGHT   = 35;
-constexpr int LAYOUT_TIMING_ROW_HEIGHT    = 34;   // Height of each timing sub-row (ms delay inputs)
-constexpr int LAYOUT_TIMING_ROWS_HEIGHT   = 68;   // Total height of both timing sub-rows (2 × 34)
-constexpr int LAYOUT_TIMING_EDIT_WIDTH    = 80;   // Width of timing value edit boxes
-constexpr int LAYOUT_OUTPUT_ROW_HEIGHT    = 50;   // Height of each output-key configurable sub-row
-constexpr int LAYOUT_CLEAR_BUTTON_WIDTH   = 35;   // Width of the × clear button
-constexpr int LAYOUT_CLEAR_BUTTON_GAP     = 5;    // Gap between bind button and its × clear button
+constexpr int LAYOUT_LEFT_MARGIN          = 35;
+constexpr int LAYOUT_LABEL_WIDTH          = 290;
+constexpr int LAYOUT_BUTTON_WIDTH         = 126;
+constexpr int LAYOUT_BUTTON_GAP           = 7;
+constexpr int LAYOUT_ROW_HEIGHT           = 42;
+constexpr int LAYOUT_BUTTON_HEIGHT        = 28;
+constexpr int LAYOUT_TITLE_START          = 36;
+constexpr int LAYOUT_TITLE_HEIGHT         = 36;
+constexpr int LAYOUT_TITLE_SPACING        = 66;  // includes room for legend below title
+constexpr int LAYOUT_BOTTOM_BUTTON_HEIGHT = 35;
+constexpr int LAYOUT_BOTTOM_BUTTON_WIDTH  = 140;
+constexpr int LAYOUT_BOTTOM_BUTTON_GAP    = 20;
+constexpr int LAYOUT_BOTTOM_SPACING       = 49;
+constexpr int LAYOUT_IMPRINT_HEIGHT       = 16;
+constexpr int LAYOUT_IMPRINT_SPACING      = 18;
+constexpr int LAYOUT_ROW_PADDING          = 7;
+constexpr int LAYOUT_LINE_WIDTH           = 430;
+constexpr int WINDOW_WIDTH                = 500;
+constexpr int WINDOW_HEIGHT               = 500;
+constexpr int LAYOUT_FONT_BUTTON_WIDTH    = 84;
+constexpr int LAYOUT_FONT_BUTTON_HEIGHT   = 24;
+constexpr int LAYOUT_LEGEND_HEIGHT        = 14;  // height of app/in-game key legend below title
+constexpr int LAYOUT_TIMING_ROW_HEIGHT    = 24;  // Height of each timing sub-row (ms delay inputs)
+constexpr int LAYOUT_TIMING_ROWS_HEIGHT   = 48;  // Total height of both timing sub-rows (2 × 24)
+constexpr int LAYOUT_TIMING_EDIT_WIDTH    = 56;  // Width of timing value edit boxes
+constexpr int LAYOUT_OUTPUT_ROW_HEIGHT    = 35;  // Height of each output-key configurable sub-row
+constexpr int LAYOUT_CLEAR_BUTTON_WIDTH   = 25;  // Width of the × clear button
+constexpr int LAYOUT_CLEAR_BUTTON_GAP     = 4;   // Gap between bind button and its × clear button
 
 // Game select window layout
-constexpr int SELECT_WIN_WIDTH     = 500;
-constexpr int SELECT_TITLE_Y       = 20;
-constexpr int SELECT_SUBTITLE_Y    = 75;
-constexpr int SELECT_FIRST_BTN_Y   = 130;
-constexpr int SELECT_BTN_HEIGHT    = 65;
-constexpr int SELECT_BTN_SPACING   = 85;
-constexpr int SELECT_BTN_MARGIN_X  = 40;
-constexpr int SELECT_EXIT_HEIGHT   = 40;
-constexpr int SELECT_EXIT_WIDTH    = 120;
-constexpr int SELECT_BOTTOM_MARGIN   = 20;
-constexpr int SELECT_POSTER_HEIGHT   = 210;
-constexpr int SELECT_POSTER_SPACING  = 222; // poster height (210) + 12px gap
+constexpr int SELECT_TITLE_Y       = 14;
+constexpr int SELECT_SUBTITLE_Y    = 52;
+constexpr int SELECT_FIRST_BTN_Y   = 90;
+constexpr int SELECT_BTN_MARGIN_X  = 28;
+constexpr int SELECT_EXIT_HEIGHT   = 28;
+constexpr int SELECT_EXIT_WIDTH    = 84;
+constexpr int SELECT_BOTTOM_MARGIN = 14;
+constexpr int SELECT_POSTER_HEIGHT  = 130;
+constexpr int SELECT_POSTER_SPACING = 138; // poster height (130) + 8px gap
 
 // --- GAME PROFILE ARCHITECTURE ---
 
@@ -188,10 +186,10 @@ void RecreateAllFonts() {
     if (g_hFontButton)  DeleteObject(g_hFontButton);
     if (g_hFontImprint) DeleteObject(g_hFontImprint);
 
-    g_hFontTitle   = CreateUIFont(48, FW_BOLD);
-    g_hFontNormal  = CreateUIFont(28);
-    g_hFontButton  = CreateUIFont(24);
-    g_hFontImprint = CreateUIFont(16);
+    g_hFontTitle   = CreateUIFont(34, FW_BOLD);
+    g_hFontNormal  = CreateUIFont(20);
+    g_hFontButton  = CreateUIFont(17);
+    g_hFontImprint = CreateUIFont(14);
 }
 
 void UpdateAllControlFonts(HWND hwnd) {
@@ -632,10 +630,15 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         const int buttonX = LAYOUT_LEFT_MARGIN + LAYOUT_LABEL_WIDTH + LAYOUT_BUTTON_GAP;
         int rowBaseY = LAYOUT_TITLE_START + LAYOUT_TITLE_SPACING;
 
-        // Font button (top-left corner)
-        CreateWindow(L"BUTTON", L"Change Font",
+        // Top buttons: Change Game (left) | Font (right corner)
+        CreateWindow(L"BUTTON", L"Change Game",
             WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
-            10, 10, LAYOUT_FONT_BUTTON_WIDTH, LAYOUT_FONT_BUTTON_HEIGHT,
+            8, 8, LAYOUT_FONT_BUTTON_WIDTH, LAYOUT_FONT_BUTTON_HEIGHT,
+            hwnd, (HMENU)(INT_PTR)BTN_CHANGE_GAME, nullptr, nullptr);
+
+        CreateWindow(L"BUTTON", L"Font",
+            WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
+            WINDOW_WIDTH - LAYOUT_FONT_BUTTON_WIDTH - 8, 8, LAYOUT_FONT_BUTTON_WIDTH, LAYOUT_FONT_BUTTON_HEIGHT,
             hwnd, (HMENU)(INT_PTR)BTN_FONT_SETTINGS, nullptr, nullptr);
 
         // Title
@@ -744,26 +747,19 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             }
         }
 
-        // Bottom buttons: Change Game | Minimize | Exit (3-button row)
+        // Bottom buttons: Minimize | Exit (2-button row, centered)
         int bottomY = rowY + 15;
-        constexpr int BTN3_WIDTH = 180;
-        constexpr int BTN3_GAP   = 20;
-        int buttonsStartX = (WINDOW_WIDTH - BTN3_WIDTH * 3 - BTN3_GAP * 2) / 2;
-
-        CreateWindow(L"BUTTON", L"Change Game",
-            WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
-            buttonsStartX, bottomY, BTN3_WIDTH, LAYOUT_BOTTOM_BUTTON_HEIGHT,
-            hwnd, (HMENU)(INT_PTR)BTN_CHANGE_GAME, nullptr, nullptr);
+        int btn2StartX = (WINDOW_WIDTH - LAYOUT_BOTTOM_BUTTON_WIDTH * 2 - LAYOUT_BOTTOM_BUTTON_GAP) / 2;
 
         CreateWindow(L"BUTTON", L"Minimize",
             WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
-            buttonsStartX + BTN3_WIDTH + BTN3_GAP, bottomY, BTN3_WIDTH, LAYOUT_BOTTOM_BUTTON_HEIGHT,
+            btn2StartX, bottomY, LAYOUT_BOTTOM_BUTTON_WIDTH, LAYOUT_BOTTOM_BUTTON_HEIGHT,
             hwnd, (HMENU)(INT_PTR)BTN_EXIT_SETTINGS, nullptr, nullptr);
 
         CreateWindow(L"BUTTON", L"Exit",
             WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
-            buttonsStartX + 2 * (BTN3_WIDTH + BTN3_GAP), bottomY,
-            BTN3_WIDTH, LAYOUT_BOTTOM_BUTTON_HEIGHT,
+            btn2StartX + LAYOUT_BOTTOM_BUTTON_WIDTH + LAYOUT_BOTTOM_BUTTON_GAP, bottomY,
+            LAYOUT_BOTTOM_BUTTON_WIDTH, LAYOUT_BOTTOM_BUTTON_HEIGHT,
             hwnd, (HMENU)(INT_PTR)BTN_EXIT_APP, nullptr, nullptr);
 
         // Set initial button texts
@@ -791,6 +787,29 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         HDC hdc = BeginPaint(hwnd, &ps);
 
         if (g_activeProfile) {
+            // Legend: colored squares showing what each stripe color means
+            int legendY = LAYOUT_TITLE_START + LAYOUT_TITLE_HEIGHT + 3;
+            HFONT hOldFont = (HFONT)SelectObject(hdc, g_hFontImprint);
+            SetTextColor(hdc, g_activeProfile->theme.text);
+            SetBkMode(hdc, TRANSPARENT);
+
+            HBRUSH hBrInGame = CreateSolidBrush(g_activeProfile->theme.accent);
+            RECT rIG = { LAYOUT_LEFT_MARGIN, legendY + 2, LAYOUT_LEFT_MARGIN + 10, legendY + 12 };
+            FillRect(hdc, &rIG, hBrInGame);
+            DeleteObject(hBrInGame);
+            RECT tIG = { LAYOUT_LEFT_MARGIN + 13, legendY, LAYOUT_LEFT_MARGIN + 140, legendY + LAYOUT_LEGEND_HEIGHT };
+            DrawText(hdc, L"In-Game Key", -1, &tIG, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+
+            HBRUSH hBrApp = CreateSolidBrush(RGB(70, 130, 200));
+            RECT rAP = { LAYOUT_LEFT_MARGIN + 152, legendY + 2, LAYOUT_LEFT_MARGIN + 162, legendY + 12 };
+            FillRect(hdc, &rAP, hBrApp);
+            DeleteObject(hBrApp);
+            RECT tAP = { LAYOUT_LEFT_MARGIN + 165, legendY, LAYOUT_LEFT_MARGIN + 340, legendY + LAYOUT_LEGEND_HEIGHT };
+            DrawText(hdc, L"App Key (custom)", -1, &tAP, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+
+            SelectObject(hdc, hOldFont);
+
+            // Binding rows
             HBRUSH hRowBrush = CreateSolidBrush(g_activeProfile->theme.rowBg);
             HPEN   hLinePen  = CreatePen(PS_SOLID, 2, g_activeProfile->theme.separator);
             HPEN   hOldPen   = (HPEN)SelectObject(hdc, hLinePen);
@@ -810,6 +829,20 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                     rowY + 5 + LAYOUT_BUTTON_HEIGHT
                 };
                 FillRect(hdc, &rowRect, hRowBrush);
+
+                // Colored left stripe: accent = in-game, blue = app-only
+                COLORREF stripeColor = g_activeProfile->bindings[i].isAppOnly
+                    ? RGB(70, 130, 200)
+                    : g_activeProfile->theme.accent;
+                HBRUSH hStripe = CreateSolidBrush(stripeColor);
+                RECT stripeRect = {
+                    LAYOUT_LEFT_MARGIN - LAYOUT_ROW_PADDING,
+                    rowY + 5,
+                    LAYOUT_LEFT_MARGIN - LAYOUT_ROW_PADDING + 4,
+                    rowY + 5 + LAYOUT_BUTTON_HEIGHT
+                };
+                FillRect(hdc, &stripeRect, hStripe);
+                DeleteObject(hStripe);
 
                 rowY += LAYOUT_ROW_HEIGHT;
                 const auto& beh = g_activeProfile->bindings[i].behavior;
@@ -1010,12 +1043,19 @@ bool CreateSettingsWindow(HINSTANCE hInstance, GameProfile* profile) {
         classRegistered = true;
     }
 
+    // Size the window so the CLIENT area is exactly WINDOW_WIDTH x WINDOW_HEIGHT
+    RECT rcAdj = { 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT };
+    AdjustWindowRectEx(&rcAdj,
+        WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
+        FALSE, WS_EX_DLGMODALFRAME);
+
     g_hSettingsWnd = CreateWindowEx(
         WS_EX_DLGMODALFRAME,
         L"CustomControlZSettingsClass",
         profile->settingsTitle,
         WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
-        CW_USEDEFAULT, CW_USEDEFAULT, WINDOW_WIDTH, WINDOW_HEIGHT,
+        CW_USEDEFAULT, CW_USEDEFAULT,
+        rcAdj.right - rcAdj.left, rcAdj.bottom - rcAdj.top,
         nullptr, nullptr, hInstance, nullptr
     );
     return g_hSettingsWnd != nullptr;
@@ -1025,6 +1065,10 @@ bool CreateSettingsWindow(HINSTANCE hInstance, GameProfile* profile) {
 
 void OnGameSelected(int profileIndex) {
     StopGameLogicThread();
+
+    // Capture position before hiding so settings window opens in same spot
+    RECT selectRect = {};
+    if (g_hGameSelectWnd) GetWindowRect(g_hGameSelectWnd, &selectRect);
 
     g_activeProfile = g_gameProfiles[profileIndex];
     LoadConfig(g_activeProfile);
@@ -1037,6 +1081,13 @@ void OnGameSelected(int profileIndex) {
 
     if (!CreateSettingsWindow(g_hInstance, g_activeProfile)) return;
 
+    // Place settings window at same screen position as game select window
+    if (selectRect.left != 0 || selectRect.top != 0) {
+        SetWindowPos(g_hSettingsWnd, nullptr,
+                     selectRect.left, selectRect.top, 0, 0,
+                     SWP_NOSIZE | SWP_NOZORDER);
+    }
+
     ShowWindow(g_hGameSelectWnd, SW_HIDE);
     ShowWindow(g_hSettingsWnd, SW_SHOW);
     SetForegroundWindow(g_hSettingsWnd);
@@ -1046,8 +1097,20 @@ void OnGameSelected(int profileIndex) {
 
 void ShowChangeGameUI() {
     StopGameLogicThread();
-    if (g_hSettingsWnd)   ShowWindow(g_hSettingsWnd, SW_HIDE);
+
+    // Capture position before hiding so game select opens in same spot
+    RECT settingsRect = {};
+    if (g_hSettingsWnd) {
+        GetWindowRect(g_hSettingsWnd, &settingsRect);
+        ShowWindow(g_hSettingsWnd, SW_HIDE);
+    }
+
     if (g_hGameSelectWnd) {
+        if (settingsRect.left != 0 || settingsRect.top != 0) {
+            SetWindowPos(g_hGameSelectWnd, nullptr,
+                         settingsRect.left, settingsRect.top, 0, 0,
+                         SWP_NOSIZE | SWP_NOZORDER);
+        }
         ShowWindow(g_hGameSelectWnd, SW_SHOW);
         SetForegroundWindow(g_hGameSelectWnd);
     }
@@ -1058,13 +1121,13 @@ LRESULT CALLBACK GameSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     case WM_CREATE: {
         EnableDarkTitleBar(hwnd);
 
-        HFONT hFontTitle    = CreateFont(32, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE,
+        HFONT hFontTitle    = CreateFont(24, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE,
                                          DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
                                          CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
-        HFONT hFontSubtitle = CreateFont(18, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+        HFONT hFontSubtitle = CreateFont(15, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
                                          DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
                                          CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
-        HFONT hFontImprint  = CreateFont(15, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
+        HFONT hFontImprint  = CreateFont(13, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
                                          DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
                                          CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
 
@@ -1072,12 +1135,31 @@ LRESULT CALLBACK GameSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         HFONT* fonts = new HFONT[3]{ hFontTitle, hFontSubtitle, hFontImprint };
         SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)fonts);
 
-        // Load poster images for each game profile
+        // Build EXE-relative base path so posters load regardless of working directory
+        wchar_t exeDir[MAX_PATH];
+        GetModuleFileNameW(nullptr, exeDir, MAX_PATH);
+        wchar_t* lastSlash = wcsrchr(exeDir, L'\\');
+        if (lastSlash) *(lastSlash + 1) = L'\0';
+
+        // Load poster images for each game profile.
+        // Try EXE-relative first (release layout); fall back two levels up (VS debug layout).
         for (int i = 0; i < g_gameProfileCount; i++) {
-            g_gamePosters[i] = new Gdiplus::Image(g_gameProfiles[i]->posterFile);
+            wchar_t fullPath[MAX_PATH];
+            StringCchCopyW(fullPath, MAX_PATH, exeDir);
+            StringCchCatW(fullPath, MAX_PATH, g_gameProfiles[i]->posterFile);
+            g_gamePosters[i] = new Gdiplus::Image(fullPath);
             if (g_gamePosters[i]->GetLastStatus() != Gdiplus::Ok) {
                 delete g_gamePosters[i];
-                g_gamePosters[i] = nullptr;
+                // Fallback: assets live two directories above the debug EXE (x64\Debug\ -> project root)
+                wchar_t fallback[MAX_PATH];
+                StringCchCopyW(fallback, MAX_PATH, exeDir);
+                StringCchCatW(fallback, MAX_PATH, L"..\\..\\");
+                StringCchCatW(fallback, MAX_PATH, g_gameProfiles[i]->posterFile);
+                g_gamePosters[i] = new Gdiplus::Image(fallback);
+                if (g_gamePosters[i]->GetLastStatus() != Gdiplus::Ok) {
+                    delete g_gamePosters[i];
+                    g_gamePosters[i] = nullptr;
+                }
             }
         }
 
@@ -1110,7 +1192,7 @@ LRESULT CALLBACK GameSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         int creditY2 = exitY - 5 - LAYOUT_IMPRINT_HEIGHT;
         int creditY1 = creditY2 - 4 - LAYOUT_IMPRINT_HEIGHT;
 
-        HWND hImp1 = CreateWindow(L"STATIC", L"Idea and development: Börni (burni2001)",
+        HWND hImp1 = CreateWindow(L"STATIC", L"Idea and development: B\u00f6rni (burni2001)",
             WS_VISIBLE | WS_CHILD | SS_CENTER,
             0, creditY1, WINDOW_WIDTH, LAYOUT_IMPRINT_HEIGHT, hwnd,
             (HMENU)(INT_PTR)ID_IMPRINT1_STATIC, nullptr, nullptr);
@@ -1178,24 +1260,43 @@ LRESULT CALLBACK GameSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
                 int btnH = rc.bottom - rc.top;
 
                 if (g_gamePosters[idx]) {
-                    // Draw poster image scaled to button area
+                    // Fit image within button preserving aspect ratio (letterboxed)
+                    UINT imgW = g_gamePosters[idx]->GetWidth();
+                    UINT imgH = g_gamePosters[idx]->GetHeight();
+                    float scale = 1.0f;
+                    if (imgW > 0 && imgH > 0) {
+                        float sx = (float)btnW / imgW;
+                        float sy = (float)btnH / imgH;
+                        scale = sx < sy ? sx : sy;
+                    }
+                    int drawW = (int)(imgW * scale);
+                    int drawH = (int)(imgH * scale);
+                    int drawX = rc.left + (btnW - drawW) / 2;
+                    int drawY = rc.top  + (btnH - drawH) / 2;
+
                     Gdiplus::Graphics g(hdc);
                     g.SetInterpolationMode(Gdiplus::InterpolationModeHighQualityBicubic);
-                    Gdiplus::Rect destRect(rc.left, rc.top, btnW, btnH);
+
+                    // Fill letterbox bars with black
+                    HBRUSH hBlk = CreateSolidBrush(RGB(0, 0, 0));
+                    FillRect(hdc, &rc, hBlk);
+                    DeleteObject(hBlk);
+
+                    Gdiplus::Rect destRect(drawX, drawY, drawW, drawH);
                     g.DrawImage(g_gamePosters[idx], destRect);
 
-                    // Semi-transparent name overlay at bottom
-                    constexpr int OVERLAY_H = 42;
+                    // Semi-transparent name overlay at bottom of the image
+                    constexpr int OVERLAY_H = 30;
                     Gdiplus::SolidBrush overlayBrush(Gdiplus::Color(190, 0, 0, 0));
-                    g.FillRectangle(&overlayBrush, rc.left, rc.bottom - OVERLAY_H, btnW, OVERLAY_H);
+                    g.FillRectangle(&overlayBrush, drawX, drawY + drawH - OVERLAY_H, drawW, OVERLAY_H);
 
-                    Gdiplus::Font gFont(L"Segoe UI", 18, Gdiplus::FontStyleBold, Gdiplus::UnitPixel);
+                    Gdiplus::Font gFont(L"Segoe UI", 13, Gdiplus::FontStyleBold, Gdiplus::UnitPixel);
                     Gdiplus::SolidBrush textBrush(Gdiplus::Color(255, 255, 255, 255));
                     Gdiplus::StringFormat sf;
                     sf.SetAlignment(Gdiplus::StringAlignmentCenter);
                     sf.SetLineAlignment(Gdiplus::StringAlignmentCenter);
-                    Gdiplus::RectF textRect((float)rc.left, (float)(rc.bottom - OVERLAY_H),
-                                            (float)btnW, (float)OVERLAY_H);
+                    Gdiplus::RectF textRect((float)drawX, (float)(drawY + drawH - OVERLAY_H),
+                                            (float)drawW, (float)OVERLAY_H);
                     g.DrawString(gp->displayName, -1, &gFont, textRect, &sf, &textBrush);
                 } else {
                     // Fallback: colored rectangle with game name
@@ -1259,12 +1360,18 @@ bool CreateGameSelectionWindow(HINSTANCE hInstance) {
     wc.hIcon         = LoadIcon(hInstance, MAKEINTRESOURCE(ICON_ID_EXE));
     if (!RegisterClass(&wc)) return false;
 
+    RECT rcAdj = { 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT };
+    AdjustWindowRectEx(&rcAdj,
+        WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
+        FALSE, WS_EX_DLGMODALFRAME);
+
     g_hGameSelectWnd = CreateWindowEx(
         WS_EX_DLGMODALFRAME,
         L"CustomControlZSelectClass",
         L"CustomControlZ",
         WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
-        CW_USEDEFAULT, CW_USEDEFAULT, WINDOW_WIDTH, WINDOW_HEIGHT,
+        CW_USEDEFAULT, CW_USEDEFAULT,
+        rcAdj.right - rcAdj.left, rcAdj.bottom - rcAdj.top,
         nullptr, nullptr, hInstance, nullptr
     );
     return g_hGameSelectWnd != nullptr;

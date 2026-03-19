@@ -17,6 +17,7 @@ struct KeyBinding {
     WORD               defaultVk; // Default virtual key code
     WORD               currentVk; // Live value - written by UI, read by logic thread
     BehaviorDescriptor behavior;  // Behavior type and parameters for this binding
+    bool               isAppOnly; // true = user picks freely (no in-game counterpart); false = must match in-game key
 };
 
 struct Theme {

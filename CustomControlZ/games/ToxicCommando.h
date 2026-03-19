@@ -3,7 +3,7 @@
 
 // Binding indices for Toxic Commando
 enum ToxicCommandoBinding {
-    TC_KEY_SCROLL_TOGGLE = 0, // Key that alternates scroll wheel up/down each press
+    TC_KEY_SCROLL_TOGGLE = 0, // Key that cycles weapon each press (single in-game key)
     TC_KEY_MELEE         = 1, // Melee combo: tap = switch+click+switch back; hold = switch+hold+switch back on release
     TC_BINDING_COUNT     = 2
 };
@@ -37,22 +37,25 @@ static GameProfile g_ToxicCommandoProfile = {
     },
     /* bindingCount */ TC_BINDING_COUNT,
     /* bindings */ {
-        // TC_KEY_SCROLL_TOGGLE: KeyToggle — each rising edge alternates between pressing weapon slot 1 and 2
-        { L"ScrollToggleKey", L"Cycle Weapon (Key Toggle)", VK_PRIOR, VK_PRIOR,
-          { BehaviorType::KeyToggle, /*outputVk=*/'1', /*longOutputVk=*/'2',
+        // TC_KEY_SCROLL_TOGGLE: KeyToggle — each press cycles the weapon using the single in-game weapon key.
+        // Both outputVk and longOutputVk use the same key since the game has one weapon-cycle binding.
+        { L"ScrollToggleKey", L"Custom Key: Cycle Weapons", VK_PRIOR, VK_PRIOR,
+          { BehaviorType::KeyToggle, /*outputVk=*/'2', /*longOutputVk=*/'2',
             /*thresholdMs=*/0, /*durationMs=*/50, /*wheelDelta=*/0, /*attackVk=*/0, /*returnDelayMs=*/0,
-            /*outputVkLabel=*/L"Weapon 1 Slot Key", /*longOutputVkLabel=*/L"Weapon 2 Slot Key" } },
+            /*outputVkLabel=*/L"Primary Weapon", /*longOutputVkLabel=*/nullptr },
+          /*isAppOnly=*/true },
 
         // TC_KEY_MELEE: MeleeBurst — repeated taps stay on melee; auto-switch back after idle
         //   tap:        switch to melee (held), wait, click LMB; melee key stays held for subsequent taps
         //   long press: switch to melee (held), hold LMB until V released, then switch back
         //   idle:       auto-release melee key and press main weapon key to return
         // outputVk = switch-to-melee key; longOutputVk = switch-back (main weapon) key; attackVk = LMB
-        { L"MeleeKey", L"Melee Attack (Combo Key)", 'V', 'V',
+        { L"MeleeKey", L"Custom Key: Melee Attack", 'V', 'V',
           { BehaviorType::MeleeBurst, /*outputVk=*/VK_OEM_5, /*longOutputVk=*/'2',
             /*thresholdMs=*/TC_MELEE_THRESHOLD_MS, /*durationMs=*/TC_WEAPON_SWITCH_MS,
             /*wheelDelta=*/0, /*attackVk=*/VK_LBUTTON, /*returnDelayMs=*/750,
-            /*outputVkLabel=*/L"Melee Weapon Slot Key", /*longOutputVkLabel=*/L"Main Weapon Slot Key" } },
+            /*outputVkLabel=*/L"Melee", /*longOutputVkLabel=*/L"Secondary Weapon" },
+          /*isAppOnly=*/true },
     },
     /* logicFn */ GenericLogicThreadFn,
 };
