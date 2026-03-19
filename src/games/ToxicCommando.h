@@ -60,11 +60,11 @@ static GameProfile g_ToxicCommandoProfile = {
 
         // TC_KEY_OVERRIDE: GlobalSuspend — first press suspends all custom bindings (Return passes through to game);
         //   second press re-enables. Any held keys are released on entering suspend.
-        { L"OverrideKey", L"Suspend / Resume All", VK_RETURN, VK_RETURN,
+        { L"OverrideKey", L"Text Chat", VK_RETURN, VK_RETURN,
           { BehaviorType::GlobalSuspend, /*outputVk=*/0, /*longOutputVk=*/0,
             /*thresholdMs=*/0, /*durationMs=*/0, /*wheelDelta=*/0, /*attackVk=*/0, /*returnDelayMs=*/0,
             /*outputVkLabel=*/nullptr, /*longOutputVkLabel=*/nullptr },
-          /*isAppOnly=*/true },
+          /*isAppOnly=*/false },
     },
     /* logicFn */ GenericLogicThreadFn,
 };
