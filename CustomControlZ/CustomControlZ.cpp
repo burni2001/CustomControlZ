@@ -115,7 +115,7 @@ constexpr int LAYOUT_FONT_BUTTON_HEIGHT   = 24;
 constexpr int LAYOUT_LEGEND_HEIGHT        = 14;  // height of app/in-game key legend below title
 constexpr int LAYOUT_TIMING_ROW_HEIGHT    = 24;  // Height of each timing sub-row (ms delay inputs)
 constexpr int LAYOUT_TIMING_ROWS_HEIGHT   = 48;  // Total height of both timing sub-rows (2 × 24)
-constexpr int LAYOUT_TIMING_EDIT_WIDTH    = 56;  // Width of timing value edit boxes
+constexpr int LAYOUT_TIMING_EDIT_WIDTH    = 75;  // Width of timing value edit boxes
 constexpr int LAYOUT_OUTPUT_ROW_HEIGHT    = 35;  // Height of each output-key configurable sub-row
 constexpr int LAYOUT_CLEAR_BUTTON_WIDTH   = 25;  // Width of the × clear button
 constexpr int LAYOUT_CLEAR_BUTTON_GAP     = 4;   // Gap between bind button and its × clear button
@@ -364,7 +364,7 @@ void SaveConfig(GameProfile* profile) {
             WritePrivateProfileString(profile->iniSection, key, buf, CONFIG_FILE);
         }
     }
-    WritePrivateProfileString(L"UI", L"FontName", localFontName, CONFIG_FILE);
+    WritePrivateProfileString(profile->iniSection, L"FontName", localFontName, CONFIG_FILE);
 }
 
 void LoadConfig(GameProfile* profile) {
@@ -407,7 +407,7 @@ void LoadConfig(GameProfile* profile) {
     }
 
     wchar_t tempFont[FONT_NAME_BUFFER];
-    GetPrivateProfileString(L"UI", L"FontName", L"Palatino Linotype",
+    GetPrivateProfileString(profile->iniSection, L"FontName", L"Palatino Linotype",
                             tempFont, ARRAYSIZE(tempFont), CONFIG_FILE);
 
     std::lock_guard<std::mutex> lock(g_configMutex);
