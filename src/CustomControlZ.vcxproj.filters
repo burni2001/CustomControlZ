@@ -39,13 +39,13 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="CustomControlZ.ico">
+    <Image Include="assets\CustomControlZ.ico">
       <Filter>Ressourcendateien</Filter>
     </Image>
-    <Image Include="idle.ico">
+    <Image Include="assets\idle.ico">
       <Filter>Ressourcendateien</Filter>
     </Image>
-    <Image Include="active.ico">
+    <Image Include="assets\active.ico">
       <Filter>Ressourcendateien</Filter>
     </Image>
   </ItemGroup>

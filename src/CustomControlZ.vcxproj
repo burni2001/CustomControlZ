@@ -145,9 +145,9 @@
     <ResourceCompile Include="Resource.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="active.ico" />
-    <Image Include="CustomControlZ.ico" />
-    <Image Include="idle.ico" />
+    <Image Include="assets\active.ico" />
+    <Image Include="assets\CustomControlZ.ico" />
+    <Image Include="assets\idle.ico" />
   </ItemGroup>
   <ItemGroup>
 	  <!-- Manifest wird als Ressource eingebettet, nicht als separates Item -->
