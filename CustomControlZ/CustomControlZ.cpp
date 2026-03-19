@@ -1110,13 +1110,13 @@ LRESULT CALLBACK GameSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         int creditY2 = exitY - 5 - LAYOUT_IMPRINT_HEIGHT;
         int creditY1 = creditY2 - 4 - LAYOUT_IMPRINT_HEIGHT;
 
-        HWND hImp1 = CreateWindow(L"STATIC", L"Idea and development: B\u00e9rni (burni2001)",
+        HWND hImp1 = CreateWindow(L"STATIC", L"Idea and development: Börni (burni2001)",
             WS_VISIBLE | WS_CHILD | SS_CENTER,
             0, creditY1, WINDOW_WIDTH, LAYOUT_IMPRINT_HEIGHT, hwnd,
             (HMENU)(INT_PTR)ID_IMPRINT1_STATIC, nullptr, nullptr);
         SendMessage(hImp1, WM_SETFONT, (WPARAM)hFontImprint, TRUE);
 
-        HWND hImp2 = CreateWindow(L"STATIC", L"Development tools: Visual Studio, GitHub Copilot",
+        HWND hImp2 = CreateWindow(L"STATIC", L"Development tools: Claude Code, Visual Studio Code, GitHub Copilot",
             WS_VISIBLE | WS_CHILD | SS_CENTER,
             0, creditY2, WINDOW_WIDTH, LAYOUT_IMPRINT_HEIGHT, hwnd,
             (HMENU)(INT_PTR)ID_IMPRINT2_STATIC, nullptr, nullptr);
