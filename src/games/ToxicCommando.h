@@ -56,7 +56,7 @@ static GameProfile g_ToxicCommandoProfile = {
             /*thresholdMs=*/TC_MELEE_THRESHOLD_MS, /*durationMs=*/TC_WEAPON_SWITCH_MS,
             /*wheelDelta=*/0, /*attackVk=*/VK_LBUTTON, /*returnDelayMs=*/750,
             /*outputVkLabel=*/L"Melee", /*longOutputVkLabel=*/nullptr },
-          /*isAppOnly=*/true },
+          /*isAppOnly=*/true, /*separatorAbove=*/true },
 
         // TC_KEY_OVERRIDE: GlobalSuspend — first press suspends all custom bindings (Return passes through to game);
         //   second press re-enables. Any held keys are released on entering suspend.
@@ -64,7 +64,7 @@ static GameProfile g_ToxicCommandoProfile = {
           { BehaviorType::GlobalSuspend, /*outputVk=*/0, /*longOutputVk=*/0,
             /*thresholdMs=*/0, /*durationMs=*/0, /*wheelDelta=*/0, /*attackVk=*/0, /*returnDelayMs=*/0,
             /*outputVkLabel=*/nullptr, /*longOutputVkLabel=*/nullptr },
-          /*isAppOnly=*/false },
+          /*isAppOnly=*/false, /*separatorAbove=*/true },
     },
     /* logicFn */ GenericLogicThreadFn,
 };

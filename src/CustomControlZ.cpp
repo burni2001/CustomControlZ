@@ -124,6 +124,7 @@ constexpr int LAYOUT_TIMING_EDIT_WIDTH    = 90;  // Width of timing value edit b
 constexpr int LAYOUT_OUTPUT_ROW_HEIGHT    = 42;  // Height of each output-key configurable sub-row
 constexpr int LAYOUT_CLEAR_BUTTON_WIDTH   = 30;  // Width of the × clear button
 constexpr int LAYOUT_CLEAR_BUTTON_GAP     = 5;   // Gap between bind button and its × clear button
+constexpr int LAYOUT_SEPARATOR_PADDING    = 10;  // Extra vertical space above and below a separator line
 
 // Game select window layout
 constexpr int SELECT_TITLE_Y       = 17;
@@ -704,6 +705,9 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         int rowY = rowBaseY;
         const int clearX = buttonX + LAYOUT_BUTTON_WIDTH + LAYOUT_CLEAR_BUTTON_GAP;
         for (int i = 0; i < profile->bindingCount; i++) {
+            if (profile->bindings[i].separatorAbove)
+                rowY += 2 * LAYOUT_SEPARATOR_PADDING;
+
             int labelY = rowY + 8; // small gap below separator line
 
             HWND hLabel = CreateWindow(L"STATIC", profile->bindings[i].label,
@@ -863,7 +867,7 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             SetTextColor(hdc, dimColor);
             RECT tHint = { LAYOUT_LEFT_MARGIN, legendY + LAYOUT_LEGEND_HEIGHT + 3,
                            LAYOUT_LEFT_MARGIN + LAYOUT_LINE_WIDTH, legendY + LAYOUT_LEGEND_HEIGHT + 3 + LAYOUT_LEGEND_HEIGHT };
-            DrawText(hdc, L"Make sure to match In-Game Keys with your actual Settings in the Game.", -1, &tHint, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+            DrawText(hdc, L"Make sure to match 'In-Game Keys' with your actual setting in the game.", -1, &tHint, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
 
             SelectObject(hdc, hOldFont);
 
@@ -875,10 +879,12 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             int rowBaseY = LAYOUT_TITLE_START + LAYOUT_TITLE_SPACING;
             int rowY = rowBaseY;
             for (int i = 0; i < g_activeProfile->bindingCount; i++) {
-                // Separator line (only when explicitly requested by binding)
+                // Separator line with extra breathing room above and below
                 if (g_activeProfile->bindings[i].separatorAbove) {
+                    rowY += LAYOUT_SEPARATOR_PADDING;
                     MoveToEx(hdc, LAYOUT_LEFT_MARGIN, rowY, nullptr);
                     LineTo(hdc, LAYOUT_LEFT_MARGIN + LAYOUT_LINE_WIDTH, rowY);
+                    rowY += LAYOUT_SEPARATOR_PADDING;
                 }
 
                 // Row background highlight
@@ -1374,7 +1380,7 @@ LRESULT CALLBACK GameSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
                 L"Idea and development: B\u00f6rni (burni2001)\n\n"
                 L"Development tools:\n"
                 L"Claude Code, Visual Studio Code, GitHub Copilot",
-                L"Credits \u2014 v" APP_VERSION, MB_OK | MB_ICONINFORMATION);
+                L"        Credits", MB_OK | MB_ICONINFORMATION);
         } else if (id >= BTN_GAME_BASE && id < BTN_GAME_BASE + g_gameProfileCount) {
             OnGameSelected(id - BTN_GAME_BASE);
         }
