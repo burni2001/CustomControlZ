@@ -845,11 +845,34 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             SetTextColor(hdc, g_activeProfile->theme.text);
             SetBkMode(hdc, TRANSPARENT);
 
-            HBRUSH hBrInGame = CreateSolidBrush(g_activeProfile->theme.accent);
-            RECT rIG = { LAYOUT_LEFT_MARGIN, legendY + 2, LAYOUT_LEFT_MARGIN + 12, legendY + 14 };
-            FillRect(hdc, &rIG, hBrInGame);
-            DeleteObject(hBrInGame);
-            RECT tIG = { LAYOUT_LEFT_MARGIN + 16, legendY, LAYOUT_LEFT_MARGIN + 168, legendY + LAYOUT_LEGEND_HEIGHT };
+            // Helper: draw a 14×12 yellow warning triangle with a black "!" at (x, y)
+            auto DrawWarningTri = [&](int x, int y) {
+                constexpr int W = 14, H = 12;
+                POINT pts[3] = { { x + W / 2, y }, { x, y + H }, { x + W, y + H } };
+                HBRUSH hY    = CreateSolidBrush(RGB(255, 210, 0));
+                HPEN   hBk   = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
+                HBRUSH hOBr  = (HBRUSH)SelectObject(hdc, hY);
+                HPEN   hOPn  = (HPEN)SelectObject(hdc, hBk);
+                Polygon(hdc, pts, 3);
+                SelectObject(hdc, hOBr);
+                SelectObject(hdc, hOPn);
+                DeleteObject(hY);
+                DeleteObject(hBk);
+                HFONT hF    = CreateFont(9, 0, 0, 0, FW_BOLD, FALSE, FALSE, FALSE,
+                    DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+                    CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_SWISS, L"Segoe UI");
+                COLORREF old = SetTextColor(hdc, RGB(0, 0, 0));
+                HFONT hOF   = (HFONT)SelectObject(hdc, hF);
+                RECT rE     = { x, y + 1, x + W, y + H };
+                DrawText(hdc, L"!", -1, &rE, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+                SelectObject(hdc, hOF);
+                DeleteObject(hF);
+                SetTextColor(hdc, old);
+            };
+
+            // Legend: in-game key = yellow warning triangle
+            DrawWarningTri(LAYOUT_LEFT_MARGIN, legendY + 2);
+            RECT tIG = { LAYOUT_LEFT_MARGIN + 18, legendY, LAYOUT_LEFT_MARGIN + 168, legendY + LAYOUT_LEGEND_HEIGHT };
             DrawText(hdc, L"In-Game Key", -1, &tIG, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
 
             HBRUSH hBrApp = CreateSolidBrush(RGB(70, 130, 200));
@@ -896,19 +919,22 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                 };
                 FillRect(hdc, &rowRect, hRowBrush);
 
-                // Colored left stripe: accent = in-game, blue = app-only
-                COLORREF stripeColor = g_activeProfile->bindings[i].isAppOnly
-                    ? RGB(70, 130, 200)
-                    : g_activeProfile->theme.accent;
-                HBRUSH hStripe = CreateSolidBrush(stripeColor);
-                RECT stripeRect = {
-                    LAYOUT_LEFT_MARGIN - LAYOUT_ROW_PADDING,
-                    rowY + 6,
-                    LAYOUT_LEFT_MARGIN - LAYOUT_ROW_PADDING + 5,
-                    rowY + 6 + LAYOUT_BUTTON_HEIGHT
-                };
-                FillRect(hdc, &stripeRect, hStripe);
-                DeleteObject(hStripe);
+                // Left indicator: warning triangle for in-game keys, blue stripe for custom keys
+                if (g_activeProfile->bindings[i].isAppOnly) {
+                    HBRUSH hStripe = CreateSolidBrush(RGB(70, 130, 200));
+                    RECT stripeRect = {
+                        LAYOUT_LEFT_MARGIN - LAYOUT_ROW_PADDING,
+                        rowY + 6,
+                        LAYOUT_LEFT_MARGIN - LAYOUT_ROW_PADDING + 5,
+                        rowY + 6 + LAYOUT_BUTTON_HEIGHT
+                    };
+                    FillRect(hdc, &stripeRect, hStripe);
+                    DeleteObject(hStripe);
+                } else {
+                    // Center the 14×12 triangle vertically in the 34px row button
+                    DrawWarningTri(LAYOUT_LEFT_MARGIN - LAYOUT_ROW_PADDING,
+                                   rowY + 6 + (LAYOUT_BUTTON_HEIGHT - 12) / 2);
+                }
 
                 rowY += LAYOUT_ROW_HEIGHT;
                 const auto& beh = g_activeProfile->bindings[i].behavior;
@@ -923,13 +949,8 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                         LAYOUT_LEFT_MARGIN + LAYOUT_LINE_WIDTH + LAYOUT_ROW_PADDING, rowY + subOffset + LAYOUT_BUTTON_HEIGHT
                     };
                     FillRect(hdc, &subRect, hRowBrush);
-                    HBRUSH hSub = CreateSolidBrush(g_activeProfile->theme.accent);
-                    RECT stripeRect = {
-                        LAYOUT_LEFT_MARGIN - LAYOUT_ROW_PADDING, rowY + subOffset,
-                        LAYOUT_LEFT_MARGIN - LAYOUT_ROW_PADDING + 5, rowY + subOffset + LAYOUT_BUTTON_HEIGHT
-                    };
-                    FillRect(hdc, &stripeRect, hSub);
-                    DeleteObject(hSub);
+                    DrawWarningTri(LAYOUT_LEFT_MARGIN - LAYOUT_ROW_PADDING,
+                                   rowY + subOffset + (LAYOUT_BUTTON_HEIGHT - 12) / 2);
                     rowY += LAYOUT_OUTPUT_ROW_HEIGHT;
                 }
                 if (beh.longOutputVkLabel) {
@@ -938,13 +959,8 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                         LAYOUT_LEFT_MARGIN + LAYOUT_LINE_WIDTH + LAYOUT_ROW_PADDING, rowY + subOffset + LAYOUT_BUTTON_HEIGHT
                     };
                     FillRect(hdc, &subRect, hRowBrush);
-                    HBRUSH hSub = CreateSolidBrush(g_activeProfile->theme.accent);
-                    RECT stripeRect = {
-                        LAYOUT_LEFT_MARGIN - LAYOUT_ROW_PADDING, rowY + subOffset,
-                        LAYOUT_LEFT_MARGIN - LAYOUT_ROW_PADDING + 5, rowY + subOffset + LAYOUT_BUTTON_HEIGHT
-                    };
-                    FillRect(hdc, &stripeRect, hSub);
-                    DeleteObject(hSub);
+                    DrawWarningTri(LAYOUT_LEFT_MARGIN - LAYOUT_ROW_PADDING,
+                                   rowY + subOffset + (LAYOUT_BUTTON_HEIGHT - 12) / 2);
                     rowY += LAYOUT_OUTPUT_ROW_HEIGHT;
                 }
             }
