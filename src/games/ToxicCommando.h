@@ -39,8 +39,8 @@ static GameProfile g_ToxicCommandoProfile = {
     /* bindings */ {
         // TC_KEY_SCROLL_TOGGLE: KeyToggle — each press cycles the weapon using the single in-game weapon key.
         // Both outputVk and longOutputVk use the same key since the game has one weapon-cycle binding.
-        { L"ScrollToggleKey", L"Custom Key: Cycle Weapons", VK_PRIOR, VK_PRIOR,
-          { BehaviorType::KeyToggle, /*outputVk=*/'2', /*longOutputVk=*/'2',
+        { L"ScrollToggleKey", L"Custom Key: Cycle Weapons", 'Q', 'Q',
+          { BehaviorType::KeyToggle, /*outputVk=*/'2', /*longOutputVk=*/'1',
             /*thresholdMs=*/0, /*durationMs=*/50, /*wheelDelta=*/0, /*attackVk=*/0, /*returnDelayMs=*/0,
             /*outputVkLabel=*/L"Primary Weapon", /*longOutputVkLabel=*/L"Secondary Weapon" },
           /*isAppOnly=*/true },
