@@ -21,6 +21,12 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
+      - name: Inject version into source
+        run: |
+          $ver = '${{ github.event.inputs.version }}'
+          (Get-Content CustomControlZ/src/CustomControlZ.cpp) -replace '#define APP_VERSION L"[^"]*"', "#define APP_VERSION L`"$ver`"" | Set-Content CustomControlZ/src/CustomControlZ.cpp
+        shell: pwsh
+
       - name: Build Release x64
         run: msbuild CustomControlZ.slnx /p:Configuration=Release /p:Platform=x64 /m
 

@@ -11,6 +11,11 @@
 #pragma comment(lib, "uxtheme.lib")
 #pragma comment(lib, "dwmapi.lib")
 #pragma comment(linker, "/SUBSYSTEM:WINDOWS /ENTRY:wWinMainCRTStartup")
+
+#ifndef APP_VERSION
+#define APP_VERSION L"1.0"
+#endif
+
 // --- DARK MODE ---
 
 enum PreferredAppMode { Default, AllowDark, ForceDark, ForceLight, Max };
@@ -1265,10 +1270,11 @@ LRESULT CALLBACK GameSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
             ShowWindow(hwnd, SW_HIDE);
         } else if (id == BTN_SELECT_CREDITS) {
             MessageBox(hwnd,
+                L"CustomControlZ v" APP_VERSION L"\n\n"
                 L"Idea and development: B\u00f6rni (burni2001)\n\n"
                 L"Development tools:\n"
                 L"Claude Code, Visual Studio Code, GitHub Copilot",
-                L"Credits", MB_OK | MB_ICONINFORMATION);
+                L"Credits \u2014 v" APP_VERSION, MB_OK | MB_ICONINFORMATION);
         } else if (id >= BTN_GAME_BASE && id < BTN_GAME_BASE + g_gameProfileCount) {
             OnGameSelected(id - BTN_GAME_BASE);
         }
