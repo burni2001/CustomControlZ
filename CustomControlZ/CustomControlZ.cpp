@@ -50,16 +50,23 @@ void EnableDarkTitleBar(HWND hwnd) {
 #define ID_TRAY_CHANGE_GAME 1003
 
 // Settings window control IDs
-#define BTN_BIND_BASE           2001  // Bind buttons: BTN_BIND_BASE + binding index
-#define ID_LABEL_BASE           2200  // Label statics: ID_LABEL_BASE + binding index
-#define ID_TIMING_SWITCH_BASE   2400  // Edit: switch delay (durationMs)  — 2400 + binding index
-#define ID_TIMING_RETURN_BASE   2500  // Edit: return delay (returnDelayMs) — 2500 + binding index
-#define ID_TITLE_STATIC         2100
-#define ID_IMPRINT1_STATIC      2101
-#define ID_IMPRINT2_STATIC      2102
-#define BTN_EXIT_SETTINGS       3001
-#define BTN_EXIT_APP            3002
-#define BTN_FONT_SETTINGS       3003
+#define BTN_BIND_BASE               2001  // Bind buttons: BTN_BIND_BASE + binding index
+#define ID_LABEL_BASE               2200  // Label statics: ID_LABEL_BASE + binding index
+#define ID_TIMING_SWITCH_BASE       2400  // Edit: switch delay (durationMs)  — 2400 + binding index
+#define ID_TIMING_RETURN_BASE       2500  // Edit: return delay (returnDelayMs) — 2500 + binding index
+#define BTN_OUTPUT_KEY_BASE         2600  // Output key bind buttons: 2600 + binding index
+#define BTN_LONG_OUTPUT_KEY_BASE    2700  // Long-output key bind buttons: 2700 + binding index
+#define BTN_CLEAR_BASE              2800  // Clear input-key buttons: 2800 + binding index
+#define BTN_CLEAR_OUTPUT_BASE       2850  // Clear output-key buttons: 2850 + binding index
+#define BTN_CLEAR_LONG_OUTPUT_BASE  2900  // Clear long-output-key buttons: 2900 + binding index
+#define ID_OUTPUT_LABEL_BASE        3100  // Output key row labels: 3100 + binding index
+#define ID_LONG_OUTPUT_LABEL_BASE   3200  // Long-output key row labels: 3200 + binding index
+#define ID_TITLE_STATIC             2100
+#define ID_IMPRINT1_STATIC          2101
+#define ID_IMPRINT2_STATIC          2102
+#define BTN_EXIT_SETTINGS           3001
+#define BTN_EXIT_APP                3002
+#define BTN_FONT_SETTINGS           3003
 
 // Game selection window control IDs
 #define BTN_GAME_BASE       4000  // Game buttons: BTN_GAME_BASE + profile index
@@ -104,6 +111,9 @@ constexpr int LAYOUT_FONT_BUTTON_HEIGHT   = 35;
 constexpr int LAYOUT_TIMING_ROW_HEIGHT    = 34;   // Height of each timing sub-row (ms delay inputs)
 constexpr int LAYOUT_TIMING_ROWS_HEIGHT   = 68;   // Total height of both timing sub-rows (2 × 34)
 constexpr int LAYOUT_TIMING_EDIT_WIDTH    = 80;   // Width of timing value edit boxes
+constexpr int LAYOUT_OUTPUT_ROW_HEIGHT    = 50;   // Height of each output-key configurable sub-row
+constexpr int LAYOUT_CLEAR_BUTTON_WIDTH   = 35;   // Width of the × clear button
+constexpr int LAYOUT_CLEAR_BUTTON_GAP     = 5;    // Gap between bind button and its × clear button
 
 // Game select window layout
 constexpr int SELECT_WIN_WIDTH     = 500;
@@ -184,9 +194,19 @@ void UpdateAllControlFonts(HWND hwnd) {
         for (int i = 0; i < g_activeProfile->bindingCount; i++) {
             SendMessage(GetDlgItem(hwnd, ID_LABEL_BASE + i), WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
             InvalidateRect(GetDlgItem(hwnd, BTN_BIND_BASE + i), nullptr, TRUE);
+            InvalidateRect(GetDlgItem(hwnd, BTN_CLEAR_BASE + i), nullptr, TRUE);
             if (g_activeProfile->bindings[i].behavior.type == BehaviorType::MeleeBurst) {
                 SendMessage(GetDlgItem(hwnd, ID_TIMING_SWITCH_BASE + i), WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
                 SendMessage(GetDlgItem(hwnd, ID_TIMING_RETURN_BASE + i), WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
+            }
+            const auto& beh = g_activeProfile->bindings[i].behavior;
+            if (beh.outputVkLabel) {
+                SendMessage(GetDlgItem(hwnd, ID_OUTPUT_LABEL_BASE + i), WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
+                InvalidateRect(GetDlgItem(hwnd, BTN_OUTPUT_KEY_BASE + i), nullptr, TRUE);
+            }
+            if (beh.longOutputVkLabel) {
+                SendMessage(GetDlgItem(hwnd, ID_LONG_OUTPUT_LABEL_BASE + i), WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
+                InvalidateRect(GetDlgItem(hwnd, BTN_LONG_OUTPUT_KEY_BASE + i), nullptr, TRUE);
             }
         }
     }
@@ -211,6 +231,9 @@ ButtonStyle GetButtonStyle(UINT ctlID) {
     if (ctlID == BTN_EXIT_APP)      return { g_hBrushExit,   t.exitBorder,     t.exitText, g_hFontNormal };
     if (ctlID == BTN_EXIT_SETTINGS) return { g_hBrushButton, t.minimizeBorder, t.text,     g_hFontNormal };
     if (ctlID == BTN_FONT_SETTINGS) return { g_hBrushButton, t.border,         t.accent,   g_hFontButton };
+    // × clear buttons: reddish border to signal destructive action
+    if (ctlID >= BTN_CLEAR_BASE && ctlID < BTN_CLEAR_BASE + MAX_BINDINGS)
+        return { g_hBrushButton, t.exitBorder, t.exitText, g_hFontButton };
     return { g_hBrushButton, t.border, t.accent, g_hFontButton };
 }
 
@@ -286,9 +309,11 @@ inline bool IsValidKey(WORD key) {
 
 void SaveConfig(GameProfile* profile) {
     wchar_t localFontName[FONT_NAME_BUFFER];
-    WORD vals[MAX_BINDINGS]      = {};
-    int  switchMs[MAX_BINDINGS]  = {};
-    int  returnMs[MAX_BINDINGS]  = {};
+    WORD vals[MAX_BINDINGS]          = {};
+    int  switchMs[MAX_BINDINGS]      = {};
+    int  returnMs[MAX_BINDINGS]      = {};
+    WORD outputVk[MAX_BINDINGS]      = {};
+    WORD longOutputVk[MAX_BINDINGS]  = {};
     {
         std::lock_guard<std::mutex> lock(g_configMutex);
         StringCchCopy(localFontName, ARRAYSIZE(localFontName), g_fontName);
@@ -298,6 +323,10 @@ void SaveConfig(GameProfile* profile) {
                 switchMs[i] = profile->bindings[i].behavior.durationMs;
                 returnMs[i] = profile->bindings[i].behavior.returnDelayMs;
             }
+            if (profile->bindings[i].behavior.outputVkLabel)
+                outputVk[i] = profile->bindings[i].behavior.outputVk;
+            if (profile->bindings[i].behavior.longOutputVkLabel)
+                longOutputVk[i] = profile->bindings[i].behavior.longOutputVk;
         }
     }
 
@@ -316,14 +345,30 @@ void SaveConfig(GameProfile* profile) {
             StringCchPrintf(buf, ARRAYSIZE(buf), L"%d", returnMs[i]);
             WritePrivateProfileString(profile->iniSection, key, buf, CONFIG_FILE);
         }
+
+        if (profile->bindings[i].behavior.outputVkLabel) {
+            StringCchPrintf(key, ARRAYSIZE(key), L"%s_OutputKey", profile->bindings[i].iniKey);
+            StringCchPrintf(buf, ARRAYSIZE(buf), L"%d", outputVk[i]);
+            WritePrivateProfileString(profile->iniSection, key, buf, CONFIG_FILE);
+        }
+
+        if (profile->bindings[i].behavior.longOutputVkLabel) {
+            StringCchPrintf(key, ARRAYSIZE(key), L"%s_LongOutputKey", profile->bindings[i].iniKey);
+            StringCchPrintf(buf, ARRAYSIZE(buf), L"%d", longOutputVk[i]);
+            WritePrivateProfileString(profile->iniSection, key, buf, CONFIG_FILE);
+        }
     }
     WritePrivateProfileString(L"UI", L"FontName", localFontName, CONFIG_FILE);
 }
 
 void LoadConfig(GameProfile* profile) {
-    WORD vals[MAX_BINDINGS]     = {};
-    int  switchMs[MAX_BINDINGS] = {};
-    int  returnMs[MAX_BINDINGS] = {};
+    WORD vals[MAX_BINDINGS]         = {};
+    int  switchMs[MAX_BINDINGS]     = {};
+    int  returnMs[MAX_BINDINGS]     = {};
+    WORD outputVk[MAX_BINDINGS]     = {};
+    WORD longOutputVk[MAX_BINDINGS] = {};
+    bool hasOutputVk[MAX_BINDINGS]     = {};
+    bool hasLongOutputVk[MAX_BINDINGS] = {};
     wchar_t key[64];
 
     for (int i = 0; i < profile->bindingCount; i++) {
@@ -340,6 +385,19 @@ void LoadConfig(GameProfile* profile) {
             returnMs[i] = GetPrivateProfileInt(profile->iniSection, key,
                               profile->bindings[i].behavior.returnDelayMs, CONFIG_FILE);
         }
+
+        if (profile->bindings[i].behavior.outputVkLabel) {
+            StringCchPrintf(key, ARRAYSIZE(key), L"%s_OutputKey", profile->bindings[i].iniKey);
+            // Use UINT_MAX as sentinel default to detect whether the key exists in the INI
+            UINT raw = (UINT)GetPrivateProfileInt(profile->iniSection, key, -1, CONFIG_FILE);
+            if (raw != (UINT)-1) { outputVk[i] = static_cast<WORD>(raw); hasOutputVk[i] = true; }
+        }
+
+        if (profile->bindings[i].behavior.longOutputVkLabel) {
+            StringCchPrintf(key, ARRAYSIZE(key), L"%s_LongOutputKey", profile->bindings[i].iniKey);
+            UINT raw = (UINT)GetPrivateProfileInt(profile->iniSection, key, -1, CONFIG_FILE);
+            if (raw != (UINT)-1) { longOutputVk[i] = static_cast<WORD>(raw); hasLongOutputVk[i] = true; }
+        }
     }
 
     wchar_t tempFont[FONT_NAME_BUFFER];
@@ -348,11 +406,14 @@ void LoadConfig(GameProfile* profile) {
 
     std::lock_guard<std::mutex> lock(g_configMutex);
     for (int i = 0; i < profile->bindingCount; i++) {
-        if (IsValidKey(vals[i])) profile->bindings[i].currentVk = vals[i];
+        // Allow currentVk=0 (means "no key bound / disabled")
+        profile->bindings[i].currentVk = vals[i];
         if (profile->bindings[i].behavior.type == BehaviorType::MeleeBurst) {
             profile->bindings[i].behavior.durationMs    = max(50, min(5000, switchMs[i]));
             profile->bindings[i].behavior.returnDelayMs = max(50, min(5000, returnMs[i]));
         }
+        if (hasOutputVk[i])     profile->bindings[i].behavior.outputVk     = outputVk[i];
+        if (hasLongOutputVk[i]) profile->bindings[i].behavior.longOutputVk = longOutputVk[i];
     }
     StringCchCopy(g_fontName, ARRAYSIZE(g_fontName), tempFont);
 }
@@ -361,6 +422,7 @@ void LoadConfig(GameProfile* profile) {
 
 void GetKeyName(WORD vk, wchar_t* buffer, size_t size) {
     switch (vk) {
+    case 0:          StringCchCopy(buffer, size, L"\u2014");       return;  // em dash: no key bound
     case VK_LEFT:    StringCchCopy(buffer, size, L"Left Arrow");  return;
     case VK_RIGHT:   StringCchCopy(buffer, size, L"Right Arrow"); return;
     case VK_UP:      StringCchCopy(buffer, size, L"Up Arrow");    return;
@@ -575,6 +637,7 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
         // Binding rows (one per profile binding)
         int rowY = rowBaseY;
+        const int clearX = buttonX + LAYOUT_BUTTON_WIDTH + LAYOUT_CLEAR_BUTTON_GAP;
         for (int i = 0; i < profile->bindingCount; i++) {
             int labelY = rowY + 8; // small gap below separator line
 
@@ -588,6 +651,12 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                 WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
                 buttonX, labelY, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT,
                 hwnd, (HMENU)(INT_PTR)(BTN_BIND_BASE + i), nullptr, nullptr);
+
+            // × clear button to unset this input binding
+            CreateWindow(L"BUTTON", L"\u00d7",
+                WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
+                clearX, labelY, LAYOUT_CLEAR_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT,
+                hwnd, (HMENU)(INT_PTR)(BTN_CLEAR_BASE + i), nullptr, nullptr);
 
             rowY += LAYOUT_ROW_HEIGHT;
 
@@ -629,6 +698,40 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
                 rowY += LAYOUT_TIMING_ROW_HEIGHT;
             }
+
+            // Configurable output-key sub-rows
+            const BehaviorDescriptor& beh = profile->bindings[i].behavior;
+            const int subLabelY = (LAYOUT_OUTPUT_ROW_HEIGHT - LAYOUT_BUTTON_HEIGHT) / 2;
+
+            if (beh.outputVkLabel) {
+                HWND hOL = CreateWindow(L"STATIC", beh.outputVkLabel,
+                    WS_VISIBLE | WS_CHILD | SS_CENTERIMAGE,
+                    LAYOUT_LEFT_MARGIN + 20, rowY + subLabelY, LAYOUT_LABEL_WIDTH - 20, LAYOUT_BUTTON_HEIGHT,
+                    hwnd, (HMENU)(INT_PTR)(ID_OUTPUT_LABEL_BASE + i), nullptr, nullptr);
+                SendMessage(hOL, WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
+
+                CreateWindow(L"BUTTON", L"...",
+                    WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
+                    buttonX, rowY + subLabelY, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT,
+                    hwnd, (HMENU)(INT_PTR)(BTN_OUTPUT_KEY_BASE + i), nullptr, nullptr);
+
+                rowY += LAYOUT_OUTPUT_ROW_HEIGHT;
+            }
+
+            if (beh.longOutputVkLabel) {
+                HWND hLOL = CreateWindow(L"STATIC", beh.longOutputVkLabel,
+                    WS_VISIBLE | WS_CHILD | SS_CENTERIMAGE,
+                    LAYOUT_LEFT_MARGIN + 20, rowY + subLabelY, LAYOUT_LABEL_WIDTH - 20, LAYOUT_BUTTON_HEIGHT,
+                    hwnd, (HMENU)(INT_PTR)(ID_LONG_OUTPUT_LABEL_BASE + i), nullptr, nullptr);
+                SendMessage(hLOL, WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
+
+                CreateWindow(L"BUTTON", L"...",
+                    WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
+                    buttonX, rowY + subLabelY, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT,
+                    hwnd, (HMENU)(INT_PTR)(BTN_LONG_OUTPUT_KEY_BASE + i), nullptr, nullptr);
+
+                rowY += LAYOUT_OUTPUT_ROW_HEIGHT;
+            }
         }
 
         // Bottom buttons
@@ -665,6 +768,10 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         std::lock_guard<std::mutex> lock(g_configMutex);
         for (int i = 0; i < profile->bindingCount; i++) {
             UpdateButtonText(GetDlgItem(hwnd, BTN_BIND_BASE + i), profile->bindings[i].currentVk);
+            if (profile->bindings[i].behavior.outputVkLabel)
+                UpdateButtonText(GetDlgItem(hwnd, BTN_OUTPUT_KEY_BASE + i), profile->bindings[i].behavior.outputVk);
+            if (profile->bindings[i].behavior.longOutputVkLabel)
+                UpdateButtonText(GetDlgItem(hwnd, BTN_LONG_OUTPUT_KEY_BASE + i), profile->bindings[i].behavior.longOutputVk);
         }
         break;
     }
@@ -703,8 +810,11 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                 FillRect(hdc, &rowRect, hRowBrush);
 
                 rowY += LAYOUT_ROW_HEIGHT;
-                if (g_activeProfile->bindings[i].behavior.type == BehaviorType::MeleeBurst)
+                const auto& beh = g_activeProfile->bindings[i].behavior;
+                if (beh.type == BehaviorType::MeleeBurst)
                     rowY += LAYOUT_TIMING_ROWS_HEIGHT;
+                if (beh.outputVkLabel)     rowY += LAYOUT_OUTPUT_ROW_HEIGHT;
+                if (beh.longOutputVkLabel) rowY += LAYOUT_OUTPUT_ROW_HEIGHT;
             }
 
             SelectObject(hdc, hOldPen);
@@ -782,6 +892,25 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             g_waitingForBindID = id;
             SetWindowText(GetDlgItem(hwnd, id), L"...");
             SetFocus(hwnd);
+        } else if (id >= BTN_OUTPUT_KEY_BASE && g_activeProfile &&
+                   id < BTN_OUTPUT_KEY_BASE + g_activeProfile->bindingCount) {
+            g_waitingForBindID = id;
+            SetWindowText(GetDlgItem(hwnd, id), L"...");
+            SetFocus(hwnd);
+        } else if (id >= BTN_LONG_OUTPUT_KEY_BASE && g_activeProfile &&
+                   id < BTN_LONG_OUTPUT_KEY_BASE + g_activeProfile->bindingCount) {
+            g_waitingForBindID = id;
+            SetWindowText(GetDlgItem(hwnd, id), L"...");
+            SetFocus(hwnd);
+        } else if (id >= BTN_CLEAR_BASE && g_activeProfile &&
+                   id < BTN_CLEAR_BASE + g_activeProfile->bindingCount) {
+            int idx = id - BTN_CLEAR_BASE;
+            {
+                std::lock_guard<std::mutex> lock(g_configMutex);
+                g_activeProfile->bindings[idx].currentVk = 0;
+            }
+            UpdateButtonText(GetDlgItem(hwnd, BTN_BIND_BASE + idx), 0);
+            SaveConfig(g_activeProfile);
         } else if (HIWORD(wParam) == EN_KILLFOCUS && g_activeProfile) {
             // Timing edit lost focus — validate and save
             int idx      = -1;
@@ -826,14 +955,27 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                 g_waitingForBindID = 0;
                 break;
             }
-            int idx = bindID - BTN_BIND_BASE;
-            {
+
+            int idx = -1;
+            if (bindID >= BTN_BIND_BASE && bindID < BTN_BIND_BASE + g_activeProfile->bindingCount) {
+                idx = bindID - BTN_BIND_BASE;
                 std::lock_guard<std::mutex> lock(g_configMutex);
                 g_activeProfile->bindings[idx].currentVk = newKey;
                 UpdateButtonText(GetDlgItem(hwnd, bindID), newKey);
+            } else if (bindID >= BTN_OUTPUT_KEY_BASE && bindID < BTN_OUTPUT_KEY_BASE + g_activeProfile->bindingCount) {
+                idx = bindID - BTN_OUTPUT_KEY_BASE;
+                std::lock_guard<std::mutex> lock(g_configMutex);
+                g_activeProfile->bindings[idx].behavior.outputVk = newKey;
+                UpdateButtonText(GetDlgItem(hwnd, bindID), newKey);
+            } else if (bindID >= BTN_LONG_OUTPUT_KEY_BASE && bindID < BTN_LONG_OUTPUT_KEY_BASE + g_activeProfile->bindingCount) {
+                idx = bindID - BTN_LONG_OUTPUT_KEY_BASE;
+                std::lock_guard<std::mutex> lock(g_configMutex);
+                g_activeProfile->bindings[idx].behavior.longOutputVk = newKey;
+                UpdateButtonText(GetDlgItem(hwnd, bindID), newKey);
             }
+
             g_waitingForBindID = 0;
-            SaveConfig(g_activeProfile);
+            if (idx >= 0) SaveConfig(g_activeProfile);
         }
         break;
     }
@@ -864,14 +1006,17 @@ bool CreateSettingsWindow(HINSTANCE hInstance, GameProfile* profile) {
         classRegistered = true;
     }
 
-    int timingExtra = 0;
-    for (int i = 0; i < profile->bindingCount; i++)
-        if (profile->bindings[i].behavior.type == BehaviorType::MeleeBurst)
-            timingExtra += LAYOUT_TIMING_ROWS_HEIGHT;
+    int subRowExtra = 0;
+    for (int i = 0; i < profile->bindingCount; i++) {
+        const auto& beh = profile->bindings[i].behavior;
+        if (beh.type == BehaviorType::MeleeBurst) subRowExtra += LAYOUT_TIMING_ROWS_HEIGHT;
+        if (beh.outputVkLabel)                    subRowExtra += LAYOUT_OUTPUT_ROW_HEIGHT;
+        if (beh.longOutputVkLabel)                subRowExtra += LAYOUT_OUTPUT_ROW_HEIGHT;
+    }
 
     int windowHeight = LAYOUT_TITLE_START + LAYOUT_TITLE_SPACING
                      + profile->bindingCount * LAYOUT_ROW_HEIGHT
-                     + timingExtra
+                     + subRowExtra
                      + 15
                      + LAYOUT_BOTTOM_BUTTON_HEIGHT
                      + LAYOUT_BOTTOM_SPACING

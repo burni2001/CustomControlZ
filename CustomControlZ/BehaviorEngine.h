@@ -37,14 +37,16 @@ enum class BehaviorType : uint8_t {
 };
 
 struct BehaviorDescriptor {
-    BehaviorType type         = BehaviorType::HoldToToggle;
-    WORD         outputVk     = 0;      // HoldToToggle, EdgeTrigger, LongPress short output; WeaponCombo: switch-to key
-    WORD         longOutputVk = 0;      // LongPress: output on sustained hold; WeaponCombo: switch-back key
-    int          thresholdMs  = 400;    // LongPress/WeaponCombo: hold threshold in milliseconds
-    int          durationMs   = 50;     // EdgeTrigger: pulse duration; WeaponCombo: delay after weapon switch key (ms)
-    DWORD        wheelDelta    = 120;   // WheelToKey/WheelToggle: MOUSEEVENTF_WHEEL mouseData
-    WORD         attackVk      = 0;    // WeaponCombo/MeleeBurst: attack button VK (e.g. VK_LBUTTON)
-    int          returnDelayMs = 500;  // MeleeBurst: ms of idle before auto-switching back to main weapon
+    BehaviorType   type             = BehaviorType::HoldToToggle;
+    WORD           outputVk         = 0;       // HoldToToggle, EdgeTrigger, LongPress short output; WeaponCombo: switch-to key
+    WORD           longOutputVk     = 0;       // LongPress: output on sustained hold; WeaponCombo: switch-back key
+    int            thresholdMs      = 400;     // LongPress/WeaponCombo: hold threshold in milliseconds
+    int            durationMs       = 50;      // EdgeTrigger: pulse duration; WeaponCombo: delay after weapon switch key (ms)
+    DWORD          wheelDelta        = 120;    // WheelToKey/WheelToggle: MOUSEEVENTF_WHEEL mouseData
+    WORD           attackVk          = 0;     // WeaponCombo/MeleeBurst: attack button VK (e.g. VK_LBUTTON)
+    int            returnDelayMs     = 500;   // MeleeBurst: ms of idle before auto-switching back to main weapon
+    const wchar_t* outputVkLabel     = nullptr; // If non-null, shows as a configurable output key row in the settings UI
+    const wchar_t* longOutputVkLabel = nullptr; // If non-null, shows as a configurable long-output key row in the settings UI
 };
 
 // --- PER-BINDING STATE STRUCTS ---
