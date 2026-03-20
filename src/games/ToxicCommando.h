@@ -27,7 +27,7 @@ static GameProfile g_ToxicCommandoProfile = {
         RGB(0, 0, 0),       // bg         - black
         RGB(255, 255, 255), // text        - white
         RGB(255, 255, 255), // accent      - white
-        RGB(20, 20, 20),    // button      - near black
+        RGB(110, 30, 30),   // button      - dark red
         RGB(200, 50, 50),   // border      - red
         RGB(10, 10, 10),    // rowBg       - near black
         RGB(180, 30, 30),   // separator   - red
