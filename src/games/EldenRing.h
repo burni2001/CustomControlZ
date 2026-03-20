@@ -65,7 +65,7 @@ static GameProfile g_EldenRingProfile = {
         { L"TriggerKey", L"Close, Back (Long Press Trigger)", VK_ESCAPE,  VK_ESCAPE,
           { BehaviorType::LongPress, /*outputVk=*/VK_ESCAPE, /*longOutputVk=*/ER_ACTION_VK,
             /*thresholdMs=*/ER_LONG_PRESS_DELAY_MS },
-          /*isAppOnly=*/false, /*separatorAbove=*/true },
+          /*isAppOnly=*/true, /*separatorAbove=*/true },
     },
     /* logicFn */ GenericLogicThreadFn,
 };
