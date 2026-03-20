@@ -1197,8 +1197,13 @@ bool CreateSettingsWindow(HINSTANCE hInstance, GameProfile* profile) {
 
 // --- GAME SELECTION WINDOW ---
 
-void OnGameSelected(int profileIndex) {
+void OnGameSelected(int profileIndex, bool silent = false) {
     StopGameLogicThread();
+
+    // Persist last game for silent autostart on next launch
+    wchar_t idxBuf[8];
+    StringCchPrintf(idxBuf, ARRAYSIZE(idxBuf), L"%d", profileIndex);
+    WritePrivateProfileString(L"App", L"LastGame", idxBuf, CONFIG_FILE);
 
     // Capture position before hiding so settings window opens in same spot
     RECT selectRect = {};
@@ -1215,16 +1220,18 @@ void OnGameSelected(int profileIndex) {
 
     if (!CreateSettingsWindow(g_hInstance, g_activeProfile)) return;
 
-    // Place settings window at same screen position as game select window
-    if (selectRect.left != 0 || selectRect.top != 0) {
-        SetWindowPos(g_hSettingsWnd, nullptr,
-                     selectRect.left, selectRect.top, 0, 0,
-                     SWP_NOSIZE | SWP_NOZORDER);
-    }
-
     ShowWindow(g_hGameSelectWnd, SW_HIDE);
-    ShowWindow(g_hSettingsWnd, SW_SHOW);
-    SetForegroundWindow(g_hSettingsWnd);
+
+    if (!silent) {
+        // Place settings window at same screen position as game select window
+        if (selectRect.left != 0 || selectRect.top != 0) {
+            SetWindowPos(g_hSettingsWnd, nullptr,
+                         selectRect.left, selectRect.top, 0, 0,
+                         SWP_NOSIZE | SWP_NOZORDER);
+        }
+        ShowWindow(g_hSettingsWnd, SW_SHOW);
+        SetForegroundWindow(g_hSettingsWnd);
+    }
 
     StartGameLogicThread(g_activeProfile);
 }
@@ -1609,9 +1616,14 @@ int APIENTRY wWinMain(
     StringCchCopy(g_nid.szTip, ARRAYSIZE(g_nid.szTip), L"CustomControlZ");
     AddTrayIconWithRetry(&g_nid);
 
-    // Show game selection window
-    ShowWindow(g_hGameSelectWnd, SW_SHOW);
-    SetForegroundWindow(g_hGameSelectWnd);
+    // If a game was previously selected, resume it silently; otherwise show game selector
+    int lastGame = GetPrivateProfileInt(L"App", L"LastGame", -1, CONFIG_FILE);
+    if (lastGame >= 0 && lastGame < g_gameProfileCount) {
+        OnGameSelected(lastGame, true);
+    } else {
+        ShowWindow(g_hGameSelectWnd, SW_SHOW);
+        SetForegroundWindow(g_hGameSelectWnd);
+    }
 
     MSG msg;
     while (GetMessage(&msg, nullptr, 0, 0)) {
