@@ -1405,7 +1405,8 @@ LRESULT CALLBACK GameSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
             MessageBox(hwnd,
                 L"Idea and development: B\u00f6rni (burni2001)\n\n"
                 L"Development tools:\n"
-                L"Claude Code, Visual Studio Code, GitHub Copilot",
+                L"Claude Code, Visual Studio Code, GitHub Copilot\n\n"
+                L"Version: " APP_VERSION,
                 L"Credits", MB_OK | MB_ICONINFORMATION);
         } else if (id >= BTN_GAME_BASE && id < BTN_GAME_BASE + g_gameProfileCount) {
             OnGameSelected(id - BTN_GAME_BASE);
