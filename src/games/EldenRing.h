@@ -32,6 +32,7 @@ static GameProfile g_EldenRingProfile = {
         RGB(220, 195, 145), // text
         RGB(255, 215, 120), // accent
         RGB(40, 35, 25),    // button
+        RGB(40, 35, 25),    // selectBg    - same as button for game-select card
         RGB(120, 100, 60),  // border
         RGB(45, 38, 28),    // rowBg
         RGB(140, 115, 70),  // separator

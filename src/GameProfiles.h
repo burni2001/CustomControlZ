@@ -25,7 +25,8 @@ struct Theme {
     COLORREF bg;             // Window background
     COLORREF text;           // Static text color
     COLORREF accent;         // Button text / accent highlight
-    COLORREF button;         // Button fill
+    COLORREF button;         // Button fill (settings window)
+    COLORREF selectBg;       // Game-select card background
     COLORREF border;         // Normal button border
     COLORREF rowBg;          // Row background highlight
     COLORREF separator;      // Section separator line

@@ -1258,7 +1258,7 @@ LRESULT CALLBACK GameSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         HFONT hFontTitle   = CreateFont(32, 0, 0, 0, FW_BOLD,   FALSE, FALSE, FALSE,
                                         DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
                                         CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
-        HFONT hFontGameBtn = CreateFont(26, 0, 0, 0, FW_BOLD,   FALSE, FALSE, FALSE,
+        HFONT hFontGameBtn = CreateFont(40, 0, 0, 0, FW_BOLD,   FALSE, FALSE, FALSE,
                                         DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
                                         CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
         HFONT hFontNormal  = CreateFont(20, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
@@ -1364,7 +1364,7 @@ LRESULT CALLBACK GameSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
             int idx = (int)pDIS->CtlID - BTN_GAME_BASE;
             if (idx >= 0 && idx < g_gameProfileCount) {
                 GameProfile* gp = g_gameProfiles[idx];
-                HBRUSH hBr = CreateSolidBrush(gp->theme.button);
+                HBRUSH hBr = CreateSolidBrush(gp->theme.selectBg);
                 FillRect(hdc, &rc, hBr);
                 DeleteObject(hBr);
                 HPEN hPen    = CreatePen(PS_SOLID, 2, gp->theme.border);
@@ -1376,7 +1376,10 @@ LRESULT CALLBACK GameSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
                 if (fonts && fonts[1]) SelectObject(hdc, fonts[1]);
                 SetTextColor(hdc, gp->theme.accent);
                 SetBkMode(hdc, TRANSPARENT);
-                DrawText(hdc, gp->displayName, -1, &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+                wchar_t name[64];
+                wcsncpy_s(name, gp->displayName, ARRAYSIZE(name) - 1);
+                CharUpperW(name);
+                DrawText(hdc, name, -1, &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
             }
         }
         return TRUE;
