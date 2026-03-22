@@ -141,7 +141,7 @@ constexpr int SELECT_GAME_BTN_SPACING = 90;  // Spacing between game buttons (he
 
 // --- GLOBAL STATE ---
 
-const wchar_t* CONFIG_FILE = L".\\settings.ini";
+wchar_t CONFIG_FILE[MAX_PATH] = {};
 const wchar_t* MUTEX_NAME  = L"CustomControlZ_Unique_ID";
 
 std::mutex g_configMutex;
@@ -1568,6 +1568,16 @@ int APIENTRY wWinMain(
     }
 
     g_hInstance = hInstance;
+
+    // Build absolute config path from exe location so autostart works correctly
+    {
+        wchar_t exePath[MAX_PATH] = {};
+        GetModuleFileNameW(nullptr, exePath, MAX_PATH);
+        wchar_t* lastSlash = wcsrchr(exePath, L'\\');
+        if (lastSlash) lastSlash[1] = L'\0';
+        StringCchCopy(CONFIG_FILE, MAX_PATH, exePath);
+        StringCchCat(CONFIG_FILE, MAX_PATH, L"settings.ini");
+    }
 
     WaitForShellReady();
 
