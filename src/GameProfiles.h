@@ -383,7 +383,7 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
                         ReleaseKey(desc.outputVk);    // release ^
                         Sleep(30);
                         PressKey(desc.longOutputVk);  // press 2
-                        Sleep(30);
+                        Sleep(desc.durationMs);       // match forward-switch hold time so game reliably registers weapon change
                         ReleaseKey(desc.longOutputVk);
                         s.inMelee = false;
                     }
