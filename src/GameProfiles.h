@@ -62,6 +62,9 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
     BindingState state[MAX_BINDINGS];    // zero-initialised via BindingState()
     KeyTracker   tracker;
     bool         lastGameState = false;
+    int          missCount     = 0;       // consecutive IsGameRunning()==false count
+    bool         elevationWarnShown = false; // only warn once per thread lifetime
+    constexpr int MISS_THRESHOLD = 5;    // require 5 consecutive misses (~50ms) before treating game as stopped
 
     while (running) {
         // Pause while the UI is capturing a new key binding
@@ -70,7 +73,18 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
             continue;
         }
 
-        bool currentGameState = IsGameRunning(profile);
+        bool rawGameState = IsGameRunning(profile);
+
+        // Debounce: only flip to "stopped" after MISS_THRESHOLD consecutive misses.
+        // A single transient CreateToolhelp32Snapshot failure won't disrupt operation.
+        bool currentGameState;
+        if (rawGameState) {
+            missCount = 0;
+            currentGameState = true;
+        } else {
+            if (missCount < MISS_THRESHOLD) ++missCount;
+            currentGameState = (missCount < MISS_THRESHOLD) ? lastGameState : false;
+        }
 
         if (currentGameState != lastGameState) {
             if (lastGameState && !currentGameState) {
@@ -81,19 +95,26 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
                 // Game just started
                 SetTrayIconState(true, profile);
 
-                // Check if game is running elevated (FIX-02: UIPI detection)
-                bool elevated = IsProcessRunningElevated(profile->processName1);
-                if (!elevated && profile->processName2)
-                    elevated = IsProcessRunningElevated(profile->processName2);
-                if (elevated) {
-                    MessageBox(nullptr,
-                        L"Warning: The game is running as Administrator.\n\n"
-                        L"CustomControlZ cannot inject inputs into elevated processes without "
-                        L"also running as Administrator (UIPI restriction).\n\n"
-                        L"Key remapping may not work. Run CustomControlZ as Administrator "
-                        L"if you need remapping to function.",
-                        L"Elevation Warning \u2014 UIPI Detected",
-                        MB_OK | MB_ICONWARNING);
+                // Check if game is running elevated (FIX-02: UIPI detection).
+                // Guard with elevationWarnShown so a false stopped→started transition
+                // never re-shows a MessageBox that would block this thread invisibly.
+                if (!elevationWarnShown) {
+                    bool elevated = IsProcessRunningElevated(profile->processName1);
+                    if (!elevated && profile->processName2)
+                        elevated = IsProcessRunningElevated(profile->processName2);
+                    if (elevated) {
+                        elevationWarnShown = true;
+                        MessageBox(nullptr,
+                            L"Warning: The game is running as Administrator.\n\n"
+                            L"CustomControlZ cannot inject inputs into elevated processes without "
+                            L"also running as Administrator (UIPI restriction).\n\n"
+                            L"Key remapping may not work. Run CustomControlZ as Administrator "
+                            L"if you need remapping to function.",
+                            L"Elevation Warning \u2014 UIPI Detected",
+                            MB_OK | MB_ICONWARNING);
+                    } else {
+                        elevationWarnShown = true; // no need to recheck after first clean start
+                    }
                 }
             }
             lastGameState = currentGameState;
@@ -123,8 +144,12 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
                 bool wasSuspended = s.suspended;
                 s.suspended = !s.suspended;
                 s.pressed   = true;
-                if (s.suspended && !wasSuspended)
-                    tracker.releaseAll();   // release any held keys on entering suspend
+                if (s.suspended && !wasSuspended) {
+                    tracker.releaseAll();              // release any held keys on entering suspend
+                    SetTrayIconState(false, profile);  // idle icon = bindings off
+                } else if (!s.suspended && wasSuspended) {
+                    SetTrayIconState(true, profile);   // active icon = bindings back on
+                }
             } else if (!keyDown) {
                 s.pressed = false;
             }
