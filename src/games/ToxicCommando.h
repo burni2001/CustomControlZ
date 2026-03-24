@@ -41,7 +41,7 @@ static GameProfile g_ToxicCommandoProfile = {
     /* bindings */ {
         // TC_KEY_SCROLL_TOGGLE: KeyToggle — each press cycles the weapon using the single in-game weapon key.
         // Both outputVk and longOutputVk use the same key since the game has one weapon-cycle binding.
-        { L"ScrollToggleKey", L"Custom Key: Cycle Weapons", 'Q', 'Q',
+        { L"ScrollToggleKey", L"Custom key: Quickswap weapons", 'Q', 'Q',
           { BehaviorType::KeyToggle, /*outputVk=*/'2', /*longOutputVk=*/'1',
             /*thresholdMs=*/0, /*durationMs=*/50, /*wheelDelta=*/0, /*attackVk=*/0, /*returnDelayMs=*/0,
             /*outputVkLabel=*/L"Primary Weapon", /*longOutputVkLabel=*/L"Secondary Weapon" },
@@ -52,7 +52,7 @@ static GameProfile g_ToxicCommandoProfile = {
         //   long press: switch to melee (held), hold LMB until V released, then switch back
         //   idle:       auto-release melee key and press main weapon key to return
         // outputVk = switch-to-melee key; longOutputVk = switch-back (main weapon) key; attackVk = LMB
-        { L"MeleeKey", L"Custom Key: Melee Attack", 'V', 'V',
+        { L"MeleeKey", L"Custom key: Quick melee attack", 'V', 'V',
           { BehaviorType::MeleeBurst, /*outputVk=*/VK_OEM_5, /*longOutputVk=*/'2',
             /*thresholdMs=*/TC_MELEE_THRESHOLD_MS, /*durationMs=*/TC_WEAPON_SWITCH_MS,
             /*wheelDelta=*/0, /*attackVk=*/VK_LBUTTON, /*returnDelayMs=*/750,

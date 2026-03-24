@@ -51,18 +51,18 @@ static GameProfile g_EldenRingProfile = {
           /*isAppOnly=*/false },
 
         // ER_KEY_DODGE: EdgeTrigger — rising edge fires the in-game key for 50ms
-        { L"DodgeKey",   L"Dodge Roll (Custom Key)",          'C',        'C',
+        { L"DodgeKey",   L"Custom key: Dodge roll",          'C',        'C',
           { BehaviorType::EdgeTrigger, /*outputVk=*/'F', /*longOutputVk=*/0,
             /*thresholdMs=*/ER_LONG_PRESS_DELAY_MS, /*durationMs=*/ER_DODGE_DURATION_MS },
           /*isAppOnly=*/true },
 
         // ER_KEY_SPRINT: HoldToToggle — holds the in-game key while input key is held
-        { L"SprintKey",  L"Dash, Sprint (Custom Key)",        VK_CAPITAL, VK_CAPITAL,
+        { L"SprintKey",  L"Custom Key: Dash, Sprint",        VK_CAPITAL, VK_CAPITAL,
           { BehaviorType::HoldToToggle, /*outputVk=*/'F' },
           /*isAppOnly=*/true },
 
         // ER_KEY_TRIGGER: LongPress — tap fires Escape (close/back), hold fires Q (action)
-        { L"TriggerKey", L"Close, Back (Long Press Trigger)", VK_ESCAPE,  VK_ESCAPE,
+        { L"TriggerKey", L"Custom Key:Close, Back (Long press)", VK_ESCAPE,  VK_ESCAPE,
           { BehaviorType::LongPress, /*outputVk=*/VK_ESCAPE, /*longOutputVk=*/ER_ACTION_VK,
             /*thresholdMs=*/ER_LONG_PRESS_DELAY_MS },
           /*isAppOnly=*/true, /*separatorAbove=*/true },
