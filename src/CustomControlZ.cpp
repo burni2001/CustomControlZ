@@ -820,7 +820,65 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             if (profile->bindings[i].separatorAbove)
                 rowY += 2 * LAYOUT_SEPARATOR_PADDING;
 
-            int labelY = rowY + 9; // small gap below separator line
+            // Configurable output-key sub-rows (rendered before the custom-key row)
+            const BehaviorDescriptor& beh = profile->bindings[i].behavior;
+            const int subLabelY = (LAYOUT_OUTPUT_ROW_HEIGHT - LAYOUT_BUTTON_HEIGHT) / 2;
+
+            if (beh.outputVkLabel) {
+                HWND hOL = CreateWindow(L"STATIC", beh.outputVkLabel,
+                    WS_VISIBLE | WS_CHILD | SS_CENTERIMAGE,
+                    LAYOUT_LEFT_MARGIN + LAYOUT_LABEL_INDENT, rowY + subLabelY, LAYOUT_LABEL_WIDTH - LAYOUT_LABEL_INDENT, LAYOUT_BUTTON_HEIGHT,
+                    hwnd, (HMENU)(INT_PTR)(ID_OUTPUT_LABEL_BASE + i), nullptr, nullptr);
+                SendMessage(hOL, WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
+
+                {
+                    HWND hB = CreateWindow(L"BUTTON", L"...",
+                        WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
+                        buttonX, rowY + subLabelY, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT,
+                        hwnd, (HMENU)(INT_PTR)(BTN_OUTPUT_KEY_BASE + i), nullptr, nullptr);
+                    SubclassButton(hB);
+                    AddTooltip(g_hSettingsTooltip, hB, L"Set the in-game key to press");
+                }
+                {
+                    HWND hB = CreateWindow(L"BUTTON", L"\u00d7",
+                        WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
+                        clearX, rowY + subLabelY, LAYOUT_CLEAR_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT,
+                        hwnd, (HMENU)(INT_PTR)(BTN_CLEAR_OUTPUT_BASE + i), nullptr, nullptr);
+                    SubclassButton(hB);
+                    AddTooltip(g_hSettingsTooltip, hB, L"Clear in-game key");
+                }
+
+                rowY += LAYOUT_OUTPUT_ROW_HEIGHT;
+            }
+
+            if (beh.longOutputVkLabel) {
+                HWND hLOL = CreateWindow(L"STATIC", beh.longOutputVkLabel,
+                    WS_VISIBLE | WS_CHILD | SS_CENTERIMAGE,
+                    LAYOUT_LEFT_MARGIN + LAYOUT_LABEL_INDENT, rowY + subLabelY, LAYOUT_LABEL_WIDTH - LAYOUT_LABEL_INDENT, LAYOUT_BUTTON_HEIGHT,
+                    hwnd, (HMENU)(INT_PTR)(ID_LONG_OUTPUT_LABEL_BASE + i), nullptr, nullptr);
+                SendMessage(hLOL, WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
+
+                {
+                    HWND hB = CreateWindow(L"BUTTON", L"...",
+                        WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
+                        buttonX, rowY + subLabelY, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT,
+                        hwnd, (HMENU)(INT_PTR)(BTN_LONG_OUTPUT_KEY_BASE + i), nullptr, nullptr);
+                    SubclassButton(hB);
+                    AddTooltip(g_hSettingsTooltip, hB, L"Set the secondary in-game key");
+                }
+                {
+                    HWND hB = CreateWindow(L"BUTTON", L"\u00d7",
+                        WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
+                        clearX, rowY + subLabelY, LAYOUT_CLEAR_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT,
+                        hwnd, (HMENU)(INT_PTR)(BTN_CLEAR_LONG_OUTPUT_BASE + i), nullptr, nullptr);
+                    SubclassButton(hB);
+                    AddTooltip(g_hSettingsTooltip, hB, L"Clear secondary key");
+                }
+
+                rowY += LAYOUT_OUTPUT_ROW_HEIGHT;
+            }
+
+            int labelY = rowY + 9; // small gap above custom-key row
 
             HWND hLabel = CreateWindow(L"STATIC", profile->bindings[i].label,
                 WS_VISIBLE | WS_CHILD | SS_CENTERIMAGE,
@@ -886,64 +944,6 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                 SendMessage(hE2, WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
 
                 rowY += LAYOUT_TIMING_ROW_HEIGHT;
-            }
-
-            // Configurable output-key sub-rows
-            const BehaviorDescriptor& beh = profile->bindings[i].behavior;
-            const int subLabelY = (LAYOUT_OUTPUT_ROW_HEIGHT - LAYOUT_BUTTON_HEIGHT) / 2;
-
-            if (beh.outputVkLabel) {
-                HWND hOL = CreateWindow(L"STATIC", beh.outputVkLabel,
-                    WS_VISIBLE | WS_CHILD | SS_CENTERIMAGE,
-                    LAYOUT_LEFT_MARGIN + LAYOUT_LABEL_INDENT, rowY + subLabelY, LAYOUT_LABEL_WIDTH - LAYOUT_LABEL_INDENT, LAYOUT_BUTTON_HEIGHT,
-                    hwnd, (HMENU)(INT_PTR)(ID_OUTPUT_LABEL_BASE + i), nullptr, nullptr);
-                SendMessage(hOL, WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
-
-                {
-                    HWND hB = CreateWindow(L"BUTTON", L"...",
-                        WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
-                        buttonX, rowY + subLabelY, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT,
-                        hwnd, (HMENU)(INT_PTR)(BTN_OUTPUT_KEY_BASE + i), nullptr, nullptr);
-                    SubclassButton(hB);
-                    AddTooltip(g_hSettingsTooltip, hB, L"Set the in-game key to press");
-                }
-                {
-                    HWND hB = CreateWindow(L"BUTTON", L"\u00d7",
-                        WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
-                        clearX, rowY + subLabelY, LAYOUT_CLEAR_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT,
-                        hwnd, (HMENU)(INT_PTR)(BTN_CLEAR_OUTPUT_BASE + i), nullptr, nullptr);
-                    SubclassButton(hB);
-                    AddTooltip(g_hSettingsTooltip, hB, L"Clear in-game key");
-                }
-
-                rowY += LAYOUT_OUTPUT_ROW_HEIGHT;
-            }
-
-            if (beh.longOutputVkLabel) {
-                HWND hLOL = CreateWindow(L"STATIC", beh.longOutputVkLabel,
-                    WS_VISIBLE | WS_CHILD | SS_CENTERIMAGE,
-                    LAYOUT_LEFT_MARGIN + LAYOUT_LABEL_INDENT, rowY + subLabelY, LAYOUT_LABEL_WIDTH - LAYOUT_LABEL_INDENT, LAYOUT_BUTTON_HEIGHT,
-                    hwnd, (HMENU)(INT_PTR)(ID_LONG_OUTPUT_LABEL_BASE + i), nullptr, nullptr);
-                SendMessage(hLOL, WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
-
-                {
-                    HWND hB = CreateWindow(L"BUTTON", L"...",
-                        WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
-                        buttonX, rowY + subLabelY, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT,
-                        hwnd, (HMENU)(INT_PTR)(BTN_LONG_OUTPUT_KEY_BASE + i), nullptr, nullptr);
-                    SubclassButton(hB);
-                    AddTooltip(g_hSettingsTooltip, hB, L"Set the secondary in-game key");
-                }
-                {
-                    HWND hB = CreateWindow(L"BUTTON", L"\u00d7",
-                        WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
-                        clearX, rowY + subLabelY, LAYOUT_CLEAR_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT,
-                        hwnd, (HMENU)(INT_PTR)(BTN_CLEAR_LONG_OUTPUT_BASE + i), nullptr, nullptr);
-                    SubclassButton(hB);
-                    AddTooltip(g_hSettingsTooltip, hB, L"Clear secondary key");
-                }
-
-                rowY += LAYOUT_OUTPUT_ROW_HEIGHT;
             }
         }
 
@@ -1044,6 +1044,31 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                     rowY += LAYOUT_SEPARATOR_PADDING;
                 }
 
+                const auto& beh = g_activeProfile->bindings[i].behavior;
+
+                // Output sub-row highlights (rendered before the custom-key row)
+                const int subOffset = (LAYOUT_OUTPUT_ROW_HEIGHT - LAYOUT_BUTTON_HEIGHT) / 2;
+                if (beh.outputVkLabel) {
+                    RECT subRect = {
+                        LAYOUT_LEFT_MARGIN - LAYOUT_ROW_PADDING, rowY + subOffset,
+                        LAYOUT_LEFT_MARGIN + LAYOUT_LINE_WIDTH + LAYOUT_ROW_PADDING, rowY + subOffset + LAYOUT_BUTTON_HEIGHT
+                    };
+                    FillRect(hdc, &subRect, hRowBrush);
+                    DrawWarningTri(LAYOUT_LEFT_MARGIN - LAYOUT_ROW_PADDING,
+                                   rowY + subOffset + (LAYOUT_BUTTON_HEIGHT - 13) / 2);
+                    rowY += LAYOUT_OUTPUT_ROW_HEIGHT;
+                }
+                if (beh.longOutputVkLabel) {
+                    RECT subRect = {
+                        LAYOUT_LEFT_MARGIN - LAYOUT_ROW_PADDING, rowY + subOffset,
+                        LAYOUT_LEFT_MARGIN + LAYOUT_LINE_WIDTH + LAYOUT_ROW_PADDING, rowY + subOffset + LAYOUT_BUTTON_HEIGHT
+                    };
+                    FillRect(hdc, &subRect, hRowBrush);
+                    DrawWarningTri(LAYOUT_LEFT_MARGIN - LAYOUT_ROW_PADDING,
+                                   rowY + subOffset + (LAYOUT_BUTTON_HEIGHT - 13) / 2);
+                    rowY += LAYOUT_OUTPUT_ROW_HEIGHT;
+                }
+
                 // Row background highlight
                 RECT rowRect = {
                     LAYOUT_LEFT_MARGIN - LAYOUT_ROW_PADDING,
@@ -1071,32 +1096,8 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                 }
 
                 rowY += LAYOUT_ROW_HEIGHT;
-                const auto& beh = g_activeProfile->bindings[i].behavior;
                 if (beh.type == BehaviorType::MeleeBurst)
                     rowY += LAYOUT_TIMING_ROWS_HEIGHT;
-
-                // Output sub-row highlights (always accent stripe — these are always in-game keys)
-                const int subOffset = (LAYOUT_OUTPUT_ROW_HEIGHT - LAYOUT_BUTTON_HEIGHT) / 2;
-                if (beh.outputVkLabel) {
-                    RECT subRect = {
-                        LAYOUT_LEFT_MARGIN - LAYOUT_ROW_PADDING, rowY + subOffset,
-                        LAYOUT_LEFT_MARGIN + LAYOUT_LINE_WIDTH + LAYOUT_ROW_PADDING, rowY + subOffset + LAYOUT_BUTTON_HEIGHT
-                    };
-                    FillRect(hdc, &subRect, hRowBrush);
-                    DrawWarningTri(LAYOUT_LEFT_MARGIN - LAYOUT_ROW_PADDING,
-                                   rowY + subOffset + (LAYOUT_BUTTON_HEIGHT - 13) / 2);
-                    rowY += LAYOUT_OUTPUT_ROW_HEIGHT;
-                }
-                if (beh.longOutputVkLabel) {
-                    RECT subRect = {
-                        LAYOUT_LEFT_MARGIN - LAYOUT_ROW_PADDING, rowY + subOffset,
-                        LAYOUT_LEFT_MARGIN + LAYOUT_LINE_WIDTH + LAYOUT_ROW_PADDING, rowY + subOffset + LAYOUT_BUTTON_HEIGHT
-                    };
-                    FillRect(hdc, &subRect, hRowBrush);
-                    DrawWarningTri(LAYOUT_LEFT_MARGIN - LAYOUT_ROW_PADDING,
-                                   rowY + subOffset + (LAYOUT_BUTTON_HEIGHT - 13) / 2);
-                    rowY += LAYOUT_OUTPUT_ROW_HEIGHT;
-                }
             }
 
             SelectObject(hdc, hOldPen);
