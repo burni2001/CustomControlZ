@@ -18,6 +18,20 @@ A Windows system tray application for advanced game key remapping and control cu
 | **Elden Ring** | Sprint/dodge remapping, long-press trigger detection |
 | **Toxic Commando** | Keyboard keys simulate mouse scroll wheel for weapon switching |
 
+## Screenshots
+
+**Game Selector**
+
+![Game Selector](src/assets/Screenshot%202026-03-24%20180031.png)
+
+**Elden Ring — Key Bindings**
+
+![Elden Ring Key Bindings](src/assets/Screenshot%202026-03-24%20180045.png)
+
+**Toxic Commando — Key Bindings**
+
+![Toxic Commando Key Bindings](src/assets/Screenshot%202026-03-24%20180112.png)
+
 ## Download
 
 Download the latest `CustomControlZ.exe` from the [Releases](../../releases) page. No installer required — just run the executable.
