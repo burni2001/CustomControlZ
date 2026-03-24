@@ -335,7 +335,7 @@ HMENU CreateTrayMenu() {
         AppendMenu(hMenu, MF_STRING | (IsAutostartEnabled() ? MF_CHECKED : MF_UNCHECKED),
                    ID_TRAY_AUTOSTART, L"Start with Windows");
         AppendMenu(hMenu, MF_STRING | (g_tooltipsEnabled ? MF_CHECKED : MF_UNCHECKED),
-                   ID_TRAY_TOOLTIPS, L"Button Tooltips");
+                   ID_TRAY_TOOLTIPS, L"Show tooltips");
         AppendMenu(hMenu, MF_SEPARATOR, 0, nullptr);
         AppendMenu(hMenu, MF_STRING, ID_TRAY_EXIT, L"Exit");
     }
