@@ -467,6 +467,44 @@ void LoadConfig(GameProfile* profile) {
     StringCchCopy(g_fontName, ARRAYSIZE(g_fontName), tempFont);
 }
 
+// --- WINDOW POSITION PERSISTENCE ---
+
+static void SaveWindowPos(LPCWSTR keyPrefix, HWND hwnd) {
+    RECT rc;
+    if (!GetWindowRect(hwnd, &rc)) return;
+    wchar_t buf[32], key[64];
+    StringCchPrintf(key, ARRAYSIZE(key), L"%sX", keyPrefix);
+    StringCchPrintf(buf, ARRAYSIZE(buf), L"%d", rc.left);
+    WritePrivateProfileString(L"App", key, buf, CONFIG_FILE);
+    StringCchPrintf(key, ARRAYSIZE(key), L"%sY", keyPrefix);
+    StringCchPrintf(buf, ARRAYSIZE(buf), L"%d", rc.top);
+    WritePrivateProfileString(L"App", key, buf, CONFIG_FILE);
+}
+
+// Positions hwnd at saved location, or centered on screen if none saved / off-screen.
+static void RestoreOrCenterWindow(LPCWSTR keyPrefix, HWND hwnd) {
+    RECT rc;
+    GetWindowRect(hwnd, &rc);
+    int w = rc.right - rc.left;
+    int h = rc.bottom - rc.top;
+
+    wchar_t key[64];
+    StringCchPrintf(key, ARRAYSIZE(key), L"%sX", keyPrefix);
+    int x = GetPrivateProfileInt(L"App", key, INT_MIN, CONFIG_FILE);
+    StringCchPrintf(key, ARRAYSIZE(key), L"%sY", keyPrefix);
+    int y = GetPrivateProfileInt(L"App", key, INT_MIN, CONFIG_FILE);
+
+    bool useSaved = (x != INT_MIN && y != INT_MIN) &&
+                    (MonitorFromPoint({ x + w / 2, y + h / 2 }, MONITOR_DEFAULTTONULL) != nullptr);
+
+    if (!useSaved) {
+        // Center on primary monitor
+        x = (GetSystemMetrics(SM_CXSCREEN) - w) / 2;
+        y = (GetSystemMetrics(SM_CYSCREEN) - h) / 2;
+    }
+    SetWindowPos(hwnd, nullptr, x, y, 0, 0, SWP_NOZORDER | SWP_NOSIZE | SWP_NOACTIVATE);
+}
+
 // --- KEY NAMING ---
 
 void GetKeyName(WORD vk, wchar_t* buffer, size_t size) {
@@ -1141,6 +1179,10 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         break;
     }
 
+    case WM_MOVE:
+        SaveWindowPos(L"SettingsWin", hwnd);
+        break;
+
     case WM_SYSCOMMAND:
         if ((wParam & 0xFFF0) == SC_MINIMIZE) {
             ShowWindow(hwnd, SW_HIDE);
@@ -1192,6 +1234,7 @@ bool CreateSettingsWindow(HINSTANCE hInstance, GameProfile* profile) {
         rcAdj.right - rcAdj.left, rcAdj.bottom - rcAdj.top,
         nullptr, nullptr, hInstance, nullptr
     );
+    if (g_hSettingsWnd) RestoreOrCenterWindow(L"SettingsWin", g_hSettingsWnd);
     return g_hSettingsWnd != nullptr;
 }
 
@@ -1414,6 +1457,10 @@ LRESULT CALLBACK GameSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         break;
     }
 
+    case WM_MOVE:
+        SaveWindowPos(L"SelectWin", hwnd);
+        break;
+
     case WM_CLOSE:
         DestroyWindow(g_hMainWindow);
         return 0;
@@ -1455,6 +1502,7 @@ bool CreateGameSelectionWindow(HINSTANCE hInstance) {
         rcAdj.right - rcAdj.left, rcAdj.bottom - rcAdj.top,
         nullptr, nullptr, hInstance, nullptr
     );
+    if (g_hGameSelectWnd) RestoreOrCenterWindow(L"SelectWin", g_hGameSelectWnd);
     return g_hGameSelectWnd != nullptr;
 }
 
