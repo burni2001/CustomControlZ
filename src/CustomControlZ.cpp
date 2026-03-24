@@ -10,6 +10,8 @@
 #include <dwmapi.h>
 #pragma comment(lib, "uxtheme.lib")
 #pragma comment(lib, "dwmapi.lib")
+#include <commctrl.h>
+#pragma comment(lib, "comctl32.lib")
 #pragma comment(linker, "/SUBSYSTEM:WINDOWS /ENTRY:wWinMainCRTStartup")
 
 #ifndef APP_VERSION
@@ -53,6 +55,7 @@ void EnableDarkTitleBar(HWND hwnd) {
 #define ID_TRAY_EXIT        1002
 #define ID_TRAY_CHANGE_GAME 1003
 #define ID_TRAY_AUTOSTART   1004
+#define ID_TRAY_TOOLTIPS    1005
 
 // Settings window control IDs
 #define BTN_BIND_BASE               2001  // Bind buttons: BTN_BIND_BASE + binding index
@@ -158,6 +161,11 @@ HICON g_hIconIdle         = nullptr;
 HICON g_hIconActive       = nullptr;
 HICON g_hIconExe          = nullptr;
 bool  g_customIconsLoaded = false;
+bool  g_tooltipsEnabled  = true;
+
+HWND    g_hSettingsTooltip = nullptr;
+HWND    g_hSelectTooltip   = nullptr;
+WNDPROC g_origButtonProc   = nullptr;
 
 GameProfile* g_activeProfile = nullptr;
 
@@ -226,6 +234,7 @@ void UpdateAllControlFonts(HWND hwnd) {
 }
 
 struct ButtonStyle {
+    COLORREF fillColor;   // base fill colour used for hover computation
     HBRUSH   brush;
     COLORREF borderColor;
     COLORREF textColor;
@@ -233,17 +242,17 @@ struct ButtonStyle {
 };
 
 ButtonStyle GetButtonStyle(UINT ctlID) {
-    if (!g_activeProfile) return { g_hBrushButton, RGB(100,100,100), RGB(200,200,200), g_hFontButton };
+    if (!g_activeProfile) return { RGB(40,40,40), g_hBrushButton, RGB(100,100,100), RGB(200,200,200), g_hFontButton };
     const Theme& t = g_activeProfile->theme;
-    if (ctlID == BTN_EXIT_APP)      return { g_hBrushExit,   t.exitBorder,     t.exitText, g_hFontNormal };
-    if (ctlID == BTN_EXIT_SETTINGS) return { g_hBrushButton, t.minimizeBorder, t.text,     g_hFontNormal };
-    if (ctlID == BTN_FONT_SETTINGS) return { g_hBrushButton, t.border,         t.accent,   g_hFontButton };
+    if (ctlID == BTN_EXIT_APP)      return { t.exitFill, g_hBrushExit,   t.exitBorder,     t.exitText, g_hFontNormal };
+    if (ctlID == BTN_EXIT_SETTINGS) return { t.button,   g_hBrushButton, t.minimizeBorder, t.text,     g_hFontNormal };
+    if (ctlID == BTN_FONT_SETTINGS) return { t.button,   g_hBrushButton, t.border,         t.accent,   g_hFontButton };
     // × clear buttons: reddish border to signal destructive action
-    if ((ctlID >= BTN_CLEAR_BASE            && ctlID < BTN_CLEAR_BASE            + MAX_BINDINGS) ||
-        (ctlID >= BTN_CLEAR_OUTPUT_BASE     && ctlID < BTN_CLEAR_OUTPUT_BASE     + MAX_BINDINGS) ||
+    if ((ctlID >= BTN_CLEAR_BASE             && ctlID < BTN_CLEAR_BASE             + MAX_BINDINGS) ||
+        (ctlID >= BTN_CLEAR_OUTPUT_BASE      && ctlID < BTN_CLEAR_OUTPUT_BASE      + MAX_BINDINGS) ||
         (ctlID >= BTN_CLEAR_LONG_OUTPUT_BASE && ctlID < BTN_CLEAR_LONG_OUTPUT_BASE + MAX_BINDINGS))
-        return { g_hBrushButton, t.exitBorder, t.exitText, g_hFontButton };
-    return { g_hBrushButton, t.border, t.accent, g_hFontButton };
+        return { t.button, g_hBrushButton, t.exitBorder, t.exitText, g_hFontButton };
+    return { t.button, g_hBrushButton, t.border, t.accent, g_hFontButton };
 }
 
 void CleanupFonts() {
@@ -325,6 +334,8 @@ HMENU CreateTrayMenu() {
         AppendMenu(hMenu, MF_SEPARATOR, 0, nullptr);
         AppendMenu(hMenu, MF_STRING | (IsAutostartEnabled() ? MF_CHECKED : MF_UNCHECKED),
                    ID_TRAY_AUTOSTART, L"Start with Windows");
+        AppendMenu(hMenu, MF_STRING | (g_tooltipsEnabled ? MF_CHECKED : MF_UNCHECKED),
+                   ID_TRAY_TOOLTIPS, L"Button Tooltips");
         AppendMenu(hMenu, MF_SEPARATOR, 0, nullptr);
         AppendMenu(hMenu, MF_STRING, ID_TRAY_EXIT, L"Exit");
     }
@@ -465,6 +476,62 @@ void LoadConfig(GameProfile* profile) {
         if (hasLongOutputVk[i]) profile->bindings[i].behavior.longOutputVk = longOutputVk[i];
     }
     StringCchCopy(g_fontName, ARRAYSIZE(g_fontName), tempFont);
+}
+
+// --- BUTTON HOVER & TOOLTIP HELPERS ---
+
+static inline COLORREF LightenColor(COLORREF c, int amt = 28) {
+    return RGB(min(255, GetRValue(c) + amt),
+               min(255, GetGValue(c) + amt),
+               min(255, GetBValue(c) + amt));
+}
+
+LRESULT CALLBACK ButtonHoverProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
+    if (msg == WM_SETCURSOR) {
+        SetCursor(LoadCursor(nullptr, IDC_HAND));
+        return TRUE;
+    }
+    if (msg == WM_MOUSEMOVE && !GetProp(hwnd, L"CCZ_Hov")) {
+        SetProp(hwnd, L"CCZ_Hov", (HANDLE)1);
+        TRACKMOUSEEVENT tme = { sizeof(tme), TME_LEAVE, hwnd, 0 };
+        TrackMouseEvent(&tme);
+        InvalidateRect(hwnd, nullptr, TRUE);
+    }
+    if (msg == WM_MOUSELEAVE) {
+        RemoveProp(hwnd, L"CCZ_Hov");
+        InvalidateRect(hwnd, nullptr, TRUE);
+    }
+    return CallWindowProc(g_origButtonProc, hwnd, msg, wp, lp);
+}
+
+static void SubclassButton(HWND hBtn) {
+    if (!hBtn) return;
+    if (!g_origButtonProc)
+        g_origButtonProc = (WNDPROC)(LONG_PTR)GetWindowLongPtr(hBtn, GWLP_WNDPROC);
+    SetWindowLongPtr(hBtn, GWLP_WNDPROC, (LONG_PTR)ButtonHoverProc);
+}
+
+static HWND CreateTooltipWnd(HWND hParent) {
+    HWND hTT = CreateWindowEx(WS_EX_TOPMOST, L"tooltips_class32", nullptr,
+        WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP,
+        CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+        hParent, nullptr, g_hInstance, nullptr);
+    if (hTT) {
+        SendMessage(hTT, TTM_SETMAXTIPWIDTH, 0, 220);
+        SendMessage(hTT, TTM_ACTIVATE, g_tooltipsEnabled ? TRUE : FALSE, 0);
+    }
+    return hTT;
+}
+
+static void AddTooltip(HWND hTT, HWND hCtrl, LPCWSTR text) {
+    if (!hTT || !hCtrl) return;
+    TOOLINFO ti  = {};
+    ti.cbSize    = sizeof(TOOLINFO);
+    ti.uFlags    = TTF_IDISHWND | TTF_SUBCLASS;
+    ti.hwnd      = GetParent(hCtrl);
+    ti.uId       = (UINT_PTR)hCtrl;
+    ti.lpszText  = const_cast<LPWSTR>(text);
+    SendMessage(hTT, TTM_ADDTOOL, 0, (LPARAM)&ti);
 }
 
 // --- WINDOW POSITION PERSISTENCE ---
@@ -722,16 +789,22 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         const int buttonX = LAYOUT_LEFT_MARGIN + LAYOUT_LABEL_WIDTH + LAYOUT_BUTTON_GAP;
         int rowBaseY = LAYOUT_TITLE_START + LAYOUT_TITLE_SPACING;
 
+        g_hSettingsTooltip = CreateTooltipWnd(hwnd);
+
         // Top buttons: Select Game (left) | Font (right corner)
-        CreateWindow(L"BUTTON", L"Select Game",
+        HWND hBtnChangeGame = CreateWindow(L"BUTTON", L"Select Game",
             WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
             11, 11, LAYOUT_FONT_BUTTON_WIDTH, LAYOUT_FONT_BUTTON_HEIGHT,
             hwnd, (HMENU)(INT_PTR)BTN_CHANGE_GAME, nullptr, nullptr);
+        SubclassButton(hBtnChangeGame);
+        AddTooltip(g_hSettingsTooltip, hBtnChangeGame, L"Switch to a different game profile");
 
-        CreateWindow(L"BUTTON", L"Font",
+        HWND hBtnFont = CreateWindow(L"BUTTON", L"Font",
             WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
             WINDOW_WIDTH - LAYOUT_FONT_BUTTON_WIDTH - 11, 11, LAYOUT_FONT_BUTTON_WIDTH, LAYOUT_FONT_BUTTON_HEIGHT,
             hwnd, (HMENU)(INT_PTR)BTN_FONT_SETTINGS, nullptr, nullptr);
+        SubclassButton(hBtnFont);
+        AddTooltip(g_hSettingsTooltip, hBtnFont, L"Cycle display font");
 
         // Title
         HWND hTitle = CreateWindow(L"STATIC", L"Key Bindings",
@@ -755,16 +828,24 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                 hwnd, (HMENU)(INT_PTR)(ID_LABEL_BASE + i), nullptr, nullptr);
             SendMessage(hLabel, WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
 
-            CreateWindow(L"BUTTON", L"...",
-                WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
-                buttonX, labelY, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT,
-                hwnd, (HMENU)(INT_PTR)(BTN_BIND_BASE + i), nullptr, nullptr);
+            {
+                HWND hB = CreateWindow(L"BUTTON", L"...",
+                    WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
+                    buttonX, labelY, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT,
+                    hwnd, (HMENU)(INT_PTR)(BTN_BIND_BASE + i), nullptr, nullptr);
+                SubclassButton(hB);
+                AddTooltip(g_hSettingsTooltip, hB, L"Click to bind a new key");
+            }
 
             // × clear button to unset this input binding
-            CreateWindow(L"BUTTON", L"\u00d7",
-                WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
-                clearX, labelY, LAYOUT_CLEAR_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT,
-                hwnd, (HMENU)(INT_PTR)(BTN_CLEAR_BASE + i), nullptr, nullptr);
+            {
+                HWND hB = CreateWindow(L"BUTTON", L"\u00d7",
+                    WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
+                    clearX, labelY, LAYOUT_CLEAR_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT,
+                    hwnd, (HMENU)(INT_PTR)(BTN_CLEAR_BASE + i), nullptr, nullptr);
+                SubclassButton(hB);
+                AddTooltip(g_hSettingsTooltip, hB, L"Clear key binding");
+            }
 
             rowY += LAYOUT_ROW_HEIGHT;
 
@@ -818,15 +899,22 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                     hwnd, (HMENU)(INT_PTR)(ID_OUTPUT_LABEL_BASE + i), nullptr, nullptr);
                 SendMessage(hOL, WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
 
-                CreateWindow(L"BUTTON", L"...",
-                    WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
-                    buttonX, rowY + subLabelY, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT,
-                    hwnd, (HMENU)(INT_PTR)(BTN_OUTPUT_KEY_BASE + i), nullptr, nullptr);
-
-                CreateWindow(L"BUTTON", L"\u00d7",
-                    WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
-                    clearX, rowY + subLabelY, LAYOUT_CLEAR_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT,
-                    hwnd, (HMENU)(INT_PTR)(BTN_CLEAR_OUTPUT_BASE + i), nullptr, nullptr);
+                {
+                    HWND hB = CreateWindow(L"BUTTON", L"...",
+                        WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
+                        buttonX, rowY + subLabelY, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT,
+                        hwnd, (HMENU)(INT_PTR)(BTN_OUTPUT_KEY_BASE + i), nullptr, nullptr);
+                    SubclassButton(hB);
+                    AddTooltip(g_hSettingsTooltip, hB, L"Set the in-game key to press");
+                }
+                {
+                    HWND hB = CreateWindow(L"BUTTON", L"\u00d7",
+                        WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
+                        clearX, rowY + subLabelY, LAYOUT_CLEAR_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT,
+                        hwnd, (HMENU)(INT_PTR)(BTN_CLEAR_OUTPUT_BASE + i), nullptr, nullptr);
+                    SubclassButton(hB);
+                    AddTooltip(g_hSettingsTooltip, hB, L"Clear in-game key");
+                }
 
                 rowY += LAYOUT_OUTPUT_ROW_HEIGHT;
             }
@@ -838,15 +926,22 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                     hwnd, (HMENU)(INT_PTR)(ID_LONG_OUTPUT_LABEL_BASE + i), nullptr, nullptr);
                 SendMessage(hLOL, WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
 
-                CreateWindow(L"BUTTON", L"...",
-                    WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
-                    buttonX, rowY + subLabelY, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT,
-                    hwnd, (HMENU)(INT_PTR)(BTN_LONG_OUTPUT_KEY_BASE + i), nullptr, nullptr);
-
-                CreateWindow(L"BUTTON", L"\u00d7",
-                    WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
-                    clearX, rowY + subLabelY, LAYOUT_CLEAR_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT,
-                    hwnd, (HMENU)(INT_PTR)(BTN_CLEAR_LONG_OUTPUT_BASE + i), nullptr, nullptr);
+                {
+                    HWND hB = CreateWindow(L"BUTTON", L"...",
+                        WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
+                        buttonX, rowY + subLabelY, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT,
+                        hwnd, (HMENU)(INT_PTR)(BTN_LONG_OUTPUT_KEY_BASE + i), nullptr, nullptr);
+                    SubclassButton(hB);
+                    AddTooltip(g_hSettingsTooltip, hB, L"Set the secondary in-game key");
+                }
+                {
+                    HWND hB = CreateWindow(L"BUTTON", L"\u00d7",
+                        WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
+                        clearX, rowY + subLabelY, LAYOUT_CLEAR_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT,
+                        hwnd, (HMENU)(INT_PTR)(BTN_CLEAR_LONG_OUTPUT_BASE + i), nullptr, nullptr);
+                    SubclassButton(hB);
+                    AddTooltip(g_hSettingsTooltip, hB, L"Clear secondary key");
+                }
 
                 rowY += LAYOUT_OUTPUT_ROW_HEIGHT;
             }
@@ -1037,7 +1132,13 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             RECT rc = pDIS->rcItem;
 
             ButtonStyle style = GetButtonStyle(pDIS->CtlID);
-            FillRect(hdc, &rc, style.brush);
+            {
+                bool hovered = (GetProp(pDIS->hwndItem, L"CCZ_Hov") != nullptr);
+                COLORREF fill = hovered ? LightenColor(style.fillColor) : style.fillColor;
+                HBRUSH hFill = CreateSolidBrush(fill);
+                FillRect(hdc, &rc, hFill);
+                DeleteObject(hFill);
+            }
 
             HPEN hPen     = CreatePen(PS_SOLID, 2, style.borderColor);
             HPEN hOldPen  = (HPEN)SelectObject(hdc, hPen);
@@ -1200,6 +1301,7 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
     case WM_DESTROY:
         CleanupFonts();
+        g_hSettingsTooltip = nullptr; // child destroyed with the window
         break;
     }
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
@@ -1331,22 +1433,30 @@ LRESULT CALLBACK GameSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
             (HMENU)(INT_PTR)ID_SELECT_SUBTITLE, nullptr, nullptr);
         SendMessage(hSub, WM_SETFONT, (WPARAM)hFontNormal, TRUE);
 
+        g_hSelectTooltip = CreateTooltipWnd(hwnd);
+
         // Game selection buttons — bold text, themed
         for (int i = 0; i < g_gameProfileCount; i++) {
             int btnY = SELECT_FIRST_BTN_Y + i * SELECT_GAME_BTN_SPACING;
-            CreateWindow(L"BUTTON", g_gameProfiles[i]->displayName,
+            HWND hB = CreateWindow(L"BUTTON", g_gameProfiles[i]->displayName,
                 WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
                 SELECT_BTN_MARGIN_X, btnY,
                 WINDOW_WIDTH - 2 * SELECT_BTN_MARGIN_X, SELECT_GAME_BTN_HEIGHT,
                 hwnd, (HMENU)(INT_PTR)(BTN_GAME_BASE + i), nullptr, nullptr);
+            SubclassButton(hB);
+            AddTooltip(g_hSelectTooltip, hB, g_gameProfiles[i]->displayName);
         }
 
         // Credits button (bottom-left)
         int bottomY = WINDOW_HEIGHT - LAYOUT_BOTTOM_SPACING;
-        CreateWindow(L"BUTTON", L"Credits",
-            WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
-            11, bottomY, LAYOUT_FONT_BUTTON_WIDTH, LAYOUT_BOTTOM_BUTTON_HEIGHT,
-            hwnd, (HMENU)(INT_PTR)BTN_SELECT_CREDITS, nullptr, nullptr);
+        {
+            HWND hB = CreateWindow(L"BUTTON", L"Credits",
+                WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
+                11, bottomY, LAYOUT_FONT_BUTTON_WIDTH, LAYOUT_BOTTOM_BUTTON_HEIGHT,
+                hwnd, (HMENU)(INT_PTR)BTN_SELECT_CREDITS, nullptr, nullptr);
+            SubclassButton(hB);
+            AddTooltip(g_hSelectTooltip, hB, L"About CustomControlZ");
+        }
         break;
     }
 
@@ -1375,9 +1485,12 @@ LRESULT CALLBACK GameSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         RECT rc  = pDIS->rcItem;
         HFONT* fonts = (HFONT*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
 
+        bool hovered = (GetProp(pDIS->hwndItem, L"CCZ_Hov") != nullptr);
+
         if (pDIS->CtlID == BTN_SELECT_EXIT) {
             // Exit: dark red
-            HBRUSH hBr = CreateSolidBrush(RGB(140, 30, 30));
+            COLORREF fillC = hovered ? LightenColor(RGB(140, 30, 30)) : RGB(140, 30, 30);
+            HBRUSH hBr = CreateSolidBrush(fillC);
             FillRect(hdc, &rc, hBr);
             DeleteObject(hBr);
             HPEN hPen    = CreatePen(PS_SOLID, 2, RGB(200, 70, 70));
@@ -1393,7 +1506,8 @@ LRESULT CALLBACK GameSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 
         } else if (pDIS->CtlID == BTN_SELECT_MINIMIZE || pDIS->CtlID == BTN_SELECT_CREDITS) {
             // Minimize / Credits: neutral dark
-            HBRUSH hBr = CreateSolidBrush(RGB(40, 40, 40));
+            COLORREF fillC = hovered ? LightenColor(RGB(40, 40, 40)) : RGB(40, 40, 40);
+            HBRUSH hBr = CreateSolidBrush(fillC);
             FillRect(hdc, &rc, hBr);
             DeleteObject(hBr);
             HPEN hPen    = CreatePen(PS_SOLID, 2, RGB(100, 100, 100));
@@ -1414,7 +1528,8 @@ LRESULT CALLBACK GameSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
             int idx = (int)pDIS->CtlID - BTN_GAME_BASE;
             if (idx >= 0 && idx < g_gameProfileCount) {
                 GameProfile* gp = g_gameProfiles[idx];
-                HBRUSH hBr = CreateSolidBrush(gp->theme.selectBg);
+                COLORREF fillC = hovered ? LightenColor(gp->theme.selectBg) : gp->theme.selectBg;
+                HBRUSH hBr = CreateSolidBrush(fillC);
                 FillRect(hdc, &rc, hBr);
                 DeleteObject(hBr);
                 HPEN hPen    = CreatePen(PS_SOLID, 2, gp->theme.border);
@@ -1472,6 +1587,7 @@ LRESULT CALLBACK GameSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
             delete[] fonts;
             SetWindowLongPtr(hwnd, GWLP_USERDATA, 0);
         }
+        g_hSelectTooltip = nullptr; // child destroyed with the window
         break;
     }
     }
@@ -1546,6 +1662,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                     ShowChangeGameUI();
                 } else if (cmd == ID_TRAY_AUTOSTART) {
                     SetAutostart(!IsAutostartEnabled());
+                } else if (cmd == ID_TRAY_TOOLTIPS) {
+                    g_tooltipsEnabled = !g_tooltipsEnabled;
+                    WritePrivateProfileString(L"App", L"Tooltips",
+                        g_tooltipsEnabled ? L"1" : L"0", CONFIG_FILE);
+                    if (g_hSettingsTooltip) SendMessage(g_hSettingsTooltip, TTM_ACTIVATE, g_tooltipsEnabled, 0);
+                    if (g_hSelectTooltip)   SendMessage(g_hSelectTooltip,   TTM_ACTIVATE, g_tooltipsEnabled, 0);
                 } else if (cmd == ID_TRAY_EXIT) {
                     DestroyWindow(hwnd);
                 }
@@ -1626,6 +1748,8 @@ int APIENTRY wWinMain(
         StringCchCopy(CONFIG_FILE, MAX_PATH, exePath);
         StringCchCat(CONFIG_FILE, MAX_PATH, L"settings.ini");
     }
+
+    g_tooltipsEnabled = (GetPrivateProfileInt(L"App", L"Tooltips", 1, CONFIG_FILE) != 0);
 
     WaitForShellReady();
 
