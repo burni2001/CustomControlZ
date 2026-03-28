@@ -34,6 +34,7 @@ struct Theme {
     COLORREF exitBorder;     // Exit button border
     COLORREF exitText;       // Exit button text
     COLORREF minimizeBorder; // Minimize button border
+    bool     scanlines;      // Draw CRT scanline overlay on settings background
 };
 
 struct GameProfile;

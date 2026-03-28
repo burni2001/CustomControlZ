@@ -760,10 +760,12 @@ void StartGameLogicThread(GameProfile* profile) {
 
 #include "games/EldenRing.h"
 #include "games/ToxicCommando.h"
+#include "games/Darktide.h"
 
 GameProfile* g_gameProfiles[] = {
     &g_EldenRingProfile,
     &g_ToxicCommandoProfile,
+    &g_DarktideProfile,
 };
 constexpr int g_gameProfileCount = static_cast<int>(ARRAYSIZE(g_gameProfiles));
 
@@ -965,6 +967,16 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         RECT rc;
         GetClientRect(hwnd, &rc);
         FillRect(hdc, &rc, g_hBrushBg);
+        if (g_activeProfile && g_activeProfile->theme.scanlines) {
+            COLORREF bg = g_activeProfile->theme.bg;
+            COLORREF scanC = RGB(GetRValue(bg) / 3, GetGValue(bg) / 3, GetBValue(bg) / 3);
+            HBRUSH hScan = CreateSolidBrush(scanC);
+            for (int y = 0; y < rc.bottom; y += 2) {
+                RECT lr = { rc.left, y, rc.right, y + 1 };
+                FillRect(hdc, &lr, hScan);
+            }
+            DeleteObject(hScan);
+        }
         return 1;
     }
 
