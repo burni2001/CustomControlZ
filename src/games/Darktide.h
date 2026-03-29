@@ -52,7 +52,7 @@ static GameProfile g_DarktideProfile = {
 
         // DT_KEY_OVERRIDE: GlobalSuspend — first press suspends all custom bindings (Enter passes through to game for chat);
         //   second press re-enables. Any held keys are released on entering suspend.
-        { L"OverrideKey", L"Enter for Chat", VK_RETURN, VK_RETURN,
+        { L"OverrideKey", L"Text Chat", VK_RETURN, VK_RETURN,
           { BehaviorType::GlobalSuspend, /*outputVk=*/0, /*longOutputVk=*/0,
             /*thresholdMs=*/0, /*durationMs=*/0, /*wheelDelta=*/0, /*attackVk=*/0, /*returnDelayMs=*/0,
             /*outputVkLabel=*/nullptr, /*longOutputVkLabel=*/nullptr },
