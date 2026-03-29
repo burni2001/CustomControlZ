@@ -26,7 +26,7 @@ static GameProfile g_DarktideProfile = {
         RGB(140, 235, 140), // text             - light green (settings font)
         RGB(220,  80,  80), // accent           - light red (game-card font, select screen)
         RGB(25,  38,  25),  // button           - dark green button fill
-        RGB(80,  180,  80), // selectBg         - light green (game-card background, select screen)
+        RGB(35,  50,  35),  // selectBg         - very faded dark black-green (game-card background, select screen)
         RGB(60,  120,  60), // border           - medium green
         RGB(28,  40,  28),  // rowBg            - slightly lighter row highlight
         RGB(60,  120,  60), // separator        - green separator lines
