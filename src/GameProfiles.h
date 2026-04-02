@@ -381,11 +381,13 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
                 if (s.inMelee && !s.keyDown) {
                     ULONGLONG elapsed = GetTickCount64() - s.lastPressTime;
                     if ((int)elapsed >= desc.returnDelayMs) {
-                        ReleaseKey(desc.outputVk);    // release ^
+                        WORD returnVk = (desc.returnWeapon == ReturnWeapon::Secondary && desc.returnAltVk)
+                                        ? desc.returnAltVk : desc.longOutputVk;
+                        ReleaseKey(desc.outputVk);    // release melee key
                         Sleep(30);
-                        PressKey(desc.longOutputVk);  // press 2
+                        PressKey(returnVk);           // press selected return weapon key
                         Sleep(desc.durationMs);       // match forward-switch hold time so game reliably registers weapon change
-                        ReleaseKey(desc.longOutputVk);
+                        ReleaseKey(returnVk);
                         s.inMelee = false;
                     }
                 }

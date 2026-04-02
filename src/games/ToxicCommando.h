@@ -56,7 +56,8 @@ static GameProfile g_ToxicCommandoProfile = {
           { BehaviorType::MeleeBurst, /*outputVk=*/VK_OEM_5, /*longOutputVk=*/'2',
             /*thresholdMs=*/TC_MELEE_THRESHOLD_MS, /*durationMs=*/TC_WEAPON_SWITCH_MS,
             /*wheelDelta=*/0, /*attackVk=*/VK_LBUTTON, /*returnDelayMs=*/750,
-            /*outputVkLabel=*/L"Melee", /*longOutputVkLabel=*/nullptr },
+            /*outputVkLabel=*/L"Melee", /*longOutputVkLabel=*/nullptr,
+            /*returnWeapon=*/ReturnWeapon::Primary, /*returnAltVk=*/'1' },
           /*isAppOnly=*/true, /*separatorAbove=*/true },
 
         // TC_KEY_OVERRIDE: GlobalSuspend — first press suspends all custom bindings (Return passes through to game);

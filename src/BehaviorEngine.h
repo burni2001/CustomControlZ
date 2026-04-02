@@ -25,6 +25,8 @@ extern std::atomic<int> g_waitingForBindID;
 
 // --- BEHAVIOR TYPES ---
 
+enum class ReturnWeapon : uint8_t { Primary = 0, Secondary = 1 };
+
 enum class BehaviorType : uint8_t {
     HoldToToggle,   // hold inputVk -> hold outputVk continuously
     EdgeTrigger,    // rising edge on inputVk -> pulse outputVk for durationMs
@@ -45,9 +47,11 @@ struct BehaviorDescriptor {
     int            durationMs       = 50;      // EdgeTrigger: pulse duration; WeaponCombo: delay after weapon switch key (ms)
     DWORD          wheelDelta        = 120;    // WheelToKey/WheelToggle: MOUSEEVENTF_WHEEL mouseData
     WORD           attackVk          = 0;     // WeaponCombo/MeleeBurst: attack button VK (e.g. VK_LBUTTON)
-    int            returnDelayMs     = 500;   // MeleeBurst: ms of idle before auto-switching back to main weapon
+    int            returnDelayMs     = 500;   // MeleeBurst: ms of idle before auto-switching back
     const wchar_t* outputVkLabel     = nullptr; // If non-null, shows as a configurable output key row in the settings UI
     const wchar_t* longOutputVkLabel = nullptr; // If non-null, shows as a configurable long-output key row in the settings UI
+    ReturnWeapon   returnWeapon      = ReturnWeapon::Primary; // MeleeBurst: which weapon to return to (Primary = longOutputVk, Secondary = returnAltVk)
+    WORD           returnAltVk       = 0;    // MeleeBurst: secondary return weapon VK; when non-zero a Primary/Secondary dropdown appears in the UI
 };
 
 // --- PER-BINDING STATE STRUCTS ---

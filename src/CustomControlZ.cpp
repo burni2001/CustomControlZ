@@ -67,6 +67,7 @@ void EnableDarkTitleBar(HWND hwnd) {
 #define BTN_CLEAR_BASE              2800  // Clear input-key buttons: 2800 + binding index
 #define BTN_CLEAR_OUTPUT_BASE       2850  // Clear output-key buttons: 2850 + binding index
 #define BTN_CLEAR_LONG_OUTPUT_BASE  2900  // Clear long-output-key buttons: 2900 + binding index
+#define ID_RETURN_WEAPON_BASE       2950  // Combobox: return weapon selection — 2950 + binding index
 #define ID_OUTPUT_LABEL_BASE        3100  // Output key row labels: 3100 + binding index
 #define ID_LONG_OUTPUT_LABEL_BASE   3200  // Long-output key row labels: 3200 + binding index
 #define ID_TITLE_STATIC             2100
@@ -214,6 +215,8 @@ void UpdateAllControlFonts(HWND hwnd) {
             if (g_activeProfile->bindings[i].behavior.type == BehaviorType::MeleeBurst) {
                 SendMessage(GetDlgItem(hwnd, ID_TIMING_SWITCH_BASE + i), WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
                 SendMessage(GetDlgItem(hwnd, ID_TIMING_RETURN_BASE + i), WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
+                if (g_activeProfile->bindings[i].behavior.returnAltVk)
+                    SendMessage(GetDlgItem(hwnd, ID_RETURN_WEAPON_BASE + i), WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
             }
             const auto& beh = g_activeProfile->bindings[i].behavior;
             if (beh.outputVkLabel) {
@@ -369,19 +372,21 @@ inline bool IsValidKey(WORD key) {
 
 void SaveConfig(GameProfile* profile) {
     wchar_t localFontName[FONT_NAME_BUFFER];
-    WORD vals[MAX_BINDINGS]          = {};
-    int  switchMs[MAX_BINDINGS]      = {};
-    int  returnMs[MAX_BINDINGS]      = {};
-    WORD outputVk[MAX_BINDINGS]      = {};
-    WORD longOutputVk[MAX_BINDINGS]  = {};
+    WORD vals[MAX_BINDINGS]                 = {};
+    int  switchMs[MAX_BINDINGS]             = {};
+    int  returnMs[MAX_BINDINGS]             = {};
+    WORD outputVk[MAX_BINDINGS]             = {};
+    WORD longOutputVk[MAX_BINDINGS]         = {};
+    ReturnWeapon returnWeapon[MAX_BINDINGS] = {};
     {
         std::lock_guard<std::mutex> lock(g_configMutex);
         StringCchCopy(localFontName, ARRAYSIZE(localFontName), g_fontName);
         for (int i = 0; i < profile->bindingCount; i++) {
             vals[i] = profile->bindings[i].currentVk;
             if (profile->bindings[i].behavior.type == BehaviorType::MeleeBurst) {
-                switchMs[i] = profile->bindings[i].behavior.durationMs;
-                returnMs[i] = profile->bindings[i].behavior.returnDelayMs;
+                switchMs[i]     = profile->bindings[i].behavior.durationMs;
+                returnMs[i]     = profile->bindings[i].behavior.returnDelayMs;
+                returnWeapon[i] = profile->bindings[i].behavior.returnWeapon;
             }
             if (profile->bindings[i].behavior.outputVkLabel)
                 outputVk[i] = profile->bindings[i].behavior.outputVk;
@@ -404,6 +409,13 @@ void SaveConfig(GameProfile* profile) {
             StringCchPrintf(key, ARRAYSIZE(key), L"%s_ReturnMs", profile->bindings[i].iniKey);
             StringCchPrintf(buf, ARRAYSIZE(buf), L"%d", returnMs[i]);
             WritePrivateProfileString(profile->iniSection, key, buf, CONFIG_FILE);
+
+            if (profile->bindings[i].behavior.returnAltVk) {
+                StringCchPrintf(key, ARRAYSIZE(key), L"%s_ReturnWeapon", profile->bindings[i].iniKey);
+                StringCchPrintf(buf, ARRAYSIZE(buf), L"%d",
+                    returnWeapon[i] == ReturnWeapon::Secondary ? 1 : 0);
+                WritePrivateProfileString(profile->iniSection, key, buf, CONFIG_FILE);
+            }
         }
 
         if (profile->bindings[i].behavior.outputVkLabel) {
@@ -422,13 +434,14 @@ void SaveConfig(GameProfile* profile) {
 }
 
 void LoadConfig(GameProfile* profile) {
-    WORD vals[MAX_BINDINGS]         = {};
-    int  switchMs[MAX_BINDINGS]     = {};
-    int  returnMs[MAX_BINDINGS]     = {};
-    WORD outputVk[MAX_BINDINGS]     = {};
-    WORD longOutputVk[MAX_BINDINGS] = {};
-    bool hasOutputVk[MAX_BINDINGS]     = {};
-    bool hasLongOutputVk[MAX_BINDINGS] = {};
+    WORD vals[MAX_BINDINGS]                  = {};
+    int  switchMs[MAX_BINDINGS]              = {};
+    int  returnMs[MAX_BINDINGS]              = {};
+    WORD outputVk[MAX_BINDINGS]              = {};
+    WORD longOutputVk[MAX_BINDINGS]          = {};
+    bool hasOutputVk[MAX_BINDINGS]           = {};
+    bool hasLongOutputVk[MAX_BINDINGS]       = {};
+    ReturnWeapon returnWeapon[MAX_BINDINGS]  = {};
     wchar_t key[64];
 
     for (int i = 0; i < profile->bindingCount; i++) {
@@ -444,6 +457,12 @@ void LoadConfig(GameProfile* profile) {
             StringCchPrintf(key, ARRAYSIZE(key), L"%s_ReturnMs", profile->bindings[i].iniKey);
             returnMs[i] = GetPrivateProfileInt(profile->iniSection, key,
                               profile->bindings[i].behavior.returnDelayMs, CONFIG_FILE);
+
+            if (profile->bindings[i].behavior.returnAltVk) {
+                StringCchPrintf(key, ARRAYSIZE(key), L"%s_ReturnWeapon", profile->bindings[i].iniKey);
+                int rwVal = GetPrivateProfileInt(profile->iniSection, key, 0, CONFIG_FILE);
+                returnWeapon[i] = (rwVal == 1) ? ReturnWeapon::Secondary : ReturnWeapon::Primary;
+            }
         }
 
         if (profile->bindings[i].behavior.outputVkLabel) {
@@ -471,6 +490,8 @@ void LoadConfig(GameProfile* profile) {
         if (profile->bindings[i].behavior.type == BehaviorType::MeleeBurst) {
             profile->bindings[i].behavior.durationMs    = max(50, min(5000, switchMs[i]));
             profile->bindings[i].behavior.returnDelayMs = max(50, min(5000, returnMs[i]));
+            if (profile->bindings[i].behavior.returnAltVk)
+                profile->bindings[i].behavior.returnWeapon = returnWeapon[i];
         }
         if (hasOutputVk[i])     profile->bindings[i].behavior.outputVk     = outputVk[i];
         if (hasLongOutputVk[i]) profile->bindings[i].behavior.longOutputVk = longOutputVk[i];
@@ -931,8 +952,29 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
                 rowY += LAYOUT_TIMING_ROW_HEIGHT;
 
+                // Return weapon selection row (only when a secondary weapon key is defined)
+                if (desc.returnAltVk) {
+                    HWND hL3 = CreateWindow(L"STATIC", L"Return to weapon:",
+                        WS_VISIBLE | WS_CHILD | SS_CENTERIMAGE,
+                        LAYOUT_LEFT_MARGIN + 22, rowY + 6, LAYOUT_LABEL_WIDTH - 22, editH,
+                        hwnd, nullptr, nullptr, nullptr);
+                    SendMessage(hL3, WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
+
+                    HWND hCB = CreateWindow(L"COMBOBOX", nullptr,
+                        WS_VISIBLE | WS_CHILD | CBS_DROPDOWNLIST | WS_VSCROLL,
+                        buttonX, rowY + 6, LAYOUT_TIMING_EDIT_WIDTH, editH * 5,
+                        hwnd, (HMENU)(INT_PTR)(ID_RETURN_WEAPON_BASE + i), nullptr, nullptr);
+                    SendMessage(hCB, WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
+                    SendMessage(hCB, CB_ADDSTRING, 0, (LPARAM)L"Primary");
+                    SendMessage(hCB, CB_ADDSTRING, 0, (LPARAM)L"Secondary");
+                    SendMessage(hCB, CB_SETCURSEL,
+                        (WPARAM)(desc.returnWeapon == ReturnWeapon::Secondary ? 1 : 0), 0);
+
+                    rowY += LAYOUT_TIMING_ROW_HEIGHT;
+                }
+
                 // Return delay row
-                HWND hL2 = CreateWindow(L"STATIC", L"Return to main weapon delay (ms):",
+                HWND hL2 = CreateWindow(L"STATIC", L"Return delay (ms):",
                     WS_VISIBLE | WS_CHILD | SS_CENTERIMAGE,
                     LAYOUT_LEFT_MARGIN + 22, rowY + 6, LAYOUT_LABEL_WIDTH - 22, editH,
                     hwnd, nullptr, nullptr, nullptr);
@@ -1108,8 +1150,10 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                 }
 
                 rowY += LAYOUT_ROW_HEIGHT;
-                if (beh.type == BehaviorType::MeleeBurst)
+                if (beh.type == BehaviorType::MeleeBurst) {
                     rowY += LAYOUT_TIMING_ROWS_HEIGHT;
+                    if (beh.returnAltVk) rowY += LAYOUT_TIMING_ROW_HEIGHT;
+                }
             }
 
             SelectObject(hdc, hOldPen);
@@ -1224,6 +1268,21 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             }
             UpdateButtonText(GetDlgItem(hwnd, BTN_LONG_OUTPUT_KEY_BASE + idx), 0);
             SaveConfig(g_activeProfile);
+        } else if (HIWORD(wParam) == CBN_SELCHANGE && g_activeProfile) {
+            // Return weapon combobox selection changed
+            if (id >= ID_RETURN_WEAPON_BASE && id < ID_RETURN_WEAPON_BASE + MAX_BINDINGS) {
+                int idx = id - ID_RETURN_WEAPON_BASE;
+                if (idx < g_activeProfile->bindingCount
+                    && g_activeProfile->bindings[idx].behavior.type == BehaviorType::MeleeBurst) {
+                    int sel = (int)SendMessage(GetDlgItem(hwnd, id), CB_GETCURSEL, 0, 0);
+                    {
+                        std::lock_guard<std::mutex> lock(g_configMutex);
+                        g_activeProfile->bindings[idx].behavior.returnWeapon =
+                            (sel == 1) ? ReturnWeapon::Secondary : ReturnWeapon::Primary;
+                    }
+                    SaveConfig(g_activeProfile);
+                }
+            }
         } else if (HIWORD(wParam) == EN_KILLFOCUS && g_activeProfile) {
             // Timing edit lost focus — validate and save
             int idx      = -1;
