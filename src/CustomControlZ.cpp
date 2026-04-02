@@ -413,7 +413,8 @@ void SaveConfig(GameProfile* profile) {
             if (profile->bindings[i].behavior.returnAltVk) {
                 StringCchPrintf(key, ARRAYSIZE(key), L"%s_ReturnWeapon", profile->bindings[i].iniKey);
                 StringCchPrintf(buf, ARRAYSIZE(buf), L"%d",
-                    returnWeapon[i] == ReturnWeapon::Secondary ? 1 : 0);
+                    returnWeapon[i] == ReturnWeapon::Secondary ? 1 :
+                    returnWeapon[i] == ReturnWeapon::Auto      ? 2 : 0);
                 WritePrivateProfileString(profile->iniSection, key, buf, CONFIG_FILE);
             }
         }
@@ -461,7 +462,8 @@ void LoadConfig(GameProfile* profile) {
             if (profile->bindings[i].behavior.returnAltVk) {
                 StringCchPrintf(key, ARRAYSIZE(key), L"%s_ReturnWeapon", profile->bindings[i].iniKey);
                 int rwVal = GetPrivateProfileInt(profile->iniSection, key, 0, CONFIG_FILE);
-                returnWeapon[i] = (rwVal == 1) ? ReturnWeapon::Secondary : ReturnWeapon::Primary;
+                returnWeapon[i] = (rwVal == 1) ? ReturnWeapon::Secondary :
+                                  (rwVal == 2) ? ReturnWeapon::Auto       : ReturnWeapon::Primary;
             }
         }
 
@@ -967,8 +969,10 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                     SendMessage(hCB, WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
                     SendMessage(hCB, CB_ADDSTRING, 0, (LPARAM)L"Primary");
                     SendMessage(hCB, CB_ADDSTRING, 0, (LPARAM)L"Secondary");
+                    SendMessage(hCB, CB_ADDSTRING, 0, (LPARAM)L"Auto");
                     SendMessage(hCB, CB_SETCURSEL,
-                        (WPARAM)(desc.returnWeapon == ReturnWeapon::Secondary ? 1 : 0), 0);
+                        (WPARAM)(desc.returnWeapon == ReturnWeapon::Secondary ? 1 :
+                                 desc.returnWeapon == ReturnWeapon::Auto      ? 2 : 0), 0);
 
                     rowY += LAYOUT_TIMING_ROW_HEIGHT;
                 }
@@ -1278,7 +1282,8 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                     {
                         std::lock_guard<std::mutex> lock(g_configMutex);
                         g_activeProfile->bindings[idx].behavior.returnWeapon =
-                            (sel == 1) ? ReturnWeapon::Secondary : ReturnWeapon::Primary;
+                            (sel == 1) ? ReturnWeapon::Secondary :
+                            (sel == 2) ? ReturnWeapon::Auto      : ReturnWeapon::Primary;
                     }
                     SaveConfig(g_activeProfile);
                 }

@@ -339,6 +339,16 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
             case BehaviorType::MeleeBurst: {
                 MeleeBurstState& s = state[i].meleeBurst;
 
+                // Auto-mode weapon tracking: detect rising edges of weapon keys when not in melee
+                if (desc.returnWeapon == ReturnWeapon::Auto && !s.inMelee) {
+                    bool primaryDown   = desc.longOutputVk ? IsKeyDown(desc.longOutputVk) : false;
+                    bool secondaryDown = desc.returnAltVk  ? IsKeyDown(desc.returnAltVk)  : false;
+                    if (primaryDown   && !s.primaryWasDown)   s.lastUsedWeaponVk = desc.longOutputVk;
+                    if (secondaryDown && !s.secondaryWasDown) s.lastUsedWeaponVk = desc.returnAltVk;
+                    s.primaryWasDown   = primaryDown;
+                    s.secondaryWasDown = secondaryDown;
+                }
+
                 if (keyDown && !s.keyDown) {
                     // Rising edge
                     s.keyDown      = true;
@@ -381,8 +391,12 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
                 if (s.inMelee && !s.keyDown) {
                     ULONGLONG elapsed = GetTickCount64() - s.lastPressTime;
                     if ((int)elapsed >= desc.returnDelayMs) {
-                        WORD returnVk = (desc.returnWeapon == ReturnWeapon::Secondary && desc.returnAltVk)
-                                        ? desc.returnAltVk : desc.longOutputVk;
+                        WORD returnVk;
+                        if (desc.returnWeapon == ReturnWeapon::Auto)
+                            returnVk = s.lastUsedWeaponVk ? s.lastUsedWeaponVk : desc.longOutputVk;
+                        else
+                            returnVk = (desc.returnWeapon == ReturnWeapon::Secondary && desc.returnAltVk)
+                                       ? desc.returnAltVk : desc.longOutputVk;
                         ReleaseKey(desc.outputVk);    // release melee key
                         Sleep(30);
                         PressKey(returnVk);           // press selected return weapon key

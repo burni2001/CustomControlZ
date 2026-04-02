@@ -25,7 +25,7 @@ extern std::atomic<int> g_waitingForBindID;
 
 // --- BEHAVIOR TYPES ---
 
-enum class ReturnWeapon : uint8_t { Primary = 0, Secondary = 1 };
+enum class ReturnWeapon : uint8_t { Primary = 0, Secondary = 1, Auto = 2 };
 
 enum class BehaviorType : uint8_t {
     HoldToToggle,   // hold inputVk -> hold outputVk continuously
@@ -92,12 +92,15 @@ struct KeyToggleState {
 };
 
 struct MeleeBurstState {
-    bool      inMelee       = false; // currently switched to melee weapon (outputVk held)
-    bool      keyDown       = false;
-    bool      thresholdHit  = false; // true once long-press threshold exceeded
-    bool      holding       = false; // true while attack button is held (long-press mode)
-    ULONGLONG pressTime     = 0;     // time of current rising edge (for long-press threshold)
-    ULONGLONG lastPressTime = 0;     // time of last key event (for return-to-main timer)
+    bool      inMelee            = false; // currently switched to melee weapon (outputVk held)
+    bool      keyDown            = false;
+    bool      thresholdHit       = false; // true once long-press threshold exceeded
+    bool      holding            = false; // true while attack button is held (long-press mode)
+    ULONGLONG pressTime          = 0;     // time of current rising edge (for long-press threshold)
+    ULONGLONG lastPressTime      = 0;     // time of last key event (for return-to-main timer)
+    WORD      lastUsedWeaponVk   = 0;     // Auto mode: last weapon key pressed before entering melee
+    bool      primaryWasDown     = false; // rising-edge tracker for longOutputVk (Auto mode)
+    bool      secondaryWasDown   = false; // rising-edge tracker for returnAltVk (Auto mode)
 };
 
 struct GlobalSuspendState {
