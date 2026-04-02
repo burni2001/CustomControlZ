@@ -47,7 +47,7 @@ static GameProfile g_DarktideProfile = {
           { BehaviorType::MeleeBurst, /*outputVk=*/'3', /*longOutputVk=*/'1',
             /*thresholdMs=*/DT_MELEE_THRESHOLD_MS, /*durationMs=*/DT_WEAPON_SWITCH_MS,
             /*wheelDelta=*/0, /*attackVk=*/VK_LBUTTON, /*returnDelayMs=*/750,
-            /*outputVkLabel=*/L"Melee", /*longOutputVkLabel=*/L"Secondary Weapon" },
+            /*outputVkLabel=*/L"Wield Primary Weapon", /*longOutputVkLabel=*/L"Wield Secondary Weapon" },
           /*isAppOnly=*/true },
 
         // DT_KEY_OVERRIDE: GlobalSuspend — first press suspends all custom bindings (Enter passes through to game for chat);
