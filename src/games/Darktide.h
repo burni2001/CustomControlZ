@@ -13,7 +13,7 @@ constexpr int DT_MELEE_THRESHOLD_MS = 400;  // Hold duration to trigger long-pre
 
 static GameProfile g_DarktideProfile = {
     /* id            */ L"Darktide",
-    /* displayName   */ L"Warhammer: 40,000:Darktide",
+    /* displayName   */ L"Warhammer 40,000: Darktide",
     /* iniSection    */ L"Darktide",
     /* processName1  */ L"Darktide.exe",
     /* processName2  */ nullptr,
