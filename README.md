@@ -17,6 +17,7 @@ A Windows system tray application for advanced game key remapping and control cu
 |------|----------|
 | **Elden Ring** | Sprint/dodge remapping, long-press trigger detection |
 | **Toxic Commando** | Keyboard keys simulate mouse scroll wheel for weapon switching |
+| **Warhammer 40,000: Darktide** | Quick melee combo with weapon auto-return, text chat suspend key |
 
 ## Screenshots
 
@@ -31,6 +32,10 @@ A Windows system tray application for advanced game key remapping and control cu
 **Toxic Commando — Key Bindings**
 
 ![Toxic Commando Key Bindings](src/assets/Screenshot%202026-03-24%20180112.png)
+
+**Warhammer 40,000: Darktide — Key Bindings**
+
+![Darktide Key Bindings](src/assets/Screenshot%202026-04-02%20161627.png)
 
 ## Download
 
