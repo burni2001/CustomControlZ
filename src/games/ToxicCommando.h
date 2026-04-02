@@ -15,7 +15,7 @@ constexpr int   TC_MELEE_THRESHOLD_MS  = 400;        // Hold duration to trigger
 
 static GameProfile g_ToxicCommandoProfile = {
     /* id            */ L"ToxicCommando",
-    /* displayName   */ L"Toxic Commando",
+    /* displayName   */ L"John Carpenter's Toxic Commando",
     /* iniSection    */ L"ToxicCommando",
     /* processName1  */ L"John Carpenter's Toxic Commando.exe",
     /* processName2  */ nullptr,
