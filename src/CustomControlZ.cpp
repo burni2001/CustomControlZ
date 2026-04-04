@@ -56,6 +56,7 @@ void EnableDarkTitleBar(HWND hwnd) {
 #define ID_TRAY_CHANGE_GAME 1003
 #define ID_TRAY_AUTOSTART   1004
 #define ID_TRAY_TOOLTIPS    1005
+#define ID_TRAY_GAME_BASE   6000  // Game quick-select items: ID_TRAY_GAME_BASE + profile index
 
 // Settings window control IDs
 #define BTN_BIND_BASE               2001  // Bind buttons: BTN_BIND_BASE + binding index
@@ -331,6 +332,13 @@ void SetAutostart(bool enable) {
 HMENU CreateTrayMenu() {
     HMENU hMenu = CreatePopupMenu();
     if (hMenu) {
+        // Quick game selection
+        for (int i = 0; i < g_gameProfileCount; i++) {
+            UINT flags = MF_STRING;
+            if (g_activeProfile == g_gameProfiles[i]) flags |= MF_CHECKED;
+            AppendMenu(hMenu, flags, ID_TRAY_GAME_BASE + i, g_gameProfiles[i]->displayName);
+        }
+        AppendMenu(hMenu, MF_SEPARATOR, 0, nullptr);
         if (g_activeProfile && g_hSettingsWnd)
             AppendMenu(hMenu, MF_STRING, ID_TRAY_SETTINGS, L"Settings");
         AppendMenu(hMenu, MF_STRING, ID_TRAY_CHANGE_GAME, L"Select Game");
@@ -1727,7 +1735,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                 DestroyMenu(hMenu);
                 SetWindowPos(hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 
-                if (cmd == ID_TRAY_SETTINGS) {
+                if (cmd >= ID_TRAY_GAME_BASE && cmd < ID_TRAY_GAME_BASE + g_gameProfileCount) {
+                    OnGameSelected(cmd - ID_TRAY_GAME_BASE);
+                } else if (cmd == ID_TRAY_SETTINGS) {
                     if (g_activeProfile && g_hSettingsWnd) {
                         ShowWindow(g_hSettingsWnd, SW_SHOW);
                         SetForegroundWindow(g_hSettingsWnd);
