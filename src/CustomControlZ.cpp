@@ -171,6 +171,10 @@ WNDPROC g_origButtonProc   = nullptr;
 
 GameProfile* g_activeProfile = nullptr;
 
+// Forward declarations — defined after game headers are included (~line 788)
+extern GameProfile* g_gameProfiles[];
+extern const int    g_gameProfileCount;
+
 HBRUSH g_hBrushBg     = nullptr;
 HBRUSH g_hBrushButton = nullptr;
 HBRUSH g_hBrushExit   = nullptr;
@@ -798,7 +802,7 @@ GameProfile* g_gameProfiles[] = {
     &g_ToxicCommandoProfile,
     &g_DarktideProfile,
 };
-constexpr int g_gameProfileCount = static_cast<int>(ARRAYSIZE(g_gameProfiles));
+const int g_gameProfileCount = static_cast<int>(ARRAYSIZE(g_gameProfiles));
 
 // --- SETTINGS WINDOW ---
 
