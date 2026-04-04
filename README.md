@@ -2,6 +2,8 @@
 
 A Windows system tray application for advanced game key remapping and control customization. CustomControlZ runs silently in the background, detects when a supported game is active, and applies custom input mappings in real-time.
 
+Main reason for this app is for myself and my unwillingness to learn new button mappings in different games :)
+
 ## Features
 
 - **System tray integration** — runs unobtrusively with idle/active icon states
