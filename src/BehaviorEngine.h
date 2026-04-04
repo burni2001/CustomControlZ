@@ -87,8 +87,10 @@ struct WeaponComboState {
 };
 
 struct KeyToggleState {
-    bool pressed = false; // tracks rising edge (prevents repeat while held)
-    bool useAlt  = false; // alternates: false = outputVk, true = longOutputVk
+    bool pressed    = false; // tracks rising edge (prevents repeat while held)
+    bool useAlt     = false; // alternates: false = outputVk, true = longOutputVk
+    bool outWasDown = false; // rising-edge tracker for outputVk (manual weapon-key sync)
+    bool altWasDown = false; // rising-edge tracker for longOutputVk (manual weapon-key sync)
 };
 
 struct MeleeBurstState {

@@ -323,6 +323,19 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
 
             case BehaviorType::KeyToggle: {
                 KeyToggleState& s = state[i].keyToggle;
+
+                // Sync useAlt when the player manually presses a weapon key directly.
+                // Rising edge on outputVk → next quickswap should send the other key (useAlt = true).
+                // Rising edge on longOutputVk → next quickswap should send outputVk (useAlt = false).
+                if (desc.outputVk && desc.longOutputVk) {
+                    bool outDown = IsKeyDown(desc.outputVk);
+                    bool altDown = IsKeyDown(desc.longOutputVk);
+                    if (outDown && !s.outWasDown) s.useAlt = true;
+                    if (altDown && !s.altWasDown) s.useAlt = false;
+                    s.outWasDown = outDown;
+                    s.altWasDown = altDown;
+                }
+
                 if (keyDown && !s.pressed) {
                     WORD vk = s.useAlt ? desc.longOutputVk : desc.outputVk;
                     PressKey(vk);
@@ -330,6 +343,9 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
                     ReleaseKey(vk);
                     s.useAlt  = !s.useAlt;
                     s.pressed = true;
+                    // Prevent the key we just sent from being counted as a manual press on the next tick.
+                    if (vk == desc.outputVk)     s.outWasDown = true;
+                    if (vk == desc.longOutputVk) s.altWasDown = true;
                 } else if (!keyDown) {
                     s.pressed = false;
                 }
