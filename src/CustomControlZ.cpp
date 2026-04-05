@@ -1056,7 +1056,7 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
                 // Return weapon selection row (only when a secondary weapon key is defined)
                 if (desc.returnAltVk) {
-                    HWND hL3 = CreateWindow(L"STATIC", L"Return to weapon:",
+                    HWND hL3 = CreateWindow(L"STATIC", L"Return to last used weapon:",
                         WS_VISIBLE | WS_CHILD | SS_CENTERIMAGE,
                         LAYOUT_LEFT_MARGIN + 22, rowY + 6, LAYOUT_LABEL_WIDTH - 22, editH,
                         hwnd, nullptr, nullptr, nullptr);
