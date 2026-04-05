@@ -17,9 +17,25 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          $prevTag = git describe --tags --abbrev=0 2>$null
+          if ($LASTEXITCODE -ne 0 -or -not $prevTag) {
+            $log = git log --pretty=format:"- %s" | Out-String
+          } else {
+            $log = git log "$prevTag..HEAD" --pretty=format:"- %s" | Out-String
+          }
+          if (-not $log.Trim()) { $log = "- No changes recorded" }
+          $escaped = $log -replace "`r`n", "`n"
+          "changelog<<EOF`n$escaped`nEOF" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+        shell: pwsh
 
       - name: Inject version into source
         run: |
@@ -43,13 +59,9 @@ jobs:
           tag_name: v${{ github.event.inputs.version }}
           name: CustomControlZ v${{ github.event.inputs.version }}
           body: |
-            ## CustomControlZ v${{ github.event.inputs.version }}
+            ## What's changed
 
-            Win32 tray application for game key remapping.
-
-            ### Supported Games
-            - **Elden Ring** — sprint/dodge/long-press trigger remapping
-            - **Toxic Commando** — keyboard keys simulate scroll wheel for weapon switching
+            ${{ steps.changelog.outputs.changelog }}
 
             ### Installation
             Download `CustomControlZ.exe` and run it. No installer needed.
