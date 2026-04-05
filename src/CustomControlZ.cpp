@@ -73,7 +73,7 @@ void EnableDarkTitleBar(HWND hwnd) {
 #define ID_LONG_OUTPUT_LABEL_BASE       3200  // Long-output key row labels: 3200 + binding index
 #define BTN_TERTIARY_OUTPUT_KEY_BASE    3500  // Tertiary output key bind buttons: 3500 + binding index
 #define BTN_CLEAR_TERTIARY_OUTPUT_BASE  3550  // Clear tertiary output key buttons: 3550 + binding index
-#define ID_INCLUDE_TERTIARY_BASE        3600  // Toggle button: include tertiary in quickswitch cycle: 3600 + binding index
+#define ID_INCLUDE_TERTIARY_BASE        3600  // Combobox: include tertiary in quickswitch cycle: 3600 + binding index
 #define ID_TERTIARY_OUTPUT_LABEL_BASE   3700  // Tertiary output key row labels: 3700 + binding index
 #define ID_TITLE_STATIC             2100
 #define ID_IMPRINT1_STATIC          2101
@@ -239,7 +239,7 @@ void UpdateAllControlFonts(HWND hwnd) {
             if (beh.tertiaryOutputVkLabel) {
                 SendMessage(GetDlgItem(hwnd, ID_TERTIARY_OUTPUT_LABEL_BASE + i), WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
                 InvalidateRect(GetDlgItem(hwnd, BTN_TERTIARY_OUTPUT_KEY_BASE + i), nullptr, TRUE);
-                InvalidateRect(GetDlgItem(hwnd, ID_INCLUDE_TERTIARY_BASE + i), nullptr, TRUE);
+                SendMessage(GetDlgItem(hwnd, ID_INCLUDE_TERTIARY_BASE + i), WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
             }
         }
     }
@@ -1020,13 +1020,14 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                     hwnd, nullptr, nullptr, nullptr);
                 SendMessage(hL, WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
 
-                const wchar_t* toggleText = beh.includeTertiaryInCycle ? L"YES" : L"NO";
-                HWND hB = CreateWindow(L"BUTTON", toggleText,
-                    WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
-                    buttonX, rowY + 6, LAYOUT_TIMING_EDIT_WIDTH, editH,
+                HWND hCB = CreateWindow(L"COMBOBOX", nullptr,
+                    WS_VISIBLE | WS_CHILD | CBS_DROPDOWNLIST | WS_VSCROLL,
+                    buttonX, rowY + 6, LAYOUT_TIMING_EDIT_WIDTH, editH * 5,
                     hwnd, (HMENU)(INT_PTR)(ID_INCLUDE_TERTIARY_BASE + i), nullptr, nullptr);
-                SubclassButton(hB);
-                AddTooltip(g_hSettingsTooltip, hB, L"Toggle whether Heavy Weapon is included in the quickswitch cycle");
+                SendMessage(hCB, WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
+                SendMessage(hCB, CB_ADDSTRING, 0, (LPARAM)L"No");
+                SendMessage(hCB, CB_ADDSTRING, 0, (LPARAM)L"Yes");
+                SendMessage(hCB, CB_SETCURSEL, (WPARAM)(beh.includeTertiaryInCycle ? 1 : 0), 0);
 
                 rowY += LAYOUT_TIMING_ROW_HEIGHT;
             }
@@ -1399,21 +1400,20 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             }
             UpdateButtonText(GetDlgItem(hwnd, BTN_TERTIARY_OUTPUT_KEY_BASE + idx), 0);
             SaveConfig(g_activeProfile);
-        } else if (id >= ID_INCLUDE_TERTIARY_BASE && g_activeProfile &&
-                   id < ID_INCLUDE_TERTIARY_BASE + g_activeProfile->bindingCount) {
-            int idx = id - ID_INCLUDE_TERTIARY_BASE;
-            bool newVal;
-            {
-                std::lock_guard<std::mutex> lock(g_configMutex);
-                newVal = !g_activeProfile->bindings[idx].behavior.includeTertiaryInCycle;
-                g_activeProfile->bindings[idx].behavior.includeTertiaryInCycle = newVal;
-            }
-            SetWindowText(GetDlgItem(hwnd, id), newVal ? L"YES" : L"NO");
-            InvalidateRect(GetDlgItem(hwnd, id), nullptr, TRUE);
-            SaveConfig(g_activeProfile);
         } else if (HIWORD(wParam) == CBN_SELCHANGE && g_activeProfile) {
+            // Include-heavy combobox selection changed
+            if (id >= ID_INCLUDE_TERTIARY_BASE && id < ID_INCLUDE_TERTIARY_BASE + MAX_BINDINGS) {
+                int idx = id - ID_INCLUDE_TERTIARY_BASE;
+                if (idx < g_activeProfile->bindingCount) {
+                    int sel = (int)SendMessage(GetDlgItem(hwnd, id), CB_GETCURSEL, 0, 0);
+                    {
+                        std::lock_guard<std::mutex> lock(g_configMutex);
+                        g_activeProfile->bindings[idx].behavior.includeTertiaryInCycle = (sel == 1);
+                    }
+                    SaveConfig(g_activeProfile);
+                }
             // Return weapon combobox selection changed
-            if (id >= ID_RETURN_WEAPON_BASE && id < ID_RETURN_WEAPON_BASE + MAX_BINDINGS) {
+            } else if (id >= ID_RETURN_WEAPON_BASE && id < ID_RETURN_WEAPON_BASE + MAX_BINDINGS) {
                 int idx = id - ID_RETURN_WEAPON_BASE;
                 if (idx < g_activeProfile->bindingCount
                     && g_activeProfile->bindings[idx].behavior.type == BehaviorType::MeleeBurst) {
