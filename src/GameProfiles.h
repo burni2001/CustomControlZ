@@ -444,6 +444,20 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
                         Sleep(desc.durationMs);       // match forward-switch hold time so game reliably registers weapon change
                         ReleaseKey(returnVk);
                         s.inMelee = false;
+
+                        // Sync sibling KeyToggle cycleIndex to the weapon we just returned to.
+                        // The return key was pressed+released inside a Sleep, so the rising-edge
+                        // detector in KeyToggle never sees it — cycleIndex would be stale otherwise.
+                        for (int j = 0; j < profile->bindingCount; j++) {
+                            if (profile->bindings[j].behavior.type != BehaviorType::KeyToggle) continue;
+                            const BehaviorDescriptor& kd = profile->bindings[j].behavior;
+                            KeyToggleState& ks = state[j].keyToggle;
+                            bool hasTert = kd.includeTertiaryInCycle && kd.tertiaryOutputVk;
+                            if      (returnVk == kd.outputVk)                   ks.cycleIndex = 1;
+                            else if (returnVk == kd.longOutputVk)               ks.cycleIndex = hasTert ? 2 : 0;
+                            else if (hasTert && returnVk == kd.tertiaryOutputVk) ks.cycleIndex = 0;
+                            break;
+                        }
                     }
                 }
                 break;
