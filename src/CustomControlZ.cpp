@@ -1014,7 +1014,7 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             // Include-in-quickswitch toggle for KeyToggle bindings that have a tertiary key
             if (beh.type == BehaviorType::KeyToggle && beh.tertiaryOutputVk) {
                 const int editH = LAYOUT_BUTTON_HEIGHT;
-                HWND hL = CreateWindow(L"STATIC", L"Include Heavy in Quickswitch:",
+                HWND hL = CreateWindow(L"STATIC", L"Include Heavy Weapon in Quickswap mechanic:",
                     WS_VISIBLE | WS_CHILD | SS_CENTERIMAGE,
                     LAYOUT_LEFT_MARGIN + 22, rowY + 6, LAYOUT_LABEL_WIDTH - 22, editH,
                     hwnd, nullptr, nullptr, nullptr);
