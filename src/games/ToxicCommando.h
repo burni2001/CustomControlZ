@@ -44,7 +44,10 @@ static GameProfile g_ToxicCommandoProfile = {
         { L"ScrollToggleKey", L"Custom key: Quickswap weapons", 'Q', 'Q',
           { BehaviorType::KeyToggle, /*outputVk=*/'2', /*longOutputVk=*/'1',
             /*thresholdMs=*/0, /*durationMs=*/50, /*wheelDelta=*/0, /*attackVk=*/0, /*returnDelayMs=*/0,
-            /*outputVkLabel=*/L"Primary Weapon", /*longOutputVkLabel=*/L"Secondary Weapon" },
+            /*outputVkLabel=*/L"Primary Weapon", /*longOutputVkLabel=*/L"Secondary Weapon",
+            /*returnWeapon=*/ReturnWeapon::Primary, /*returnAltVk=*/0,
+            /*tertiaryOutputVk=*/'3', /*tertiaryOutputVkLabel=*/L"Heavy Weapon",
+            /*includeTertiaryInCycle=*/false },
           /*isAppOnly=*/true },
 
         // TC_KEY_MELEE: MeleeBurst — repeated taps stay on melee; auto-switch back after idle

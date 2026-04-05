@@ -69,8 +69,12 @@ void EnableDarkTitleBar(HWND hwnd) {
 #define BTN_CLEAR_OUTPUT_BASE       2850  // Clear output-key buttons: 2850 + binding index
 #define BTN_CLEAR_LONG_OUTPUT_BASE  2900  // Clear long-output-key buttons: 2900 + binding index
 #define ID_RETURN_WEAPON_BASE       2950  // Combobox: return weapon selection — 2950 + binding index
-#define ID_OUTPUT_LABEL_BASE        3100  // Output key row labels: 3100 + binding index
-#define ID_LONG_OUTPUT_LABEL_BASE   3200  // Long-output key row labels: 3200 + binding index
+#define ID_OUTPUT_LABEL_BASE            3100  // Output key row labels: 3100 + binding index
+#define ID_LONG_OUTPUT_LABEL_BASE       3200  // Long-output key row labels: 3200 + binding index
+#define BTN_TERTIARY_OUTPUT_KEY_BASE    3500  // Tertiary output key bind buttons: 3500 + binding index
+#define BTN_CLEAR_TERTIARY_OUTPUT_BASE  3550  // Clear tertiary output key buttons: 3550 + binding index
+#define ID_INCLUDE_TERTIARY_BASE        3600  // Toggle button: include tertiary in quickswitch cycle: 3600 + binding index
+#define ID_TERTIARY_OUTPUT_LABEL_BASE   3700  // Tertiary output key row labels: 3700 + binding index
 #define ID_TITLE_STATIC             2100
 #define ID_IMPRINT1_STATIC          2101
 #define ID_IMPRINT2_STATIC          2102
@@ -232,6 +236,11 @@ void UpdateAllControlFonts(HWND hwnd) {
                 SendMessage(GetDlgItem(hwnd, ID_LONG_OUTPUT_LABEL_BASE + i), WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
                 InvalidateRect(GetDlgItem(hwnd, BTN_LONG_OUTPUT_KEY_BASE + i), nullptr, TRUE);
             }
+            if (beh.tertiaryOutputVkLabel) {
+                SendMessage(GetDlgItem(hwnd, ID_TERTIARY_OUTPUT_LABEL_BASE + i), WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
+                InvalidateRect(GetDlgItem(hwnd, BTN_TERTIARY_OUTPUT_KEY_BASE + i), nullptr, TRUE);
+                InvalidateRect(GetDlgItem(hwnd, ID_INCLUDE_TERTIARY_BASE + i), nullptr, TRUE);
+            }
         }
     }
 
@@ -256,9 +265,10 @@ ButtonStyle GetButtonStyle(UINT ctlID) {
     if (ctlID == BTN_EXIT_SETTINGS) return { t.button,   g_hBrushButton, t.minimizeBorder, t.text,     g_hFontNormal };
     if (ctlID == BTN_FONT_SETTINGS) return { t.button,   g_hBrushButton, t.border,         t.accent,   g_hFontButton };
     // × clear buttons: reddish border to signal destructive action
-    if ((ctlID >= BTN_CLEAR_BASE             && ctlID < BTN_CLEAR_BASE             + MAX_BINDINGS) ||
-        (ctlID >= BTN_CLEAR_OUTPUT_BASE      && ctlID < BTN_CLEAR_OUTPUT_BASE      + MAX_BINDINGS) ||
-        (ctlID >= BTN_CLEAR_LONG_OUTPUT_BASE && ctlID < BTN_CLEAR_LONG_OUTPUT_BASE + MAX_BINDINGS))
+    if ((ctlID >= BTN_CLEAR_BASE                    && ctlID < BTN_CLEAR_BASE                    + MAX_BINDINGS) ||
+        (ctlID >= BTN_CLEAR_OUTPUT_BASE             && ctlID < BTN_CLEAR_OUTPUT_BASE             + MAX_BINDINGS) ||
+        (ctlID >= BTN_CLEAR_LONG_OUTPUT_BASE        && ctlID < BTN_CLEAR_LONG_OUTPUT_BASE        + MAX_BINDINGS) ||
+        (ctlID >= BTN_CLEAR_TERTIARY_OUTPUT_BASE    && ctlID < BTN_CLEAR_TERTIARY_OUTPUT_BASE    + MAX_BINDINGS))
         return { t.button, g_hBrushButton, t.exitBorder, t.exitText, g_hFontButton };
     return { t.button, g_hBrushButton, t.border, t.accent, g_hFontButton };
 }
@@ -389,6 +399,8 @@ void SaveConfig(GameProfile* profile) {
     int  returnMs[MAX_BINDINGS]             = {};
     WORD outputVk[MAX_BINDINGS]             = {};
     WORD longOutputVk[MAX_BINDINGS]         = {};
+    WORD tertiaryOutputVk[MAX_BINDINGS]     = {};
+    bool includeTertiaryInCycle[MAX_BINDINGS] = {};
     ReturnWeapon returnWeapon[MAX_BINDINGS] = {};
     {
         std::lock_guard<std::mutex> lock(g_configMutex);
@@ -404,6 +416,10 @@ void SaveConfig(GameProfile* profile) {
                 outputVk[i] = profile->bindings[i].behavior.outputVk;
             if (profile->bindings[i].behavior.longOutputVkLabel)
                 longOutputVk[i] = profile->bindings[i].behavior.longOutputVk;
+            if (profile->bindings[i].behavior.tertiaryOutputVkLabel) {
+                tertiaryOutputVk[i]       = profile->bindings[i].behavior.tertiaryOutputVk;
+                includeTertiaryInCycle[i] = profile->bindings[i].behavior.includeTertiaryInCycle;
+            }
         }
     }
 
@@ -442,6 +458,15 @@ void SaveConfig(GameProfile* profile) {
             StringCchPrintf(buf, ARRAYSIZE(buf), L"%d", longOutputVk[i]);
             WritePrivateProfileString(profile->iniSection, key, buf, CONFIG_FILE);
         }
+        if (profile->bindings[i].behavior.tertiaryOutputVkLabel) {
+            StringCchPrintf(key, ARRAYSIZE(key), L"%s_HeavyWeaponKey", profile->bindings[i].iniKey);
+            StringCchPrintf(buf, ARRAYSIZE(buf), L"%d", tertiaryOutputVk[i]);
+            WritePrivateProfileString(profile->iniSection, key, buf, CONFIG_FILE);
+
+            StringCchPrintf(key, ARRAYSIZE(key), L"%s_IncludeHeavy", profile->bindings[i].iniKey);
+            StringCchPrintf(buf, ARRAYSIZE(buf), L"%d", includeTertiaryInCycle[i] ? 1 : 0);
+            WritePrivateProfileString(profile->iniSection, key, buf, CONFIG_FILE);
+        }
     }
     WritePrivateProfileString(profile->iniSection, L"FontName", localFontName, CONFIG_FILE);
 }
@@ -452,8 +477,12 @@ void LoadConfig(GameProfile* profile) {
     int  returnMs[MAX_BINDINGS]              = {};
     WORD outputVk[MAX_BINDINGS]              = {};
     WORD longOutputVk[MAX_BINDINGS]          = {};
+    WORD tertiaryOutputVk[MAX_BINDINGS]      = {};
+    bool includeTertiaryInCycle[MAX_BINDINGS]= {};
     bool hasOutputVk[MAX_BINDINGS]           = {};
     bool hasLongOutputVk[MAX_BINDINGS]       = {};
+    bool hasTertiaryOutputVk[MAX_BINDINGS]   = {};
+    bool hasIncludeTertiary[MAX_BINDINGS]    = {};
     ReturnWeapon returnWeapon[MAX_BINDINGS]  = {};
     wchar_t key[64];
 
@@ -491,6 +520,15 @@ void LoadConfig(GameProfile* profile) {
             UINT raw = (UINT)GetPrivateProfileInt(profile->iniSection, key, -1, CONFIG_FILE);
             if (raw != (UINT)-1) { longOutputVk[i] = static_cast<WORD>(raw); hasLongOutputVk[i] = true; }
         }
+        if (profile->bindings[i].behavior.tertiaryOutputVkLabel) {
+            StringCchPrintf(key, ARRAYSIZE(key), L"%s_HeavyWeaponKey", profile->bindings[i].iniKey);
+            UINT raw = (UINT)GetPrivateProfileInt(profile->iniSection, key, -1, CONFIG_FILE);
+            if (raw != (UINT)-1) { tertiaryOutputVk[i] = static_cast<WORD>(raw); hasTertiaryOutputVk[i] = true; }
+
+            StringCchPrintf(key, ARRAYSIZE(key), L"%s_IncludeHeavy", profile->bindings[i].iniKey);
+            int inc = GetPrivateProfileInt(profile->iniSection, key, -1, CONFIG_FILE);
+            if (inc != -1) { includeTertiaryInCycle[i] = (inc != 0); hasIncludeTertiary[i] = true; }
+        }
     }
 
     wchar_t tempFont[FONT_NAME_BUFFER];
@@ -507,8 +545,10 @@ void LoadConfig(GameProfile* profile) {
             if (profile->bindings[i].behavior.returnAltVk)
                 profile->bindings[i].behavior.returnWeapon = returnWeapon[i];
         }
-        if (hasOutputVk[i])     profile->bindings[i].behavior.outputVk     = outputVk[i];
-        if (hasLongOutputVk[i]) profile->bindings[i].behavior.longOutputVk = longOutputVk[i];
+        if (hasOutputVk[i])          profile->bindings[i].behavior.outputVk               = outputVk[i];
+        if (hasLongOutputVk[i])      profile->bindings[i].behavior.longOutputVk           = longOutputVk[i];
+        if (hasTertiaryOutputVk[i])  profile->bindings[i].behavior.tertiaryOutputVk       = tertiaryOutputVk[i];
+        if (hasIncludeTertiary[i])   profile->bindings[i].behavior.includeTertiaryInCycle = includeTertiaryInCycle[i];
     }
     StringCchCopy(g_fontName, ARRAYSIZE(g_fontName), tempFont);
 }
@@ -915,6 +955,33 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                 rowY += LAYOUT_OUTPUT_ROW_HEIGHT;
             }
 
+            if (beh.tertiaryOutputVkLabel) {
+                HWND hTOL = CreateWindow(L"STATIC", beh.tertiaryOutputVkLabel,
+                    WS_VISIBLE | WS_CHILD | SS_CENTERIMAGE,
+                    LAYOUT_LEFT_MARGIN + LAYOUT_LABEL_INDENT, rowY + subLabelY, LAYOUT_LABEL_WIDTH - LAYOUT_LABEL_INDENT, LAYOUT_BUTTON_HEIGHT,
+                    hwnd, (HMENU)(INT_PTR)(ID_TERTIARY_OUTPUT_LABEL_BASE + i), nullptr, nullptr);
+                SendMessage(hTOL, WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
+
+                {
+                    HWND hB = CreateWindow(L"BUTTON", L"...",
+                        WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
+                        buttonX, rowY + subLabelY, LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT,
+                        hwnd, (HMENU)(INT_PTR)(BTN_TERTIARY_OUTPUT_KEY_BASE + i), nullptr, nullptr);
+                    SubclassButton(hB);
+                    AddTooltip(g_hSettingsTooltip, hB, L"Set the heavy weapon in-game key");
+                }
+                {
+                    HWND hB = CreateWindow(L"BUTTON", L"\u00d7",
+                        WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
+                        clearX, rowY + subLabelY, LAYOUT_CLEAR_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT,
+                        hwnd, (HMENU)(INT_PTR)(BTN_CLEAR_TERTIARY_OUTPUT_BASE + i), nullptr, nullptr);
+                    SubclassButton(hB);
+                    AddTooltip(g_hSettingsTooltip, hB, L"Clear heavy weapon key");
+                }
+
+                rowY += LAYOUT_OUTPUT_ROW_HEIGHT;
+            }
+
             int labelY = rowY + 9; // small gap above custom-key row
 
             HWND hLabel = CreateWindow(L"STATIC", profile->bindings[i].label,
@@ -943,6 +1010,26 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             }
 
             rowY += LAYOUT_ROW_HEIGHT;
+
+            // Include-in-quickswitch toggle for KeyToggle bindings that have a tertiary key
+            if (beh.type == BehaviorType::KeyToggle && beh.tertiaryOutputVk) {
+                const int editH = LAYOUT_BUTTON_HEIGHT;
+                HWND hL = CreateWindow(L"STATIC", L"Include Heavy in Quickswitch:",
+                    WS_VISIBLE | WS_CHILD | SS_CENTERIMAGE,
+                    LAYOUT_LEFT_MARGIN + 22, rowY + 6, LAYOUT_LABEL_WIDTH - 22, editH,
+                    hwnd, nullptr, nullptr, nullptr);
+                SendMessage(hL, WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
+
+                const wchar_t* toggleText = beh.includeTertiaryInCycle ? L"YES" : L"NO";
+                HWND hB = CreateWindow(L"BUTTON", toggleText,
+                    WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
+                    buttonX, rowY + 6, LAYOUT_TIMING_EDIT_WIDTH, editH,
+                    hwnd, (HMENU)(INT_PTR)(ID_INCLUDE_TERTIARY_BASE + i), nullptr, nullptr);
+                SubclassButton(hB);
+                AddTooltip(g_hSettingsTooltip, hB, L"Toggle whether Heavy Weapon is included in the quickswitch cycle");
+
+                rowY += LAYOUT_TIMING_ROW_HEIGHT;
+            }
 
             // Timing sub-rows for MeleeBurst bindings
             if (profile->bindings[i].behavior.type == BehaviorType::MeleeBurst) {
@@ -1016,6 +1103,8 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                 UpdateButtonText(GetDlgItem(hwnd, BTN_OUTPUT_KEY_BASE + i), profile->bindings[i].behavior.outputVk);
             if (profile->bindings[i].behavior.longOutputVkLabel)
                 UpdateButtonText(GetDlgItem(hwnd, BTN_LONG_OUTPUT_KEY_BASE + i), profile->bindings[i].behavior.longOutputVk);
+            if (profile->bindings[i].behavior.tertiaryOutputVkLabel)
+                UpdateButtonText(GetDlgItem(hwnd, BTN_TERTIARY_OUTPUT_KEY_BASE + i), profile->bindings[i].behavior.tertiaryOutputVk);
         }
         break;
     }
@@ -1138,6 +1227,16 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                                    rowY + subOffset + (LAYOUT_BUTTON_HEIGHT - 13) / 2);
                     rowY += LAYOUT_OUTPUT_ROW_HEIGHT;
                 }
+                if (beh.tertiaryOutputVkLabel) {
+                    RECT subRect = {
+                        LAYOUT_LEFT_MARGIN - LAYOUT_ROW_PADDING, rowY + subOffset,
+                        LAYOUT_LEFT_MARGIN + LAYOUT_LINE_WIDTH + LAYOUT_ROW_PADDING, rowY + subOffset + LAYOUT_BUTTON_HEIGHT
+                    };
+                    FillRect(hdc, &subRect, hRowBrush);
+                    DrawWarningTri(LAYOUT_LEFT_MARGIN - LAYOUT_ROW_PADDING,
+                                   rowY + subOffset + (LAYOUT_BUTTON_HEIGHT - 13) / 2);
+                    rowY += LAYOUT_OUTPUT_ROW_HEIGHT;
+                }
 
                 // Row background highlight
                 RECT rowRect = {
@@ -1166,6 +1265,8 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                 }
 
                 rowY += LAYOUT_ROW_HEIGHT;
+                if (beh.type == BehaviorType::KeyToggle && beh.tertiaryOutputVk)
+                    rowY += LAYOUT_TIMING_ROW_HEIGHT;
                 if (beh.type == BehaviorType::MeleeBurst) {
                     rowY += LAYOUT_TIMING_ROWS_HEIGHT;
                     if (beh.returnAltVk) rowY += LAYOUT_TIMING_ROW_HEIGHT;
@@ -1257,6 +1358,11 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             g_waitingForBindID = id;
             SetWindowText(GetDlgItem(hwnd, id), L"...");
             SetFocus(hwnd);
+        } else if (id >= BTN_TERTIARY_OUTPUT_KEY_BASE && g_activeProfile &&
+                   id < BTN_TERTIARY_OUTPUT_KEY_BASE + g_activeProfile->bindingCount) {
+            g_waitingForBindID = id;
+            SetWindowText(GetDlgItem(hwnd, id), L"...");
+            SetFocus(hwnd);
         } else if (id >= BTN_CLEAR_BASE && g_activeProfile &&
                    id < BTN_CLEAR_BASE + g_activeProfile->bindingCount) {
             int idx = id - BTN_CLEAR_BASE;
@@ -1283,6 +1389,27 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                 g_activeProfile->bindings[idx].behavior.longOutputVk = 0;
             }
             UpdateButtonText(GetDlgItem(hwnd, BTN_LONG_OUTPUT_KEY_BASE + idx), 0);
+            SaveConfig(g_activeProfile);
+        } else if (id >= BTN_CLEAR_TERTIARY_OUTPUT_BASE && g_activeProfile &&
+                   id < BTN_CLEAR_TERTIARY_OUTPUT_BASE + g_activeProfile->bindingCount) {
+            int idx = id - BTN_CLEAR_TERTIARY_OUTPUT_BASE;
+            {
+                std::lock_guard<std::mutex> lock(g_configMutex);
+                g_activeProfile->bindings[idx].behavior.tertiaryOutputVk = 0;
+            }
+            UpdateButtonText(GetDlgItem(hwnd, BTN_TERTIARY_OUTPUT_KEY_BASE + idx), 0);
+            SaveConfig(g_activeProfile);
+        } else if (id >= ID_INCLUDE_TERTIARY_BASE && g_activeProfile &&
+                   id < ID_INCLUDE_TERTIARY_BASE + g_activeProfile->bindingCount) {
+            int idx = id - ID_INCLUDE_TERTIARY_BASE;
+            bool newVal;
+            {
+                std::lock_guard<std::mutex> lock(g_configMutex);
+                newVal = !g_activeProfile->bindings[idx].behavior.includeTertiaryInCycle;
+                g_activeProfile->bindings[idx].behavior.includeTertiaryInCycle = newVal;
+            }
+            SetWindowText(GetDlgItem(hwnd, id), newVal ? L"YES" : L"NO");
+            InvalidateRect(GetDlgItem(hwnd, id), nullptr, TRUE);
             SaveConfig(g_activeProfile);
         } else if (HIWORD(wParam) == CBN_SELCHANGE && g_activeProfile) {
             // Return weapon combobox selection changed
@@ -1360,6 +1487,11 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                 idx = bindID - BTN_LONG_OUTPUT_KEY_BASE;
                 std::lock_guard<std::mutex> lock(g_configMutex);
                 g_activeProfile->bindings[idx].behavior.longOutputVk = newKey;
+                UpdateButtonText(GetDlgItem(hwnd, bindID), newKey);
+            } else if (bindID >= BTN_TERTIARY_OUTPUT_KEY_BASE && bindID < BTN_TERTIARY_OUTPUT_KEY_BASE + g_activeProfile->bindingCount) {
+                idx = bindID - BTN_TERTIARY_OUTPUT_KEY_BASE;
+                std::lock_guard<std::mutex> lock(g_configMutex);
+                g_activeProfile->bindings[idx].behavior.tertiaryOutputVk = newKey;
                 UpdateButtonText(GetDlgItem(hwnd, bindID), newKey);
             }
 

@@ -323,29 +323,40 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
 
             case BehaviorType::KeyToggle: {
                 KeyToggleState& s = state[i].keyToggle;
+                bool hasTertiary = desc.includeTertiaryInCycle && desc.tertiaryOutputVk;
 
-                // Sync useAlt when the player manually presses a weapon key directly.
-                // Rising edge on outputVk → next quickswap should send the other key (useAlt = true).
-                // Rising edge on longOutputVk → next quickswap should send outputVk (useAlt = false).
+                // Clamp cycleIndex if tertiary was removed from cycle mid-session
+                if (s.cycleIndex == 2 && !hasTertiary)
+                    s.cycleIndex = 0;
+
+                // Sync cycleIndex when the player manually presses a weapon key directly.
+                // Rising edge on a weapon key → set cycleIndex to the NEXT weapon in the cycle.
                 if (desc.outputVk && desc.longOutputVk) {
-                    bool outDown = IsKeyDown(desc.outputVk);
-                    bool altDown = IsKeyDown(desc.longOutputVk);
-                    if (outDown && !s.outWasDown) s.useAlt = true;
-                    if (altDown && !s.altWasDown) s.useAlt = false;
-                    s.outWasDown = outDown;
-                    s.altWasDown = altDown;
+                    bool outDown      = IsKeyDown(desc.outputVk);
+                    bool altDown      = IsKeyDown(desc.longOutputVk);
+                    bool tertiaryDown = hasTertiary ? IsKeyDown(desc.tertiaryOutputVk) : false;
+                    if (outDown      && !s.outWasDown)      s.cycleIndex = 1;                   // on primary → next = secondary
+                    if (altDown      && !s.altWasDown)      s.cycleIndex = hasTertiary ? 2 : 0; // on secondary → next = heavy or primary
+                    if (tertiaryDown && !s.tertiaryWasDown) s.cycleIndex = 0;                   // on heavy → next = primary
+                    s.outWasDown      = outDown;
+                    s.altWasDown      = altDown;
+                    s.tertiaryWasDown = tertiaryDown;
                 }
 
                 if (keyDown && !s.pressed) {
-                    WORD vk = s.useAlt ? desc.longOutputVk : desc.outputVk;
+                    WORD vk = (s.cycleIndex == 2) ? desc.tertiaryOutputVk :
+                              (s.cycleIndex == 1) ? desc.longOutputVk : desc.outputVk;
                     PressKey(vk);
                     Sleep(desc.durationMs);
                     ReleaseKey(vk);
-                    s.useAlt  = !s.useAlt;
                     s.pressed = true;
                     // Prevent the key we just sent from being counted as a manual press on the next tick.
-                    if (vk == desc.outputVk)     s.outWasDown = true;
-                    if (vk == desc.longOutputVk) s.altWasDown = true;
+                    if (vk == desc.outputVk)         s.outWasDown      = true;
+                    if (vk == desc.longOutputVk)     s.altWasDown      = true;
+                    if (vk == desc.tertiaryOutputVk) s.tertiaryWasDown = true;
+                    // Advance to the next weapon in cycle
+                    s.cycleIndex = hasTertiary ? (s.cycleIndex + 1) % 3
+                                               : (s.cycleIndex == 0 ? 1 : 0);
                 } else if (!keyDown) {
                     s.pressed = false;
                 }
@@ -363,6 +374,20 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
                     if (secondaryDown && !s.secondaryWasDown) s.lastUsedWeaponVk = desc.returnAltVk;
                     s.primaryWasDown   = primaryDown;
                     s.secondaryWasDown = secondaryDown;
+                    // Also track heavy weapon key (defined on the sibling KeyToggle binding)
+                    WORD heavyVk = 0;
+                    for (int j = 0; j < profile->bindingCount; j++) {
+                        if (profile->bindings[j].behavior.type == BehaviorType::KeyToggle &&
+                            profile->bindings[j].behavior.tertiaryOutputVk) {
+                            heavyVk = profile->bindings[j].behavior.tertiaryOutputVk;
+                            break;
+                        }
+                    }
+                    if (heavyVk) {
+                        bool heavyDown = IsKeyDown(heavyVk);
+                        if (heavyDown && !s.heavyWasDown) s.lastUsedWeaponVk = heavyVk;
+                        s.heavyWasDown = heavyDown;
+                    }
                 }
 
                 if (keyDown && !s.keyDown) {

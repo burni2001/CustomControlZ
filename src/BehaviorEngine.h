@@ -52,6 +52,9 @@ struct BehaviorDescriptor {
     const wchar_t* longOutputVkLabel = nullptr; // If non-null, shows as a configurable long-output key row in the settings UI
     ReturnWeapon   returnWeapon      = ReturnWeapon::Primary; // MeleeBurst: which weapon to return to (Primary = longOutputVk, Secondary = returnAltVk)
     WORD           returnAltVk       = 0;    // MeleeBurst: secondary return weapon VK; when non-zero a Primary/Secondary dropdown appears in the UI
+    WORD           tertiaryOutputVk       = 0;       // KeyToggle: third weapon key in cycle
+    const wchar_t* tertiaryOutputVkLabel  = nullptr; // If non-null, shows as a configurable output key row in the settings UI
+    bool           includeTertiaryInCycle = false;   // KeyToggle: include tertiary key in quickswitch cycle
 };
 
 // --- PER-BINDING STATE STRUCTS ---
@@ -87,10 +90,11 @@ struct WeaponComboState {
 };
 
 struct KeyToggleState {
-    bool pressed    = false; // tracks rising edge (prevents repeat while held)
-    bool useAlt     = false; // alternates: false = outputVk, true = longOutputVk
-    bool outWasDown = false; // rising-edge tracker for outputVk (manual weapon-key sync)
-    bool altWasDown = false; // rising-edge tracker for longOutputVk (manual weapon-key sync)
+    bool pressed         = false; // tracks rising edge (prevents repeat while held)
+    int  cycleIndex      = 0;     // 0=outputVk, 1=longOutputVk, 2=tertiaryOutputVk
+    bool outWasDown      = false; // rising-edge tracker for outputVk (manual weapon-key sync)
+    bool altWasDown      = false; // rising-edge tracker for longOutputVk (manual weapon-key sync)
+    bool tertiaryWasDown = false; // rising-edge tracker for tertiaryOutputVk (manual weapon-key sync)
 };
 
 struct MeleeBurstState {
@@ -103,6 +107,7 @@ struct MeleeBurstState {
     WORD      lastUsedWeaponVk   = 0;     // Auto mode: last weapon key pressed before entering melee
     bool      primaryWasDown     = false; // rising-edge tracker for longOutputVk (Auto mode)
     bool      secondaryWasDown   = false; // rising-edge tracker for returnAltVk (Auto mode)
+    bool      heavyWasDown       = false; // rising-edge tracker for heavy weapon key (Auto mode)
 };
 
 struct GlobalSuspendState {
