@@ -1131,18 +1131,6 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             }
         }
 
-        // Initialize vertical scrollbar
-        {
-            int contentH = ComputeSettingsContentHeight(profile);
-            SCROLLINFO si = {};
-            si.cbSize = sizeof(si);
-            si.fMask  = SIF_RANGE | SIF_PAGE | SIF_POS;
-            si.nMin   = 0;
-            si.nMax   = contentH;
-            si.nPage  = WINDOW_HEIGHT;
-            si.nPos   = 0;
-            SetScrollInfo(hwnd, SB_VERT, &si, TRUE);
-        }
         break;
     }
 
@@ -1539,52 +1527,19 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         break;
     }
 
-    case WM_VSCROLL: {
-        SCROLLINFO si = {};
-        si.cbSize = sizeof(si);
-        si.fMask  = SIF_ALL;
-        GetScrollInfo(hwnd, SB_VERT, &si);
-        int newY = g_settingsScrollY;
-        switch (LOWORD(wParam)) {
-        case SB_TOP:        newY = si.nMin; break;
-        case SB_BOTTOM:     newY = si.nMax; break;
-        case SB_LINEUP:     newY -= LAYOUT_ROW_HEIGHT; break;
-        case SB_LINEDOWN:   newY += LAYOUT_ROW_HEIGHT; break;
-        case SB_PAGEUP:     newY -= (int)si.nPage; break;
-        case SB_PAGEDOWN:   newY += (int)si.nPage; break;
-        case SB_THUMBTRACK: newY = si.nTrackPos; break;
-        }
-        int maxScroll = max(0, si.nMax - (int)si.nPage);
-        newY = max(0, min(newY, maxScroll));
-        int vDelta = newY - g_settingsScrollY;
-        if (vDelta != 0) {
-            g_settingsScrollY = newY;
-            si.fMask = SIF_POS;
-            si.nPos  = newY;
-            SetScrollInfo(hwnd, SB_VERT, &si, TRUE);
-            ScrollWindowEx(hwnd, 0, -vDelta, nullptr, nullptr, nullptr, nullptr,
-                           SW_SCROLLCHILDREN | SW_INVALIDATE | SW_ERASE);
-            UpdateWindow(hwnd);
-        }
-        return 0;
-    }
-
     case WM_MOUSEWHEEL: {
         int wheelDelta = GET_WHEEL_DELTA_WPARAM(wParam);
         int lines = max(1, abs(wheelDelta) / WHEEL_DELTA);
         int step  = lines * LAYOUT_ROW_HEIGHT * ((wheelDelta > 0) ? -1 : 1);
-        SCROLLINFO si = {};
-        si.cbSize = sizeof(si);
-        si.fMask  = SIF_ALL;
-        GetScrollInfo(hwnd, SB_VERT, &si);
-        int maxScroll = max(0, si.nMax - (int)si.nPage);
+        RECT cr;
+        GetClientRect(hwnd, &cr);
+        int viewportH = cr.bottom;
+        int contentH  = g_activeProfile ? ComputeSettingsContentHeight(g_activeProfile) : viewportH;
+        int maxScroll = max(0, contentH - viewportH);
         int newY = max(0, min(g_settingsScrollY + step, maxScroll));
         int wDelta = newY - g_settingsScrollY;
         if (wDelta != 0) {
             g_settingsScrollY = newY;
-            si.fMask = SIF_POS;
-            si.nPos  = newY;
-            SetScrollInfo(hwnd, SB_VERT, &si, TRUE);
             ScrollWindowEx(hwnd, 0, -wDelta, nullptr, nullptr, nullptr, nullptr,
                            SW_SCROLLCHILDREN | SW_INVALIDATE | SW_ERASE);
             UpdateWindow(hwnd);
@@ -1635,17 +1590,23 @@ bool CreateSettingsWindow(HINSTANCE hInstance, GameProfile* profile) {
 
     g_settingsScrollY = 0;
 
-    // Size the window so the CLIENT area is exactly WINDOW_WIDTH x WINDOW_HEIGHT
-    RECT rcAdj = { 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT };
+    // Grow the window to fit all content; cap at the usable work area
+    int contentH = ComputeSettingsContentHeight(profile);
+    RECT workArea = {};
+    SystemParametersInfo(SPI_GETWORKAREA, 0, &workArea, 0);
+    int maxClientH = max(WINDOW_HEIGHT, (workArea.bottom - workArea.top) - 60);
+    int clientH    = min(max(WINDOW_HEIGHT, contentH + 20), maxClientH);
+
+    RECT rcAdj = { 0, 0, WINDOW_WIDTH, clientH };
     AdjustWindowRectEx(&rcAdj,
-        WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_VSCROLL,
+        WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
         FALSE, WS_EX_DLGMODALFRAME);
 
     g_hSettingsWnd = CreateWindowEx(
         WS_EX_DLGMODALFRAME,
         L"CustomControlZSettingsClass",
         profile->settingsTitle,
-        WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_VSCROLL,
+        WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
         CW_USEDEFAULT, CW_USEDEFAULT,
         rcAdj.right - rcAdj.left, rcAdj.bottom - rcAdj.top,
         nullptr, nullptr, hInstance, nullptr
