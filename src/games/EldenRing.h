@@ -62,7 +62,7 @@ static GameProfile g_EldenRingProfile = {
           /*isAppOnly=*/true },
 
         // ER_KEY_TRIGGER: LongPress — tap fires Escape (close/back), hold fires Q (action)
-        { L"TriggerKey", L"Custom Key:Close, Back (Long press)", VK_ESCAPE,  VK_ESCAPE,
+        { L"TriggerKey", L"Custom Key: Close, Back (Long press)", VK_ESCAPE,  VK_ESCAPE,
           { BehaviorType::LongPress, /*outputVk=*/VK_ESCAPE, /*longOutputVk=*/ER_ACTION_VK,
             /*thresholdMs=*/ER_LONG_PRESS_DELAY_MS },
           /*isAppOnly=*/true, /*separatorAbove=*/true },
