@@ -189,6 +189,7 @@ HFONT  g_hFontImprint = nullptr;
 
 std::thread       g_logicThread;
 std::atomic<bool> g_logicRunning(false);
+int               g_settingsScrollY = 0;  // vertical scroll offset for the settings window
 
 // --- FONT HELPERS ---
 
@@ -856,6 +857,26 @@ inline bool IsModifierOnlyKey(WORD vk) {
            vk == VK_LWIN || vk == VK_RWIN;
 }
 
+static int ComputeSettingsContentHeight(const GameProfile* profile) {
+    int rowY = LAYOUT_TITLE_START + LAYOUT_TITLE_SPACING;
+    for (int i = 0; i < profile->bindingCount; i++) {
+        if (profile->bindings[i].separatorAbove)
+            rowY += 2 * LAYOUT_SEPARATOR_PADDING;
+        const BehaviorDescriptor& beh = profile->bindings[i].behavior;
+        if (beh.outputVkLabel)         rowY += LAYOUT_OUTPUT_ROW_HEIGHT;
+        if (beh.longOutputVkLabel)     rowY += LAYOUT_OUTPUT_ROW_HEIGHT;
+        if (beh.tertiaryOutputVkLabel) rowY += LAYOUT_OUTPUT_ROW_HEIGHT;
+        rowY += LAYOUT_ROW_HEIGHT;
+        if (beh.type == BehaviorType::KeyToggle && beh.tertiaryOutputVk)
+            rowY += LAYOUT_TIMING_ROW_HEIGHT;
+        if (beh.type == BehaviorType::MeleeBurst) {
+            rowY += LAYOUT_TIMING_ROWS_HEIGHT;
+            if (beh.returnAltVk) rowY += LAYOUT_TIMING_ROW_HEIGHT;
+        }
+    }
+    return rowY;
+}
+
 LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
     switch (uMsg) {
     case WM_CREATE: {
@@ -1097,15 +1118,30 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
 
         // Set initial button texts
-        std::lock_guard<std::mutex> lock(g_configMutex);
-        for (int i = 0; i < profile->bindingCount; i++) {
-            UpdateButtonText(GetDlgItem(hwnd, BTN_BIND_BASE + i), profile->bindings[i].currentVk);
-            if (profile->bindings[i].behavior.outputVkLabel)
-                UpdateButtonText(GetDlgItem(hwnd, BTN_OUTPUT_KEY_BASE + i), profile->bindings[i].behavior.outputVk);
-            if (profile->bindings[i].behavior.longOutputVkLabel)
-                UpdateButtonText(GetDlgItem(hwnd, BTN_LONG_OUTPUT_KEY_BASE + i), profile->bindings[i].behavior.longOutputVk);
-            if (profile->bindings[i].behavior.tertiaryOutputVkLabel)
-                UpdateButtonText(GetDlgItem(hwnd, BTN_TERTIARY_OUTPUT_KEY_BASE + i), profile->bindings[i].behavior.tertiaryOutputVk);
+        {
+            std::lock_guard<std::mutex> lock(g_configMutex);
+            for (int i = 0; i < profile->bindingCount; i++) {
+                UpdateButtonText(GetDlgItem(hwnd, BTN_BIND_BASE + i), profile->bindings[i].currentVk);
+                if (profile->bindings[i].behavior.outputVkLabel)
+                    UpdateButtonText(GetDlgItem(hwnd, BTN_OUTPUT_KEY_BASE + i), profile->bindings[i].behavior.outputVk);
+                if (profile->bindings[i].behavior.longOutputVkLabel)
+                    UpdateButtonText(GetDlgItem(hwnd, BTN_LONG_OUTPUT_KEY_BASE + i), profile->bindings[i].behavior.longOutputVk);
+                if (profile->bindings[i].behavior.tertiaryOutputVkLabel)
+                    UpdateButtonText(GetDlgItem(hwnd, BTN_TERTIARY_OUTPUT_KEY_BASE + i), profile->bindings[i].behavior.tertiaryOutputVk);
+            }
+        }
+
+        // Initialize vertical scrollbar
+        {
+            int contentH = ComputeSettingsContentHeight(profile);
+            SCROLLINFO si = {};
+            si.cbSize = sizeof(si);
+            si.fMask  = SIF_RANGE | SIF_PAGE | SIF_POS;
+            si.nMin   = 0;
+            si.nMax   = contentH;
+            si.nPage  = WINDOW_HEIGHT;
+            si.nPos   = 0;
+            SetScrollInfo(hwnd, SB_VERT, &si, TRUE);
         }
         break;
     }
@@ -1131,6 +1167,8 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
     case WM_PAINT: {
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hwnd, &ps);
+
+        SetViewportOrgEx(hdc, 0, -g_settingsScrollY, nullptr);
 
         if (g_activeProfile) {
             // Legend: colored squares showing what each stripe color means
@@ -1501,6 +1539,59 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         break;
     }
 
+    case WM_VSCROLL: {
+        SCROLLINFO si = {};
+        si.cbSize = sizeof(si);
+        si.fMask  = SIF_ALL;
+        GetScrollInfo(hwnd, SB_VERT, &si);
+        int newY = g_settingsScrollY;
+        switch (LOWORD(wParam)) {
+        case SB_TOP:        newY = si.nMin; break;
+        case SB_BOTTOM:     newY = si.nMax; break;
+        case SB_LINEUP:     newY -= LAYOUT_ROW_HEIGHT; break;
+        case SB_LINEDOWN:   newY += LAYOUT_ROW_HEIGHT; break;
+        case SB_PAGEUP:     newY -= (int)si.nPage; break;
+        case SB_PAGEDOWN:   newY += (int)si.nPage; break;
+        case SB_THUMBTRACK: newY = si.nTrackPos; break;
+        }
+        int maxScroll = max(0, si.nMax - (int)si.nPage);
+        newY = max(0, min(newY, maxScroll));
+        int vDelta = newY - g_settingsScrollY;
+        if (vDelta != 0) {
+            g_settingsScrollY = newY;
+            si.fMask = SIF_POS;
+            si.nPos  = newY;
+            SetScrollInfo(hwnd, SB_VERT, &si, TRUE);
+            ScrollWindowEx(hwnd, 0, -vDelta, nullptr, nullptr, nullptr, nullptr,
+                           SW_SCROLLCHILDREN | SW_INVALIDATE | SW_ERASE);
+            UpdateWindow(hwnd);
+        }
+        return 0;
+    }
+
+    case WM_MOUSEWHEEL: {
+        int wheelDelta = GET_WHEEL_DELTA_WPARAM(wParam);
+        int lines = max(1, abs(wheelDelta) / WHEEL_DELTA);
+        int step  = lines * LAYOUT_ROW_HEIGHT * ((wheelDelta > 0) ? -1 : 1);
+        SCROLLINFO si = {};
+        si.cbSize = sizeof(si);
+        si.fMask  = SIF_ALL;
+        GetScrollInfo(hwnd, SB_VERT, &si);
+        int maxScroll = max(0, si.nMax - (int)si.nPage);
+        int newY = max(0, min(g_settingsScrollY + step, maxScroll));
+        int wDelta = newY - g_settingsScrollY;
+        if (wDelta != 0) {
+            g_settingsScrollY = newY;
+            si.fMask = SIF_POS;
+            si.nPos  = newY;
+            SetScrollInfo(hwnd, SB_VERT, &si, TRUE);
+            ScrollWindowEx(hwnd, 0, -wDelta, nullptr, nullptr, nullptr, nullptr,
+                           SW_SCROLLCHILDREN | SW_INVALIDATE | SW_ERASE);
+            UpdateWindow(hwnd);
+        }
+        return 0;
+    }
+
     case WM_MOVE:
         SaveWindowPos(L"SettingsWin", hwnd);
         break;
@@ -1542,17 +1633,19 @@ bool CreateSettingsWindow(HINSTANCE hInstance, GameProfile* profile) {
         classRegistered = true;
     }
 
+    g_settingsScrollY = 0;
+
     // Size the window so the CLIENT area is exactly WINDOW_WIDTH x WINDOW_HEIGHT
     RECT rcAdj = { 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT };
     AdjustWindowRectEx(&rcAdj,
-        WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
+        WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_VSCROLL,
         FALSE, WS_EX_DLGMODALFRAME);
 
     g_hSettingsWnd = CreateWindowEx(
         WS_EX_DLGMODALFRAME,
         L"CustomControlZSettingsClass",
         profile->settingsTitle,
-        WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
+        WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_VSCROLL,
         CW_USEDEFAULT, CW_USEDEFAULT,
         rcAdj.right - rcAdj.left, rcAdj.bottom - rcAdj.top,
         nullptr, nullptr, hInstance, nullptr
