@@ -1305,6 +1305,32 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             DeleteObject(hRowBrush);
         }
 
+        // "More content below" indicator — drawn in physical coords, unaffected by scroll
+        SetViewportOrgEx(hdc, 0, 0, nullptr);
+        if (g_activeProfile) {
+            RECT cr;
+            GetClientRect(hwnd, &cr);
+            int contentH  = ComputeSettingsContentHeight(g_activeProfile);
+            int maxScroll = max(0, contentH - cr.bottom);
+            if (maxScroll > 0 && g_settingsScrollY < maxScroll) {
+                constexpr int TW = 22, TH = 11;
+                int cx = cr.right / 2;
+                int by = cr.bottom - 10;
+                POINT pts[3] = {
+                    { cx - TW / 2, by - TH },
+                    { cx + TW / 2, by - TH },
+                    { cx,          by      }
+                };
+                HPEN   hPen    = CreatePen(PS_SOLID, 2, g_activeProfile->theme.accent);
+                HPEN   hOldPen = (HPEN)SelectObject(hdc, hPen);
+                HBRUSH hOldBr  = (HBRUSH)SelectObject(hdc, GetStockObject(NULL_BRUSH));
+                Polygon(hdc, pts, 3);
+                SelectObject(hdc, hOldPen);
+                SelectObject(hdc, hOldBr);
+                DeleteObject(hPen);
+            }
+        }
+
         EndPaint(hwnd, &ps);
         return 0;
     }
@@ -1590,14 +1616,8 @@ bool CreateSettingsWindow(HINSTANCE hInstance, GameProfile* profile) {
 
     g_settingsScrollY = 0;
 
-    // Grow the window to fit all content; cap at the usable work area
-    int contentH = ComputeSettingsContentHeight(profile);
-    RECT workArea = {};
-    SystemParametersInfo(SPI_GETWORKAREA, 0, &workArea, 0);
-    int maxClientH = max(WINDOW_HEIGHT, (workArea.bottom - workArea.top) - 60);
-    int clientH    = min(max(WINDOW_HEIGHT, contentH + 20), maxClientH);
-
-    RECT rcAdj = { 0, 0, WINDOW_WIDTH, clientH };
+    // Fixed client area: WINDOW_WIDTH × WINDOW_HEIGHT
+    RECT rcAdj = { 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT };
     AdjustWindowRectEx(&rcAdj,
         WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
         FALSE, WS_EX_DLGMODALFRAME);
