@@ -889,8 +889,8 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
         g_hSettingsTooltip = CreateTooltipWnd(hwnd);
 
-        // Top buttons: Select Game (left) | Font (right corner)
-        HWND hBtnChangeGame = CreateWindow(L"BUTTON", L"Select Game",
+        // Top buttons
+        HWND hBtnChangeGame = CreateWindow(L"BUTTON", L"Back",
             WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
             11, 11, LAYOUT_FONT_BUTTON_WIDTH, LAYOUT_FONT_BUTTON_HEIGHT,
             hwnd, (HMENU)(INT_PTR)BTN_CHANGE_GAME, nullptr, nullptr);
