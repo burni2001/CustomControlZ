@@ -1559,15 +1559,24 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         int step  = lines * LAYOUT_ROW_HEIGHT * ((wheelDelta > 0) ? -1 : 1);
         RECT cr;
         GetClientRect(hwnd, &cr);
-        int viewportH = cr.bottom;
-        int contentH  = g_activeProfile ? ComputeSettingsContentHeight(g_activeProfile) : viewportH;
-        int maxScroll = max(0, contentH - viewportH);
-        int newY = max(0, min(g_settingsScrollY + step, maxScroll));
+        int contentH  = g_activeProfile ? ComputeSettingsContentHeight(g_activeProfile) : cr.bottom;
+        int maxScroll = max(0, contentH - cr.bottom);
+        int newY   = max(0, min(g_settingsScrollY + step, maxScroll));
         int wDelta = newY - g_settingsScrollY;
         if (wDelta != 0) {
             g_settingsScrollY = newY;
-            ScrollWindowEx(hwnd, 0, -wDelta, nullptr, nullptr, nullptr, nullptr,
-                           SW_SCROLLCHILDREN | SW_INVALIDATE | SW_ERASE);
+            // Move all child windows by -delta (avoids pixel-copy artefacts from ScrollWindowEx)
+            HWND hChild = GetWindow(hwnd, GW_CHILD);
+            while (hChild) {
+                RECT wr;
+                GetWindowRect(hChild, &wr);
+                POINT pt = { wr.left, wr.top };
+                ScreenToClient(hwnd, &pt);
+                SetWindowPos(hChild, nullptr, pt.x, pt.y - wDelta, 0, 0,
+                             SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+                hChild = GetWindow(hChild, GW_HWNDNEXT);
+            }
+            InvalidateRect(hwnd, nullptr, TRUE);
             UpdateWindow(hwnd);
         }
         return 0;
