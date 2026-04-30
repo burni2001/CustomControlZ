@@ -724,6 +724,28 @@ bool IsGameRunning(GameProfile* profile) {
     return found;
 }
 
+bool IsGameWindowForeground(GameProfile* profile) {
+    HWND hwnd = GetForegroundWindow();
+    if (!hwnd) return false;
+    DWORD pid = 0;
+    GetWindowThreadProcessId(hwnd, &pid);
+    if (pid == 0) return false;
+    HANDLE hProc = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+    if (!hProc) return false;
+    wchar_t exePath[MAX_PATH] = {};
+    DWORD size = MAX_PATH;
+    bool found = false;
+    if (QueryFullProcessImageNameW(hProc, 0, exePath, &size)) {
+        const wchar_t* name = wcsrchr(exePath, L'\\');
+        name = name ? name + 1 : exePath;
+        found = (_wcsicmp(name, profile->processName1) == 0);
+        if (!found && profile->processName2)
+            found = (_wcsicmp(name, profile->processName2) == 0);
+    }
+    CloseHandle(hProc);
+    return found;
+}
+
 inline void SendKeyInput(WORD vk, bool keyUp) {
     INPUT input = {};
     input.type = INPUT_KEYBOARD;

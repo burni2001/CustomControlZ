@@ -62,8 +62,9 @@ struct GameProfile {
 inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& running) {
     BindingState state[MAX_BINDINGS];    // zero-initialised via BindingState()
     KeyTracker   tracker;
-    bool         lastGameState = false;
-    int          missCount     = 0;       // consecutive IsGameRunning()==false count
+    bool         lastGameState      = false;
+    bool         lastForegroundState = false;
+    int          missCount          = 0;   // consecutive IsGameRunning()==false count
     bool         elevationWarnShown = false; // only warn once per thread lifetime
     constexpr int MISS_THRESHOLD = 5;    // require 5 consecutive misses (~50ms) before treating game as stopped
 
@@ -122,7 +123,28 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
         }
 
         if (!currentGameState) {
+            if (lastForegroundState) {
+                // Game stopped while we thought it was in foreground — reset foreground tracking
+                lastForegroundState = false;
+            }
             Sleep(1000);
+            continue;
+        }
+
+        // Auto-pause when game window loses foreground (e.g. user alt-tabs to Discord)
+        bool currentForeground = IsGameWindowForeground(profile);
+        if (currentForeground != lastForegroundState) {
+            if (lastForegroundState && !currentForeground) {
+                tracker.releaseAll();
+                SetTrayIconState(false, profile);
+            } else if (!lastForegroundState && currentForeground) {
+                SetTrayIconState(true, profile);
+            }
+            lastForegroundState = currentForeground;
+        }
+
+        if (!currentForeground) {
+            Sleep(50);
             continue;
         }
 
