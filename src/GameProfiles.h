@@ -354,6 +354,14 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
                     if (vk == desc.outputVk)         s.outWasDown      = true;
                     if (vk == desc.longOutputVk)     s.altWasDown      = true;
                     if (vk == desc.tertiaryOutputVk) s.tertiaryWasDown = true;
+                    // Sync sibling MeleeBurst's lastUsedWeaponVk — the injected key press happens
+                    // inside Sleep so IsKeyDown never sees it, leaving lastUsedWeaponVk stale.
+                    for (int j = 0; j < profile->bindingCount; j++) {
+                        if (profile->bindings[j].behavior.type != BehaviorType::MeleeBurst) continue;
+                        if (profile->bindings[j].behavior.returnWeapon == ReturnWeapon::Auto)
+                            state[j].meleeBurst.lastUsedWeaponVk = vk;
+                        break;
+                    }
                     // Advance to the next weapon in cycle
                     s.cycleIndex = hasTertiary ? (s.cycleIndex + 1) % 3
                                                : (s.cycleIndex == 0 ? 1 : 0);
