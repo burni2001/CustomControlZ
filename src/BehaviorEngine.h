@@ -18,6 +18,7 @@ inline bool IsKeyDown(WORD vk);
 inline void PressMouse(WORD vk);    // Sends MOUSEEVENTF_*DOWN for VK_LBUTTON / VK_RBUTTON / VK_MBUTTON
 inline void ReleaseMouse(WORD vk);  // Sends MOUSEEVENTF_*UP
 bool IsGameRunning(GameProfile* profile);
+bool IsGameWindowForeground(GameProfile* profile);
 void SetTrayIconState(bool active, GameProfile* profile);
 bool IsProcessRunningElevated(const wchar_t* processName);  // FIX-02: UIPI detection
 extern std::mutex g_configMutex;
