@@ -496,13 +496,25 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
             case BehaviorType::WalkRunSwap: {
                 WalkRunSwapState& s = state[i].walkRunSwap;
 
-                // Resolve walk modifier and sprint key from sibling marker bindings
-                WORD walkModVk = desc.longOutputVk; // fallback if no WalkModifier binding
-                WORD sprintVk  = 0;
+                // Resolve walk modifier, always-walk flag, and sprint key from sibling marker bindings
+                WORD walkModVk  = desc.longOutputVk; // fallback if no WalkModifier binding
+                WORD sprintVk   = 0;
+                bool alwaysWalk = true;
                 for (int j = 0; j < profile->bindingCount; j++) {
                     BehaviorType t = profile->bindings[j].behavior.type;
-                    if (t == BehaviorType::WalkModifier) walkModVk = localVk[j];
-                    else if (t == BehaviorType::SprintKey) sprintVk = localVk[j];
+                    if (t == BehaviorType::WalkModifier) {
+                        walkModVk   = localVk[j];
+                        alwaysWalk  = profile->bindings[j].behavior.checkboxEnabled;
+                    } else if (t == BehaviorType::SprintHoldDash) {
+                        sprintVk = localVk[j];
+                    }
+                }
+
+                if (!alwaysWalk) {
+                    // Always Walk unchecked → release any injected state and let physical keys pass through
+                    if (s.dirSent) { ReleaseKey(s.pressedDirVk); tracker.release(s.pressedDirVk); s.dirSent = false; }
+                    if (s.modSent) { ReleaseKey(s.pressedModVk); tracker.release(s.pressedModVk); s.modSent = false; }
+                    break;
                 }
 
                 bool inputDown  = IsKeyDown(localVk[i]);
@@ -552,8 +564,35 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
             }
 
             case BehaviorType::WalkModifier:
-            case BehaviorType::SprintKey:
-                break; // no-op marker bindings; currentVk is read by WalkRunSwap
+            case BehaviorType::DashKey:
+                break; // no-op marker bindings; currentVk is read by sibling behaviors
+
+            case BehaviorType::SprintHoldDash: {
+                SprintHoldDashState& s = state[i].sprintHoldDash;
+
+                // Find the DashKey sibling to get its current VK
+                WORD dashVk = 0;
+                for (int j = 0; j < profile->bindingCount; j++) {
+                    if (profile->bindings[j].behavior.type == BehaviorType::DashKey) {
+                        dashVk = localVk[j];
+                        break;
+                    }
+                }
+
+                bool inputDown = IsKeyDown(localVk[i]);
+
+                if (inputDown && dashVk && !s.held) {
+                    PressKey(dashVk);
+                    tracker.press(dashVk);
+                    s.held      = true;
+                    s.pressedVk = dashVk;
+                } else if (!inputDown && s.held) {
+                    ReleaseKey(s.pressedVk);
+                    tracker.release(s.pressedVk);
+                    s.held = false;
+                }
+                break;
+            }
 
             } // switch
         }
@@ -580,5 +619,7 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
             if (state[i].walkRunSwap.dirSent) ReleaseKey(state[i].walkRunSwap.pressedDirVk);
             if (state[i].walkRunSwap.modSent) ReleaseKey(state[i].walkRunSwap.pressedModVk);
         }
+        if (b.type == BehaviorType::SprintHoldDash && state[i].sprintHoldDash.held)
+            ReleaseKey(state[i].sprintHoldDash.pressedVk);
     }
 }

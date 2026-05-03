@@ -38,9 +38,10 @@ enum class BehaviorType : uint8_t {
     MeleeBurst,     // repeated taps stay on melee weapon; auto-switch back after returnDelayMs of idle
     KeyToggle,      // rising edge on inputVk -> alternate between pulsing outputVk and longOutputVk each press
     GlobalSuspend,  // toggle: first press suspends all other bindings; second press re-enables
-    WalkRunSwap,    // directional key: alone→inject dir+walk modifier; with sprint key→inject dir only
-    WalkModifier,   // no-op marker: configurable walk modifier key referenced by WalkRunSwap
-    SprintKey,      // no-op marker: configurable sprint key referenced by WalkRunSwap
+    WalkRunSwap,     // directional key: alone→inject dir+walk modifier; with sprint key→inject dir only
+    WalkModifier,    // no-op marker: configurable walk modifier key referenced by WalkRunSwap
+    DashKey,         // no-op marker: configurable dash/dodge key referenced by SprintHoldDash
+    SprintHoldDash,  // hold sprint key → hold DashKey's VK (sprinting via dash-hold in game)
 };
 
 struct BehaviorDescriptor {
@@ -59,6 +60,8 @@ struct BehaviorDescriptor {
     WORD           tertiaryOutputVk       = 0;       // KeyToggle: third weapon key in cycle
     const wchar_t* tertiaryOutputVkLabel  = nullptr; // If non-null, shows as a configurable output key row in the settings UI
     bool           includeTertiaryInCycle = false;   // KeyToggle: include tertiary key in quickswitch cycle
+    const wchar_t* checkboxLabel          = nullptr; // If non-null, renders a checkbox row below this binding
+    bool           checkboxEnabled        = true;    // Runtime state of the checkbox; default on
 };
 
 // --- PER-BINDING STATE STRUCTS ---
@@ -119,6 +122,11 @@ struct GlobalSuspendState {
     bool suspended = false; // current toggle state
 };
 
+struct SprintHoldDashState {
+    bool held      = false; // currently holding the dash key via sprint
+    WORD pressedVk = 0;     // VK actually pressed (for correct release when DashKey is rebound)
+};
+
 struct WalkRunSwapState {
     bool dirSent      = false; // currently injecting directional key
     bool modSent      = false; // currently injecting walk modifier key
@@ -135,8 +143,9 @@ union BindingState {
     WeaponComboState  weaponCombo;
     KeyToggleState    keyToggle;
     MeleeBurstState   meleeBurst;
-    GlobalSuspendState globalSuspend;
-    WalkRunSwapState   walkRunSwap;
+    GlobalSuspendState  globalSuspend;
+    WalkRunSwapState    walkRunSwap;
+    SprintHoldDashState sprintHoldDash;
     BindingState() { memset(this, 0, sizeof(*this)); }
 };
 

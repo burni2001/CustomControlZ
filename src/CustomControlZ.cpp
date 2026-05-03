@@ -75,6 +75,7 @@ void EnableDarkTitleBar(HWND hwnd) {
 #define BTN_CLEAR_TERTIARY_OUTPUT_BASE  3550  // Clear tertiary output key buttons: 3550 + binding index
 #define ID_INCLUDE_TERTIARY_BASE        3600  // Combobox: include tertiary in quickswitch cycle: 3600 + binding index
 #define ID_TERTIARY_OUTPUT_LABEL_BASE   3700  // Tertiary output key row labels: 3700 + binding index
+#define ID_CHECKBOX_BASE                3800  // Checkbox controls: 3800 + binding index
 #define ID_TITLE_STATIC             2100
 #define ID_IMPRINT1_STATIC          2101
 #define ID_IMPRINT2_STATIC          2102
@@ -242,6 +243,8 @@ void UpdateAllControlFonts(HWND hwnd) {
                 InvalidateRect(GetDlgItem(hwnd, BTN_TERTIARY_OUTPUT_KEY_BASE + i), nullptr, TRUE);
                 SendMessage(GetDlgItem(hwnd, ID_INCLUDE_TERTIARY_BASE + i), WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
             }
+            if (beh.checkboxLabel)
+                SendMessage(GetDlgItem(hwnd, ID_CHECKBOX_BASE + i), WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
         }
     }
 
@@ -402,6 +405,7 @@ void SaveConfig(GameProfile* profile) {
     WORD longOutputVk[MAX_BINDINGS]         = {};
     WORD tertiaryOutputVk[MAX_BINDINGS]     = {};
     bool includeTertiaryInCycle[MAX_BINDINGS] = {};
+    bool checkboxEnabled[MAX_BINDINGS]      = {};
     ReturnWeapon returnWeapon[MAX_BINDINGS] = {};
     {
         std::lock_guard<std::mutex> lock(g_configMutex);
@@ -421,6 +425,8 @@ void SaveConfig(GameProfile* profile) {
                 tertiaryOutputVk[i]       = profile->bindings[i].behavior.tertiaryOutputVk;
                 includeTertiaryInCycle[i] = profile->bindings[i].behavior.includeTertiaryInCycle;
             }
+            if (profile->bindings[i].behavior.checkboxLabel)
+                checkboxEnabled[i] = profile->bindings[i].behavior.checkboxEnabled;
         }
     }
 
@@ -468,6 +474,11 @@ void SaveConfig(GameProfile* profile) {
             StringCchPrintf(buf, ARRAYSIZE(buf), L"%d", includeTertiaryInCycle[i] ? 1 : 0);
             WritePrivateProfileString(profile->iniSection, key, buf, CONFIG_FILE);
         }
+        if (profile->bindings[i].behavior.checkboxLabel) {
+            StringCchPrintf(key, ARRAYSIZE(key), L"%s_Checkbox", profile->bindings[i].iniKey);
+            StringCchPrintf(buf, ARRAYSIZE(buf), L"%d", checkboxEnabled[i] ? 1 : 0);
+            WritePrivateProfileString(profile->iniSection, key, buf, CONFIG_FILE);
+        }
     }
     WritePrivateProfileString(profile->iniSection, L"FontName", localFontName, CONFIG_FILE);
 }
@@ -484,6 +495,8 @@ void LoadConfig(GameProfile* profile) {
     bool hasLongOutputVk[MAX_BINDINGS]       = {};
     bool hasTertiaryOutputVk[MAX_BINDINGS]   = {};
     bool hasIncludeTertiary[MAX_BINDINGS]    = {};
+    bool checkboxEnabled[MAX_BINDINGS]       = {};
+    bool hasCheckbox[MAX_BINDINGS]           = {};
     ReturnWeapon returnWeapon[MAX_BINDINGS]  = {};
     wchar_t key[64];
 
@@ -530,6 +543,11 @@ void LoadConfig(GameProfile* profile) {
             int inc = GetPrivateProfileInt(profile->iniSection, key, -1, CONFIG_FILE);
             if (inc != -1) { includeTertiaryInCycle[i] = (inc != 0); hasIncludeTertiary[i] = true; }
         }
+        if (profile->bindings[i].behavior.checkboxLabel) {
+            StringCchPrintf(key, ARRAYSIZE(key), L"%s_Checkbox", profile->bindings[i].iniKey);
+            int cbVal = GetPrivateProfileInt(profile->iniSection, key, -1, CONFIG_FILE);
+            if (cbVal != -1) { checkboxEnabled[i] = (cbVal != 0); hasCheckbox[i] = true; }
+        }
     }
 
     wchar_t tempFont[FONT_NAME_BUFFER];
@@ -550,6 +568,7 @@ void LoadConfig(GameProfile* profile) {
         if (hasLongOutputVk[i])      profile->bindings[i].behavior.longOutputVk           = longOutputVk[i];
         if (hasTertiaryOutputVk[i])  profile->bindings[i].behavior.tertiaryOutputVk       = tertiaryOutputVk[i];
         if (hasIncludeTertiary[i])   profile->bindings[i].behavior.includeTertiaryInCycle = includeTertiaryInCycle[i];
+        if (hasCheckbox[i])          profile->bindings[i].behavior.checkboxEnabled        = checkboxEnabled[i];
     }
     StringCchCopy(g_fontName, ARRAYSIZE(g_fontName), tempFont);
 }
@@ -897,6 +916,7 @@ static int ComputeSettingsContentHeight(const GameProfile* profile) {
             rowY += LAYOUT_TIMING_ROWS_HEIGHT;
             if (beh.returnAltVk) rowY += LAYOUT_TIMING_ROW_HEIGHT;
         }
+        if (beh.checkboxLabel) rowY += LAYOUT_TIMING_ROW_HEIGHT;
     }
     return rowY;
 }
@@ -1138,6 +1158,18 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
                 rowY += LAYOUT_TIMING_ROW_HEIGHT;
             }
+
+            if (beh.checkboxLabel) {
+                HWND hCBX = CreateWindow(L"BUTTON", beh.checkboxLabel,
+                    WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX,
+                    LAYOUT_LEFT_MARGIN + 22, rowY + 6,
+                    LAYOUT_LABEL_WIDTH - 22 + LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT,
+                    hwnd, (HMENU)(INT_PTR)(ID_CHECKBOX_BASE + i), nullptr, nullptr);
+                SendMessage(hCBX, WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
+                SendMessage(hCBX, BM_SETCHECK, beh.checkboxEnabled ? BST_CHECKED : BST_UNCHECKED, 0);
+                SetWindowTheme(hCBX, L"DarkMode_Explorer", nullptr);
+                rowY += LAYOUT_TIMING_ROW_HEIGHT;
+            }
         }
 
 
@@ -1322,6 +1354,7 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                     rowY += LAYOUT_TIMING_ROWS_HEIGHT;
                     if (beh.returnAltVk) rowY += LAYOUT_TIMING_ROW_HEIGHT;
                 }
+                if (beh.checkboxLabel) rowY += LAYOUT_TIMING_ROW_HEIGHT;
             }
 
             SelectObject(hdc, hOldPen);
@@ -1374,6 +1407,15 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             SetBkColor(hdcEdit, g_activeProfile->theme.button);
         }
         return (LRESULT)g_hBrushButton;
+    }
+
+    case WM_CTLCOLORBTN: {
+        HDC hdcBtn = (HDC)wParam;
+        if (g_activeProfile) {
+            SetTextColor(hdcBtn, g_activeProfile->theme.text);
+            SetBkMode(hdcBtn, TRANSPARENT);
+        }
+        return (LRESULT)g_hBrushBg;
     }
 
     case WM_DRAWITEM: {
@@ -1475,6 +1517,15 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                 g_activeProfile->bindings[idx].behavior.tertiaryOutputVk = 0;
             }
             UpdateButtonText(GetDlgItem(hwnd, BTN_TERTIARY_OUTPUT_KEY_BASE + idx), 0);
+            SaveConfig(g_activeProfile);
+        } else if (id >= ID_CHECKBOX_BASE && g_activeProfile &&
+                   id < ID_CHECKBOX_BASE + g_activeProfile->bindingCount) {
+            int idx = id - ID_CHECKBOX_BASE;
+            bool checked = (SendMessage(GetDlgItem(hwnd, id), BM_GETCHECK, 0, 0) == BST_CHECKED);
+            {
+                std::lock_guard<std::mutex> lock(g_configMutex);
+                g_activeProfile->bindings[idx].behavior.checkboxEnabled = checked;
+            }
             SaveConfig(g_activeProfile);
         } else if (HIWORD(wParam) == CBN_SELCHANGE && g_activeProfile) {
             // Include-heavy combobox selection changed

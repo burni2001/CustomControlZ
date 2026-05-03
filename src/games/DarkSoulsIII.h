@@ -3,12 +3,13 @@
 
 enum DarkSoulsIIIBinding {
     DS3_KEY_WALK      = 0,  // WalkModifier: in-game walk key (injected alongside directions)
-    DS3_KEY_RUN_FWD   = 1,  // WalkRunSwap: forward direction
-    DS3_KEY_RUN_BACK  = 2,  // WalkRunSwap: backward direction
-    DS3_KEY_RUN_LEFT  = 3,  // WalkRunSwap: left direction
-    DS3_KEY_RUN_RIGHT = 4,  // WalkRunSwap: right direction
-    DS3_KEY_SPRINT    = 5,  // SprintKey: hold to run instead of walk
-    DS3_BINDING_COUNT = 6
+    DS3_KEY_DASH      = 1,  // DashKey: in-game Dash/Backstep/Roll key (also held by Sprint)
+    DS3_KEY_RUN_FWD   = 2,  // WalkRunSwap: forward direction
+    DS3_KEY_RUN_BACK  = 3,  // WalkRunSwap: backward direction
+    DS3_KEY_RUN_LEFT  = 4,  // WalkRunSwap: left direction
+    DS3_KEY_RUN_RIGHT = 5,  // WalkRunSwap: right direction
+    DS3_KEY_SPRINT    = 6,  // SprintHoldDash: hold to hold Dash key (= sprinting in-game)
+    DS3_BINDING_COUNT = 7
 };
 
 static GameProfile g_DarkSoulsIIIProfile = {
@@ -37,13 +38,19 @@ static GameProfile g_DarkSoulsIIIProfile = {
     },
     /* bindingCount */ DS3_BINDING_COUNT,
     /* bindings */ {
-        // DS3_KEY_WALK: WalkModifier — configurable in-game walk key; injected by WalkRunSwap when no sprint held
-        { L"WalkKey",      L"Walk",
+        // DS3_KEY_WALK: WalkModifier — injected alongside each direction key when Always Walk is on
+        { L"WalkKey", L"Walk",
           VK_LSHIFT, VK_LSHIFT,
-          { BehaviorType::WalkModifier },
+          { .type = BehaviorType::WalkModifier, .checkboxLabel = L"Always Walk" },
           /*isAppOnly=*/false },
 
-        // DS3_KEY_RUN_FWD/BACK/LEFT/RIGHT: WalkRunSwap — direction alone = walk; direction + Sprint = run
+        // DS3_KEY_DASH: DashKey — in-game Dodge/Backstep/Roll; also held by Sprint
+        { L"DashKey", L"Dash/Backstep/Roll",
+          'C', 'C',
+          { BehaviorType::DashKey },
+          /*isAppOnly=*/false },
+
+        // DS3_KEY_RUN_FWD/BACK/LEFT/RIGHT: WalkRunSwap — direction alone = walk (if Always Walk on); direction + Sprint = run
         { L"RunFwdKey",   L"Run (forward)",
           'W', 'W',
           { BehaviorType::WalkRunSwap },
@@ -64,10 +71,10 @@ static GameProfile g_DarkSoulsIIIProfile = {
           { BehaviorType::WalkRunSwap },
           /*isAppOnly=*/false },
 
-        // DS3_KEY_SPRINT: SprintKey — hold while moving to run instead of walk
-        { L"SprintKey",   L"Custom Key: Sprint",
+        // DS3_KEY_SPRINT: SprintHoldDash — hold to hold Dash key (sprinting in-game)
+        { L"SprintKey", L"Custom Key: Sprint",
           VK_CAPITAL, VK_CAPITAL,
-          { BehaviorType::SprintKey },
+          { .type = BehaviorType::SprintHoldDash },
           /*isAppOnly=*/true, /*separatorAbove=*/true },
     },
     /* logicFn */ GenericLogicThreadFn,
