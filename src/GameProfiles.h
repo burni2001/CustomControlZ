@@ -4,7 +4,7 @@
 #include <atomic>
 
 // Maximum configurable key bindings per game
-constexpr int MAX_BINDINGS = 8;
+constexpr int MAX_BINDINGS = 12;
 
 // BehaviorEngine.h is included here so KeyBinding can carry a BehaviorDescriptor.
 // BehaviorEngine.h does NOT include GameProfiles.h (uses forward declaration only)
