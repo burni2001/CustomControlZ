@@ -3,11 +3,11 @@
 
 enum DarkSoulsIIIBinding {
     DS3_KEY_WALK      = 0,  // WalkModifier: in-game walk key (injected alongside directions)
-    DS3_KEY_DASH      = 1,  // DashKey: in-game Dash/Backstep/Roll key (also held by Sprint)
-    DS3_KEY_RUN_FWD   = 2,  // WalkRunSwap: forward direction
-    DS3_KEY_RUN_BACK  = 3,  // WalkRunSwap: backward direction
-    DS3_KEY_RUN_LEFT  = 4,  // WalkRunSwap: left direction
-    DS3_KEY_RUN_RIGHT = 5,  // WalkRunSwap: right direction
+    DS3_KEY_RUN_FWD   = 1,  // WalkRunSwap: forward direction
+    DS3_KEY_RUN_BACK  = 2,  // WalkRunSwap: backward direction
+    DS3_KEY_RUN_LEFT  = 3,  // WalkRunSwap: left direction
+    DS3_KEY_RUN_RIGHT = 4,  // WalkRunSwap: right direction
+    DS3_KEY_DASH      = 5,  // DashKey: in-game Dash/Backstep/Roll key (also held by Sprint)
     DS3_KEY_SPRINT    = 6,  // SprintHoldDash: hold to hold Dash key (= sprinting in-game)
     DS3_BINDING_COUNT = 7
 };
@@ -23,13 +23,13 @@ static GameProfile g_DarkSoulsIIIProfile = {
     /* settingsTitle */ L"DARK SOULS\u2122 III - Key Bindings",
     /* posterFile    */ L"assets\\darksoulsiii.png",
     /* theme */ {
-        RGB(30, 28, 26),    // bg              -- dark warm stone (settings window)
+        RGB(12, 11, 10),    // bg              -- near-black (settings window)
         RGB(225, 220, 210), // text            -- warm off-white
         RGB(200, 190, 165), // accent          -- muted stone-gold
         RGB(52, 49, 44),    // button          -- dark stone
         RGB(10, 10, 10),    // selectBg        -- near-black (game-select card)
         RGB(85, 80, 70),    // border          -- mid stone-gray
-        RGB(40, 38, 34),    // rowBg           -- slightly lighter dark stone
+        RGB(24, 22, 20),    // rowBg           -- slightly lighter than bg
         RGB(105, 98, 85),   // separator       -- stone line
         RGB(120, 35, 35),   // exitFill        -- dark crimson
         RGB(155, 55, 55),   // exitBorder
@@ -42,12 +42,6 @@ static GameProfile g_DarkSoulsIIIProfile = {
         { L"WalkKey", L"Walk",
           VK_LSHIFT, VK_LSHIFT,
           { .type = BehaviorType::WalkModifier, .checkboxLabel = L"Always Walk" },
-          /*isAppOnly=*/false },
-
-        // DS3_KEY_DASH: DashKey -- in-game Dodge/Backstep/Roll; also held by Sprint
-        { L"DashKey", L"Dash/Backstep/Roll",
-          'C', 'C',
-          { BehaviorType::DashKey },
           /*isAppOnly=*/false },
 
         // DS3_KEY_RUN_FWD/BACK/LEFT/RIGHT: WalkRunSwap -- direction alone = walk (if Always Walk on); direction + Sprint = run
@@ -71,11 +65,17 @@ static GameProfile g_DarkSoulsIIIProfile = {
           { BehaviorType::WalkRunSwap },
           /*isAppOnly=*/false },
 
+        // DS3_KEY_DASH: DashKey -- in-game Dodge/Backstep/Roll; also held by Sprint
+        { L"DashKey", L"Dash/Backstep/Roll",
+          'C', 'C',
+          { BehaviorType::DashKey },
+          /*isAppOnly=*/false, /*separatorAbove=*/true },
+
         // DS3_KEY_SPRINT: SprintHoldDash -- hold to hold Dash key (sprinting in-game)
         { L"SprintKey", L"Custom Key: Sprint",
           VK_CAPITAL, VK_CAPITAL,
           { .type = BehaviorType::SprintHoldDash },
-          /*isAppOnly=*/true, /*separatorAbove=*/true },
+          /*isAppOnly=*/true },
     },
     /* logicFn */ GenericLogicThreadFn,
 };

@@ -1392,9 +1392,16 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
     }
 
     case WM_CTLCOLORSTATIC: {
-        HDC hdcStatic = (HDC)wParam;
+        HDC  hdcStatic = (HDC)wParam;
+        HWND hCtrl     = (HWND)lParam;
+        LONG style     = GetWindowLong(hCtrl, GWL_STYLE);
+        bool isCheckbox = ((style & 0x0F) == BS_AUTOCHECKBOX) || ((style & 0x0F) == BS_CHECKBOX);
         if (g_activeProfile) SetTextColor(hdcStatic, g_activeProfile->theme.text);
         else                  SetTextColor(hdcStatic, RGB(200, 200, 200));
+        if (isCheckbox && g_activeProfile) {
+            SetBkColor(hdcStatic, g_activeProfile->theme.bg);
+            return (LRESULT)g_hBrushBg;
+        }
         SetBkMode(hdcStatic, TRANSPARENT);
         return (LRESULT)GetStockObject(NULL_BRUSH);
     }
