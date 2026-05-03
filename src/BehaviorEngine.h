@@ -38,6 +38,9 @@ enum class BehaviorType : uint8_t {
     MeleeBurst,     // repeated taps stay on melee weapon; auto-switch back after returnDelayMs of idle
     KeyToggle,      // rising edge on inputVk -> alternate between pulsing outputVk and longOutputVk each press
     GlobalSuspend,  // toggle: first press suspends all other bindings; second press re-enables
+    WalkRunSwap,    // directional key: alone→inject dir+walk modifier; with sprint key→inject dir only
+    WalkModifier,   // no-op marker: configurable walk modifier key referenced by WalkRunSwap
+    SprintKey,      // no-op marker: configurable sprint key referenced by WalkRunSwap
 };
 
 struct BehaviorDescriptor {
@@ -116,6 +119,13 @@ struct GlobalSuspendState {
     bool suspended = false; // current toggle state
 };
 
+struct WalkRunSwapState {
+    bool dirSent      = false; // currently injecting directional key
+    bool modSent      = false; // currently injecting walk modifier key
+    WORD pressedDirVk = 0;     // actual VK pressed for direction (for correct release)
+    WORD pressedModVk = 0;     // actual VK pressed for modifier (for correct release)
+};
+
 union BindingState {
     HoldToToggleState holdToggle;
     EdgeTriggerState  edgeTrigger;
@@ -126,6 +136,7 @@ union BindingState {
     KeyToggleState    keyToggle;
     MeleeBurstState   meleeBurst;
     GlobalSuspendState globalSuspend;
+    WalkRunSwapState   walkRunSwap;
     BindingState() { memset(this, 0, sizeof(*this)); }
 };
 

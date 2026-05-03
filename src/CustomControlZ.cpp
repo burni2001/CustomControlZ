@@ -859,11 +859,13 @@ void StartGameLogicThread(GameProfile* profile) {
 #include "games/EldenRing.h"
 #include "games/ToxicCommando.h"
 #include "games/Darktide.h"
+#include "games/DarkSoulsIII.h"
 
 GameProfile* g_gameProfiles[] = {
     &g_EldenRingProfile,
     &g_ToxicCommandoProfile,
     &g_DarktideProfile,
+    &g_DarkSoulsIIIProfile,
 };
 const int g_gameProfileCount = static_cast<int>(ARRAYSIZE(g_gameProfiles));
 

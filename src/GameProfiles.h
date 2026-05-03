@@ -493,6 +493,68 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
                 break;
             }
 
+            case BehaviorType::WalkRunSwap: {
+                WalkRunSwapState& s = state[i].walkRunSwap;
+
+                // Resolve walk modifier and sprint key from sibling marker bindings
+                WORD walkModVk = desc.longOutputVk; // fallback if no WalkModifier binding
+                WORD sprintVk  = 0;
+                for (int j = 0; j < profile->bindingCount; j++) {
+                    BehaviorType t = profile->bindings[j].behavior.type;
+                    if (t == BehaviorType::WalkModifier) walkModVk = localVk[j];
+                    else if (t == BehaviorType::SprintKey) sprintVk = localVk[j];
+                }
+
+                bool inputDown  = IsKeyDown(localVk[i]);
+                bool sprintDown = sprintVk ? IsKeyDown(sprintVk) : false;
+
+                if (inputDown && !sprintDown) {
+                    // Directional alone → walk (inject direction + walk modifier)
+                    if (!s.dirSent) {
+                        PressKey(localVk[i]);
+                        tracker.press(localVk[i]);
+                        s.dirSent      = true;
+                        s.pressedDirVk = localVk[i];
+                    }
+                    if (walkModVk && !s.modSent) {
+                        PressKey(walkModVk);
+                        tracker.press(walkModVk);
+                        s.modSent      = true;
+                        s.pressedModVk = walkModVk;
+                    }
+                } else if (inputDown && sprintDown) {
+                    // Directional + Sprint → run (inject direction only, release modifier)
+                    if (!s.dirSent) {
+                        PressKey(localVk[i]);
+                        tracker.press(localVk[i]);
+                        s.dirSent      = true;
+                        s.pressedDirVk = localVk[i];
+                    }
+                    if (s.modSent) {
+                        ReleaseKey(s.pressedModVk);
+                        tracker.release(s.pressedModVk);
+                        s.modSent = false;
+                    }
+                } else {
+                    // Directional released → clean up all injected keys
+                    if (s.dirSent) {
+                        ReleaseKey(s.pressedDirVk);
+                        tracker.release(s.pressedDirVk);
+                        s.dirSent = false;
+                    }
+                    if (s.modSent) {
+                        ReleaseKey(s.pressedModVk);
+                        tracker.release(s.pressedModVk);
+                        s.modSent = false;
+                    }
+                }
+                break;
+            }
+
+            case BehaviorType::WalkModifier:
+            case BehaviorType::SprintKey:
+                break; // no-op marker bindings; currentVk is read by WalkRunSwap
+
             } // switch
         }
 
@@ -513,6 +575,10 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
             if (state[i].meleeBurst.holding)
                 ReleaseMouse(b.attackVk);
             ReleaseKey(b.outputVk);
+        }
+        if (b.type == BehaviorType::WalkRunSwap) {
+            if (state[i].walkRunSwap.dirSent) ReleaseKey(state[i].walkRunSwap.pressedDirVk);
+            if (state[i].walkRunSwap.modSent) ReleaseKey(state[i].walkRunSwap.pressedModVk);
         }
     }
 }
