@@ -920,13 +920,6 @@ const int g_gameProfileCount = static_cast<int>(ARRAYSIZE(g_gameProfiles));
 
 void ShowChangeGameUI(); // Forward declaration
 
-inline bool IsModifierOnlyKey(WORD vk) {
-    return vk == VK_SHIFT || vk == VK_CONTROL || vk == VK_MENU ||
-           vk == VK_LSHIFT || vk == VK_RSHIFT ||
-           vk == VK_LCONTROL || vk == VK_RCONTROL ||
-           vk == VK_LMENU || vk == VK_RMENU ||
-           vk == VK_LWIN || vk == VK_RWIN;
-}
 
 static int ComputeSettingsContentHeight(const GameProfile* profile) {
     int rowY = LAYOUT_TITLE_START + LAYOUT_TITLE_SPACING;
@@ -1627,12 +1620,6 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
         if (bindID != 0 && g_activeProfile) {
             WORD newKey = static_cast<WORD>(wParam);
-            if (IsModifierOnlyKey(newKey)) {
-                MessageBox(hwnd, L"Modifier keys alone are not allowed!",
-                           L"Invalid Key", MB_OK | MB_ICONWARNING);
-                g_waitingForBindID = 0;
-                break;
-            }
 
             int idx = -1;
             if (bindID >= BTN_BIND_BASE && bindID < BTN_BIND_BASE + g_activeProfile->bindingCount) {
@@ -1659,6 +1646,48 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
             g_waitingForBindID = 0;
             if (idx >= 0) SaveConfig(g_activeProfile);
+        }
+        break;
+    }
+
+    case WM_LBUTTONDOWN:
+    case WM_RBUTTONDOWN:
+    case WM_MBUTTONDOWN:
+    case WM_XBUTTONDOWN: {
+        int bindID = g_waitingForBindID.load();
+        if (bindID != 0 && g_activeProfile) {
+            WORD newKey;
+            if (uMsg == WM_LBUTTONDOWN)      newKey = VK_LBUTTON;
+            else if (uMsg == WM_RBUTTONDOWN) newKey = VK_RBUTTON;
+            else if (uMsg == WM_MBUTTONDOWN) newKey = VK_MBUTTON;
+            else newKey = (GET_XBUTTON_WPARAM(wParam) == XBUTTON1) ? VK_XBUTTON1 : VK_XBUTTON2;
+
+            int idx = -1;
+            if (bindID >= BTN_BIND_BASE && bindID < BTN_BIND_BASE + g_activeProfile->bindingCount) {
+                idx = bindID - BTN_BIND_BASE;
+                std::lock_guard<std::mutex> lock(g_configMutex);
+                g_activeProfile->bindings[idx].currentVk = newKey;
+                UpdateButtonText(GetDlgItem(hwnd, bindID), newKey);
+            } else if (bindID >= BTN_OUTPUT_KEY_BASE && bindID < BTN_OUTPUT_KEY_BASE + g_activeProfile->bindingCount) {
+                idx = bindID - BTN_OUTPUT_KEY_BASE;
+                std::lock_guard<std::mutex> lock(g_configMutex);
+                g_activeProfile->bindings[idx].behavior.outputVk = newKey;
+                UpdateButtonText(GetDlgItem(hwnd, bindID), newKey);
+            } else if (bindID >= BTN_LONG_OUTPUT_KEY_BASE && bindID < BTN_LONG_OUTPUT_KEY_BASE + g_activeProfile->bindingCount) {
+                idx = bindID - BTN_LONG_OUTPUT_KEY_BASE;
+                std::lock_guard<std::mutex> lock(g_configMutex);
+                g_activeProfile->bindings[idx].behavior.longOutputVk = newKey;
+                UpdateButtonText(GetDlgItem(hwnd, bindID), newKey);
+            } else if (bindID >= BTN_TERTIARY_OUTPUT_KEY_BASE && bindID < BTN_TERTIARY_OUTPUT_KEY_BASE + g_activeProfile->bindingCount) {
+                idx = bindID - BTN_TERTIARY_OUTPUT_KEY_BASE;
+                std::lock_guard<std::mutex> lock(g_configMutex);
+                g_activeProfile->bindings[idx].behavior.tertiaryOutputVk = newKey;
+                UpdateButtonText(GetDlgItem(hwnd, bindID), newKey);
+            }
+
+            g_waitingForBindID = 0;
+            if (idx >= 0) SaveConfig(g_activeProfile);
+            return 0;
         }
         break;
     }
