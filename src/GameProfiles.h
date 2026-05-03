@@ -580,7 +580,9 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
                 }
 
                 bool sprintDown   = IsKeyDown(localVk[i]);
-                bool dashPhysDown = dashVk ? IsKeyDown(dashVk) : false;
+                // Exclude our own injected hold from dashPhysDown — GetAsyncKeyState
+                // sees injected keys, so !s.held prevents self-triggering the roll tap.
+                bool dashPhysDown = dashVk ? (IsKeyDown(dashVk) && !s.held) : false;
 
                 // Rising edge on physical Dash while sprinting → roll tap
                 if (sprintDown && dashPhysDown && !s.dashPhysWasDown && dashVk) {

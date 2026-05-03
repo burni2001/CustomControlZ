@@ -1165,6 +1165,7 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                     LAYOUT_LEFT_MARGIN + 22, rowY + 6,
                     LAYOUT_LABEL_WIDTH - 22 + LAYOUT_BUTTON_WIDTH, LAYOUT_BUTTON_HEIGHT,
                     hwnd, (HMENU)(INT_PTR)(ID_CHECKBOX_BASE + i), nullptr, nullptr);
+                SetWindowTheme(hCBX, L"", L"");  // disable UxTheme so WM_CTLCOLORSTATIC controls text color
                 SendMessage(hCBX, WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
                 SendMessage(hCBX, BM_SETCHECK, beh.checkboxEnabled ? BST_CHECKED : BST_UNCHECKED, 0);
                 rowY += LAYOUT_TIMING_ROW_HEIGHT;
