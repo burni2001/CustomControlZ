@@ -565,7 +565,32 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
 
             case BehaviorType::WalkModifier:
             case BehaviorType::DashKey:
+            case BehaviorType::InGameKey:
                 break; // no-op marker bindings; currentVk is read by sibling behaviors
+
+            case BehaviorType::SimulateKey: {
+                SimulateKeyState& s = state[i].simulateKey;
+                bool inputDown = IsKeyDown(localVk[i]);
+                if (inputDown && !s.pressed) {
+                    // Find the nearest InGameKey sibling preceding this binding
+                    WORD targetVk = 0;
+                    for (int j = i - 1; j >= 0; j--) {
+                        if (profile->bindings[j].behavior.type == BehaviorType::InGameKey) {
+                            targetVk = localVk[j];
+                            break;
+                        }
+                    }
+                    if (targetVk) {
+                        PressVk(targetVk);
+                        tracker.press(targetVk);
+                        Sleep(desc.durationMs > 0 ? desc.durationMs : 50);
+                        ReleaseVk(targetVk);
+                        tracker.release(targetVk);
+                    }
+                }
+                s.pressed = inputDown;
+                break;
+            }
 
             case BehaviorType::SprintHoldDash: {
                 SprintHoldDashState& s = state[i].sprintHoldDash;
@@ -580,9 +605,7 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
                 }
 
                 bool sprintDown   = IsKeyDown(localVk[i]);
-                // Exclude our own injected hold from dashPhysDown — GetAsyncKeyState
-                // sees injected keys, so !s.held prevents self-triggering the roll tap.
-                bool dashPhysDown = dashVk ? (IsKeyDown(dashVk) && !s.held) : false;
+                bool dashPhysDown = dashVk ? IsPhysKeyDown(dashVk) : false;
 
                 // Rising edge on physical Dash while sprinting → roll tap
                 if (sprintDown && dashPhysDown && !s.dashPhysWasDown && dashVk) {

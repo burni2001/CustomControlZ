@@ -783,13 +783,32 @@ inline void PressKey(WORD vk)   { SendKeyInput(vk, false); }
 inline void ReleaseKey(WORD vk) { SendKeyInput(vk, true);  }
 inline bool IsKeyDown(WORD vk)  { return (GetAsyncKeyState(vk) & 0x8000) != 0; }
 
+// Physical-only key state: updated by the LL keyboard hook, ignoring LLKHF_INJECTED events.
+static bool  g_physKeyDown[256] = {};
+static HHOOK g_hKbHook          = nullptr;
+
+LRESULT CALLBACK LLKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
+    if (nCode == HC_ACTION) {
+        auto* kb = reinterpret_cast<KBDLLHOOKSTRUCT*>(lParam);
+        if (!(kb->flags & LLKHF_INJECTED) && kb->vkCode < 256) {
+            g_physKeyDown[kb->vkCode] =
+                (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN);
+        }
+    }
+    return CallNextHookEx(g_hKbHook, nCode, wParam, lParam);
+}
+
+inline bool IsPhysKeyDown(WORD vk) { return vk < 256 && g_physKeyDown[vk]; }
+
 inline void PressMouse(WORD vk) {
     INPUT inp = {};
     inp.type = INPUT_MOUSE;
     switch (vk) {
-        case VK_LBUTTON: inp.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;   break;
-        case VK_RBUTTON: inp.mi.dwFlags = MOUSEEVENTF_RIGHTDOWN;  break;
-        case VK_MBUTTON: inp.mi.dwFlags = MOUSEEVENTF_MIDDLEDOWN; break;
+        case VK_LBUTTON:  inp.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;   break;
+        case VK_RBUTTON:  inp.mi.dwFlags = MOUSEEVENTF_RIGHTDOWN;  break;
+        case VK_MBUTTON:  inp.mi.dwFlags = MOUSEEVENTF_MIDDLEDOWN; break;
+        case VK_XBUTTON1: inp.mi.dwFlags = MOUSEEVENTF_XDOWN; inp.mi.mouseData = XBUTTON1; break;
+        case VK_XBUTTON2: inp.mi.dwFlags = MOUSEEVENTF_XDOWN; inp.mi.mouseData = XBUTTON2; break;
         default: return;
     }
     SendInput(1, &inp, sizeof(INPUT));
@@ -799,13 +818,22 @@ inline void ReleaseMouse(WORD vk) {
     INPUT inp = {};
     inp.type = INPUT_MOUSE;
     switch (vk) {
-        case VK_LBUTTON: inp.mi.dwFlags = MOUSEEVENTF_LEFTUP;   break;
-        case VK_RBUTTON: inp.mi.dwFlags = MOUSEEVENTF_RIGHTUP;  break;
-        case VK_MBUTTON: inp.mi.dwFlags = MOUSEEVENTF_MIDDLEUP; break;
+        case VK_LBUTTON:  inp.mi.dwFlags = MOUSEEVENTF_LEFTUP;   break;
+        case VK_RBUTTON:  inp.mi.dwFlags = MOUSEEVENTF_RIGHTUP;  break;
+        case VK_MBUTTON:  inp.mi.dwFlags = MOUSEEVENTF_MIDDLEUP; break;
+        case VK_XBUTTON1: inp.mi.dwFlags = MOUSEEVENTF_XUP; inp.mi.mouseData = XBUTTON1; break;
+        case VK_XBUTTON2: inp.mi.dwFlags = MOUSEEVENTF_XUP; inp.mi.mouseData = XBUTTON2; break;
         default: return;
     }
     SendInput(1, &inp, sizeof(INPUT));
 }
+
+static constexpr bool IsMouseVk(WORD vk) {
+    return vk == VK_LBUTTON || vk == VK_RBUTTON || vk == VK_MBUTTON ||
+           vk == VK_XBUTTON1 || vk == VK_XBUTTON2;
+}
+inline void PressVk(WORD vk)   { if (IsMouseVk(vk)) PressMouse(vk);   else PressKey(vk); }
+inline void ReleaseVk(WORD vk) { if (IsMouseVk(vk)) ReleaseMouse(vk); else ReleaseKey(vk); }
 
 void SetTrayIconState(bool active, GameProfile* profile) {
     g_nid.hIcon = active ? g_hIconActive : g_hIconIdle;
@@ -2196,12 +2224,15 @@ int APIENTRY wWinMain(
         SetForegroundWindow(g_hGameSelectWnd);
     }
 
+    g_hKbHook = SetWindowsHookEx(WH_KEYBOARD_LL, LLKeyboardProc, nullptr, 0);
+
     MSG msg;
     while (GetMessage(&msg, nullptr, 0, 0)) {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
 
+    if (g_hKbHook) { UnhookWindowsHookEx(g_hKbHook); g_hKbHook = nullptr; }
     g_isAppRunning = false;
     StopGameLogicThread();
     SafeCloseMutex(hMutex);

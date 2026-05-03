@@ -8,8 +8,10 @@ enum DarkSoulsIIIBinding {
     DS3_KEY_RUN_LEFT  = 3,  // WalkRunSwap: left direction
     DS3_KEY_RUN_RIGHT = 4,  // WalkRunSwap: right direction
     DS3_KEY_DASH      = 5,  // DashKey: in-game Dash/Backstep/Roll key (also held by Sprint)
-    DS3_KEY_SPRINT    = 6,  // SprintHoldDash: hold to hold Dash key (= sprinting in-game)
-    DS3_BINDING_COUNT = 7
+    DS3_KEY_SPRINT        = 6,  // SprintHoldDash: hold to hold Dash key (= sprinting in-game)
+    DS3_KEY_ATTACK_L      = 7,  // InGameKey: Attack (left hand) in-game key
+    DS3_KEY_ATTACK_L_ALT  = 8,  // SimulateKey: custom key that pulses Attack (left hand)
+    DS3_BINDING_COUNT     = 9
 };
 
 static GameProfile g_DarkSoulsIIIProfile = {
@@ -75,6 +77,18 @@ static GameProfile g_DarkSoulsIIIProfile = {
         { L"SprintKey", L"Custom Key: Sprint",
           VK_CAPITAL, VK_CAPITAL,
           { .type = BehaviorType::SprintHoldDash },
+          /*isAppOnly=*/true },
+
+        // DS3_KEY_ATTACK_L: InGameKey -- in-game Attack (left hand)
+        { L"AttackLKey", L"Attack (left hand)",
+          VK_XBUTTON1, VK_XBUTTON1,
+          { BehaviorType::InGameKey },
+          /*isAppOnly=*/false, /*separatorAbove=*/true },
+
+        // DS3_KEY_ATTACK_L_ALT: SimulateKey -- custom key that pulses Attack (left hand)
+        { L"AttackLAltKey", L"Custom Key: Attack (left hand) Alternative",
+          VK_RBUTTON, VK_RBUTTON,
+          { .type = BehaviorType::SimulateKey },
           /*isAppOnly=*/true },
     },
     /* logicFn */ GenericLogicThreadFn,

@@ -15,6 +15,9 @@ struct GameProfile;
 inline void PressKey(WORD vk);
 inline void ReleaseKey(WORD vk);
 inline bool IsKeyDown(WORD vk);
+inline bool IsPhysKeyDown(WORD vk); // physical-only: ignores SendInput-injected keys
+inline void PressVk(WORD vk);       // routes to PressKey or PressMouse based on VK
+inline void ReleaseVk(WORD vk);     // routes to ReleaseKey or ReleaseMouse based on VK
 inline void PressMouse(WORD vk);    // Sends MOUSEEVENTF_*DOWN for VK_LBUTTON / VK_RBUTTON / VK_MBUTTON
 inline void ReleaseMouse(WORD vk);  // Sends MOUSEEVENTF_*UP
 bool IsGameRunning(GameProfile* profile);
@@ -42,6 +45,8 @@ enum class BehaviorType : uint8_t {
     WalkModifier,    // no-op marker: configurable walk modifier key referenced by WalkRunSwap
     DashKey,         // no-op marker: configurable dash/dodge key referenced by SprintHoldDash
     SprintHoldDash,  // hold sprint key → hold DashKey's VK (sprinting via dash-hold in game)
+    InGameKey,       // no-op marker: labels a configurable in-game key; referenced by SimulateKey siblings
+    SimulateKey,     // rising edge on inputVk → pulse nearest preceding InGameKey sibling's VK
 };
 
 struct BehaviorDescriptor {
@@ -122,6 +127,10 @@ struct GlobalSuspendState {
     bool suspended = false; // current toggle state
 };
 
+struct SimulateKeyState {
+    bool pressed = false;
+};
+
 struct SprintHoldDashState {
     bool held            = false; // currently holding the dash key via sprint
     WORD pressedVk       = 0;     // VK actually pressed (for correct release when DashKey is rebound)
@@ -147,6 +156,7 @@ union BindingState {
     GlobalSuspendState  globalSuspend;
     WalkRunSwapState    walkRunSwap;
     SprintHoldDashState sprintHoldDash;
+    SimulateKeyState    simulateKey;
     BindingState() { memset(this, 0, sizeof(*this)); }
 };
 
