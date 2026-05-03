@@ -123,8 +123,9 @@ struct GlobalSuspendState {
 };
 
 struct SprintHoldDashState {
-    bool held      = false; // currently holding the dash key via sprint
-    WORD pressedVk = 0;     // VK actually pressed (for correct release when DashKey is rebound)
+    bool held            = false; // currently holding the dash key via sprint
+    WORD pressedVk       = 0;     // VK actually pressed (for correct release when DashKey is rebound)
+    bool dashPhysWasDown = false; // rising-edge tracker for physical dash key press
 };
 
 struct WalkRunSwapState {

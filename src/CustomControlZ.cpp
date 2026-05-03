@@ -1167,7 +1167,6 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                     hwnd, (HMENU)(INT_PTR)(ID_CHECKBOX_BASE + i), nullptr, nullptr);
                 SendMessage(hCBX, WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
                 SendMessage(hCBX, BM_SETCHECK, beh.checkboxEnabled ? BST_CHECKED : BST_UNCHECKED, 0);
-                SetWindowTheme(hCBX, L"DarkMode_Explorer", nullptr);
                 rowY += LAYOUT_TIMING_ROW_HEIGHT;
             }
         }
@@ -1413,7 +1412,7 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         HDC hdcBtn = (HDC)wParam;
         if (g_activeProfile) {
             SetTextColor(hdcBtn, g_activeProfile->theme.text);
-            SetBkMode(hdcBtn, TRANSPARENT);
+            SetBkColor(hdcBtn, g_activeProfile->theme.bg);
         }
         return (LRESULT)g_hBrushBg;
     }

@@ -579,17 +579,44 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
                     }
                 }
 
-                bool inputDown = IsKeyDown(localVk[i]);
+                bool sprintDown   = IsKeyDown(localVk[i]);
+                bool dashPhysDown = dashVk ? IsKeyDown(dashVk) : false;
 
-                if (inputDown && dashVk && !s.held) {
+                // Rising edge on physical Dash while sprinting → roll tap
+                if (sprintDown && dashPhysDown && !s.dashPhysWasDown && dashVk) {
+                    // Release the injected sprint-hold so the game sees a clean key-up
+                    if (s.held) {
+                        ReleaseKey(s.pressedVk);
+                        tracker.release(s.pressedVk);
+                        s.held = false;
+                    }
+                    Sleep(20);
+                    // Inject a tap: the game receives key-down then key-up = dodge/roll
                     PressKey(dashVk);
                     tracker.press(dashVk);
-                    s.held      = true;
-                    s.pressedVk = dashVk;
-                } else if (!inputDown && s.held) {
-                    ReleaseKey(s.pressedVk);
-                    tracker.release(s.pressedVk);
-                    s.held = false;
+                    Sleep(50);
+                    ReleaseKey(dashVk);
+                    tracker.release(dashVk);
+                    // Sprint hold re-engages on the next tick if physical Dash is released
+                }
+
+                s.dashPhysWasDown = dashPhysDown;
+
+                if (sprintDown && !dashPhysDown) {
+                    // Sprint held, Dash not physically pressed → hold Dash (sprinting)
+                    if (!s.held && dashVk) {
+                        PressKey(dashVk);
+                        tracker.press(dashVk);
+                        s.held      = true;
+                        s.pressedVk = dashVk;
+                    }
+                } else {
+                    // Sprint released or physical Dash held (roll in progress) → release hold
+                    if (s.held) {
+                        ReleaseKey(s.pressedVk);
+                        tracker.release(s.pressedVk);
+                        s.held = false;
+                    }
                 }
                 break;
             }
