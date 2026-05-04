@@ -19,13 +19,13 @@ constexpr int  ER_DODGE_DURATION_MS   = 50;
 
 static GameProfile g_EldenRingProfile = {
     /* id            */ L"EldenRing",
-    /* displayName   */ L"Elden Ring",
+    /* displayName   */ L"ELDEN RING",
     /* iniSection    */ L"EldenRing",
     /* processName1  */ L"eldenring.exe",
     /* processName2  */ L"ersc_launcher.exe",
     /* tipActive     */ L"CustomControlZ - Elden Ring: ACTIVE",
     /* tipIdle       */ L"CustomControlZ: Waiting...",
-    /* settingsTitle */ L"Elden Ring - Key Bindings",
+    /* settingsTitle */ L"ELDEN RING - Key Bindings",
     /* posterFile    */ L"assets\\eldenring.png",
     /* theme */ {
         RGB(25, 20, 15),    // bg
