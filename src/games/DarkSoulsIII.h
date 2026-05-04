@@ -9,11 +9,15 @@ enum DarkSoulsIIIBinding {
     DS3_KEY_RUN_RIGHT = 4,  // WalkRunSwap: right direction
     DS3_KEY_DASH      = 5,  // DashKey: in-game Dash/Backstep/Roll key (also held by Sprint)
     DS3_KEY_SPRINT        = 6,  // SprintHoldDash: hold to hold Dash key (= sprinting in-game)
-    DS3_KEY_ATTACK_L      = 7,  // InGameKey: Attack (left hand) in-game key
-    DS3_KEY_ATTACK_L_ALT  = 8,  // SimulateKey: custom key that mirrors Attack (left hand)
-    DS3_KEY_MENU          = 9,  // InGameKey: Menu in-game key
-    DS3_KEY_MENU_ALT      = 10, // SimulateKey: custom key that mirrors Menu
-    DS3_BINDING_COUNT     = 11
+    DS3_KEY_ATTACK_L           = 7,  // InGameKey: Attack (left hand) in-game key
+    DS3_KEY_ATTACK_L_ALT       = 8,  // SimulateKey: custom key that mirrors Attack (left hand)
+    DS3_KEY_STRONG_ATTACK_L    = 9,  // InGameKey: Strong Attack (left hand) in-game key
+    DS3_KEY_STRONG_ATTACK_L_ALT = 10, // SimulateKey: custom key that mirrors Strong Attack (left hand)
+    DS3_KEY_USE_ITEM           = 11, // InGameKey: Use item in-game key
+    DS3_KEY_USE_ITEM_ALT       = 12, // SimulateKey: custom key that mirrors Use item
+    DS3_KEY_MENU               = 13, // InGameKey: Menu in-game key
+    DS3_KEY_MENU_ALT           = 14, // SimulateKey: custom key that mirrors Menu
+    DS3_BINDING_COUNT          = 15
 };
 
 static GameProfile g_DarkSoulsIIIProfile = {
@@ -90,6 +94,30 @@ static GameProfile g_DarkSoulsIIIProfile = {
         // DS3_KEY_ATTACK_L_ALT: SimulateKey -- custom key that mirrors Attack (left hand)
         { L"AttackLAltKey", L"Custom Key: Attack (left hand) Alternative",
           VK_RBUTTON, VK_RBUTTON,
+          { .type = BehaviorType::SimulateKey },
+          /*isAppOnly=*/true },
+
+        // DS3_KEY_STRONG_ATTACK_L: InGameKey -- in-game Strong Attack (left hand)
+        { L"StrongAttackLKey", L"Strong Attack (left hand)",
+          VK_LMENU, VK_LMENU,
+          { BehaviorType::InGameKey },
+          /*isAppOnly=*/false },
+
+        // DS3_KEY_STRONG_ATTACK_L_ALT: SimulateKey -- custom key that mirrors Strong Attack (left hand)
+        { L"StrongAttackLAltKey", L"Custom Key: Strong Attack (left hand) Alternative",
+          VK_MBUTTON, VK_MBUTTON,
+          { .type = BehaviorType::SimulateKey },
+          /*isAppOnly=*/true },
+
+        // DS3_KEY_USE_ITEM: InGameKey -- in-game Use item key
+        { L"UseItemKey", L"Use item",
+          '4', '4',
+          { BehaviorType::InGameKey },
+          /*isAppOnly=*/false },
+
+        // DS3_KEY_USE_ITEM_ALT: SimulateKey -- custom key that mirrors Use item
+        { L"UseItemAltKey", L"Custom Key: Use item Alternative",
+          VK_LEFT, VK_LEFT,
           { .type = BehaviorType::SimulateKey },
           /*isAppOnly=*/true },
 
