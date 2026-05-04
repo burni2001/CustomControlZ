@@ -10,8 +10,10 @@ enum DarkSoulsIIIBinding {
     DS3_KEY_DASH      = 5,  // DashKey: in-game Dash/Backstep/Roll key (also held by Sprint)
     DS3_KEY_SPRINT        = 6,  // SprintHoldDash: hold to hold Dash key (= sprinting in-game)
     DS3_KEY_ATTACK_L      = 7,  // InGameKey: Attack (left hand) in-game key
-    DS3_KEY_ATTACK_L_ALT  = 8,  // SimulateKey: custom key that pulses Attack (left hand)
-    DS3_BINDING_COUNT     = 9
+    DS3_KEY_ATTACK_L_ALT  = 8,  // SimulateKey: custom key that mirrors Attack (left hand)
+    DS3_KEY_MENU          = 9,  // InGameKey: Menu in-game key
+    DS3_KEY_MENU_ALT      = 10, // SimulateKey: custom key that mirrors Menu
+    DS3_BINDING_COUNT     = 11
 };
 
 static GameProfile g_DarkSoulsIIIProfile = {
@@ -85,9 +87,21 @@ static GameProfile g_DarkSoulsIIIProfile = {
           { BehaviorType::InGameKey },
           /*isAppOnly=*/false, /*separatorAbove=*/true },
 
-        // DS3_KEY_ATTACK_L_ALT: SimulateKey -- custom key that pulses Attack (left hand)
+        // DS3_KEY_ATTACK_L_ALT: SimulateKey -- custom key that mirrors Attack (left hand)
         { L"AttackLAltKey", L"Custom Key: Attack (left hand) Alternative",
           VK_RBUTTON, VK_RBUTTON,
+          { .type = BehaviorType::SimulateKey },
+          /*isAppOnly=*/true },
+
+        // DS3_KEY_MENU: InGameKey -- in-game Menu key
+        { L"MenuKey", L"Menu",
+          VK_ESCAPE, VK_ESCAPE,
+          { BehaviorType::InGameKey },
+          /*isAppOnly=*/false, /*separatorAbove=*/true },
+
+        // DS3_KEY_MENU_ALT: SimulateKey -- custom key that mirrors Menu
+        { L"MenuAltKey", L"Custom Key: Menu Alternative",
+          VK_XBUTTON2, VK_XBUTTON2,
           { .type = BehaviorType::SimulateKey },
           /*isAppOnly=*/true },
     },

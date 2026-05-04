@@ -571,8 +571,9 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
             case BehaviorType::SimulateKey: {
                 SimulateKeyState& s = state[i].simulateKey;
                 bool inputDown = IsKeyDown(localVk[i]);
-                if (inputDown && !s.pressed) {
-                    // Find the nearest InGameKey sibling preceding this binding
+
+                // Rising edge: press and hold the target key
+                if (inputDown && !s.inputWasDown) {
                     WORD targetVk = 0;
                     for (int j = i - 1; j >= 0; j--) {
                         if (profile->bindings[j].behavior.type == BehaviorType::InGameKey) {
@@ -583,12 +584,19 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
                     if (targetVk) {
                         PressVk(targetVk);
                         tracker.press(targetVk);
-                        Sleep(desc.durationMs > 0 ? desc.durationMs : 50);
-                        ReleaseVk(targetVk);
-                        tracker.release(targetVk);
+                        s.outputHeld      = true;
+                        s.pressedTargetVk = targetVk;
                     }
                 }
-                s.pressed = inputDown;
+
+                // Falling edge: release the target key
+                if (!inputDown && s.outputHeld) {
+                    ReleaseVk(s.pressedTargetVk);
+                    tracker.release(s.pressedTargetVk);
+                    s.outputHeld = false;
+                }
+
+                s.inputWasDown = inputDown;
                 break;
             }
 
@@ -673,5 +681,7 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
         }
         if (b.type == BehaviorType::SprintHoldDash && state[i].sprintHoldDash.held)
             ReleaseKey(state[i].sprintHoldDash.pressedVk);
+        if (b.type == BehaviorType::SimulateKey && state[i].simulateKey.outputHeld)
+            ReleaseVk(state[i].simulateKey.pressedTargetVk);
     }
 }

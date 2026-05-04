@@ -128,7 +128,9 @@ struct GlobalSuspendState {
 };
 
 struct SimulateKeyState {
-    bool pressed = false;
+    bool inputWasDown    = false; // rising/falling edge tracker for input key
+    bool outputHeld      = false; // true while we are holding the output key
+    WORD pressedTargetVk = 0;    // VK that was pressed (for correct release on rebind)
 };
 
 struct SprintHoldDashState {
@@ -168,7 +170,7 @@ public:
     void press(WORD vk)   { if (vk) active_.insert(vk); }
     void release(WORD vk) { active_.erase(vk); }
     void releaseAll() {
-        for (WORD vk : active_) ReleaseKey(vk);
+        for (WORD vk : active_) ReleaseVk(vk);
         active_.clear();
     }
 private:
