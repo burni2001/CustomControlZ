@@ -654,6 +654,27 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
                 break;
             }
 
+            case BehaviorType::HoldAndPulse: {
+                HoldAndPulseState& s = state[i].holdAndPulse;
+                if (keyDown && !s.fired) {
+                    PressVk(desc.outputVk);
+                    tracker.press(desc.outputVk);
+                    Sleep(desc.durationMs);
+                    PressVk(desc.longOutputVk);
+                    tracker.press(desc.longOutputVk);
+                    Sleep(50);
+                    ReleaseVk(desc.longOutputVk);
+                    tracker.release(desc.longOutputVk);
+                    Sleep(desc.durationMs);
+                    ReleaseVk(desc.outputVk);
+                    tracker.release(desc.outputVk);
+                    s.fired = true;
+                } else if (!keyDown) {
+                    s.fired = false;
+                }
+                break;
+            }
+
             } // switch
         }
 
