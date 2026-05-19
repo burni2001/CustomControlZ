@@ -2,11 +2,10 @@
 #include "../GameProfiles.h"
 
 enum ValheimBinding {
-    VH_KEY_CROUCH       = 0,  // InGameKey: Crouch; also the hold target for VH_KEY_DODGE_OR_CROUCH
-    VH_KEY_DODGE_OR_CROUCH = 1, // TapComboOrHold: tap = dodge roll (Block+Jump), hold = Crouch
-    VH_KEY_HAMMER_8     = 2,  // InGameKey: item slot 8 / Hammer; also the tap target for Hammer Time
-    VH_KEY_HAMMER_TIME  = 3,  // LongPress: tap = Item slot 8, hold = Crouch
-    VH_BINDING_COUNT    = 4
+    VH_KEY_DODGE_ROLL   = 0,  // HoldAndPulse: hold Block + pulse Jump = dodge roll
+    VH_KEY_HAMMER_8     = 1,  // InGameKey: item slot 8 / Hammer
+    VH_KEY_HAMMER_TIME  = 2,  // SimulateKey: custom key that presses item slot 8
+    VH_BINDING_COUNT    = 3
 };
 
 static GameProfile g_ValheimProfile = {
@@ -35,38 +34,27 @@ static GameProfile g_ValheimProfile = {
     },
     /* bindingCount */ VH_BINDING_COUNT,
     /* bindings */ {
-        // VH_KEY_CROUCH: InGameKey -- looked up at runtime by TapComboOrHold (hold) and LongPress (hold)
-        { L"CrouchKey", L"Crouch",
+        // VH_KEY_DODGE_ROLL: HoldAndPulse -- hold Block + pulse Jump = dodge roll
+        { L"DodgeRollKey", L"Custom Key: Dodge Roll",
           'C', 'C',
-          { BehaviorType::InGameKey },
-          /*isAppOnly=*/false },
-
-        // VH_KEY_DODGE_OR_CROUCH: TapComboOrHold -- tap = dodge roll, hold = crouch
-        // Hold target resolved at runtime from nearest preceding InGameKey (Crouch above)
-        { L"DodgeOrCrouchKey", L"Custom Key: Dodge / Crouch",
-          'C', 'C',
-          { .type = BehaviorType::TapComboOrHold,
+          { .type = BehaviorType::HoldAndPulse,
             .outputVk = VK_XBUTTON2,
             .longOutputVk = VK_SPACE,
-            .thresholdMs = 400,
-            .durationMs = 15,
+            .durationMs = 0,
             .outputVkLabel = L"Block key",
             .longOutputVkLabel = L"Jump key" },
           /*isAppOnly=*/true },
 
-        // VH_KEY_HAMMER_8: InGameKey -- looked up at runtime by LongPress (tap)
+        // VH_KEY_HAMMER_8: InGameKey -- item slot 8 / Hammer
         { L"HammerKey", L"Item slot 8 (Hammer)",
           '8', '8',
           { BehaviorType::InGameKey },
           /*isAppOnly=*/false, /*separatorAbove=*/true },
 
-        // VH_KEY_HAMMER_TIME: LongPress -- tap = nearest preceding InGameKey (Hammer/8), hold = second (Crouch/C)
+        // VH_KEY_HAMMER_TIME: SimulateKey -- custom key that presses item slot 8
         { L"HammerTimeKey", L"Custom Key: Hammer Time",
           'B', 'B',
-          { .type = BehaviorType::LongPress,
-            .outputVk = 0,
-            .longOutputVk = 0,
-            .thresholdMs = 400 },
+          { .type = BehaviorType::SimulateKey },
           /*isAppOnly=*/true },
     },
     /* logicFn */ GenericLogicThreadFn,
