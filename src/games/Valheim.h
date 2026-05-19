@@ -3,9 +3,10 @@
 
 enum ValheimBinding {
     VH_KEY_DODGE_ROLL   = 0,  // HoldAndPulse: hold Block + pulse Jump = dodge roll
-    VH_KEY_HAMMER_8     = 1,  // InGameKey: item slot 8 / Hammer
-    VH_KEY_HAMMER_TIME  = 2,  // SimulateKey: custom key that presses item slot 8
-    VH_BINDING_COUNT    = 3
+    VH_KEY_CROUCH       = 1,  // InGameKey: Crouch
+    VH_KEY_HAMMER_8     = 2,  // InGameKey: item slot 8 / Hammer
+    VH_KEY_HAMMER_TIME  = 3,  // LongPress: tap = Item slot 8, hold = Crouch
+    VH_BINDING_COUNT    = 4
 };
 
 static GameProfile g_ValheimProfile = {
@@ -40,21 +41,30 @@ static GameProfile g_ValheimProfile = {
           { .type = BehaviorType::HoldAndPulse,
             .outputVk = VK_XBUTTON2,
             .longOutputVk = VK_SPACE,
-            .durationMs = 50,
+            .durationMs = 15,
             .outputVkLabel = L"Block key",
             .longOutputVkLabel = L"Jump key" },
           /*isAppOnly=*/true },
 
-        // VH_KEY_HAMMER_8: InGameKey -- item slot 8 / Hammer
-        { L"HammerKey", L"Item slot 8 (Hammer)",
-          '8', '8',
+        // VH_KEY_CROUCH: InGameKey -- in-game Crouch key; also the hold target for Hammer Time
+        { L"CrouchKey", L"Crouch",
+          'C', 'C',
           { BehaviorType::InGameKey },
           /*isAppOnly=*/false, /*separatorAbove=*/true },
 
-        // VH_KEY_HAMMER_TIME: SimulateKey -- custom key that presses item slot 8
+        // VH_KEY_HAMMER_8: InGameKey -- item slot 8 / Hammer; also the tap target for Hammer Time
+        { L"HammerKey", L"Item slot 8 (Hammer)",
+          '8', '8',
+          { BehaviorType::InGameKey },
+          /*isAppOnly=*/false },
+
+        // VH_KEY_HAMMER_TIME: LongPress -- tap = nearest preceding InGameKey (Hammer/8), hold = second (Crouch/C)
         { L"HammerTimeKey", L"Custom Key: Hammer Time",
-          'H', 'H',
-          { .type = BehaviorType::SimulateKey },
+          'C', 'C',
+          { .type = BehaviorType::LongPress,
+            .outputVk = 0,
+            .longOutputVk = 0,
+            .thresholdMs = 400 },
           /*isAppOnly=*/true },
     },
     /* logicFn */ GenericLogicThreadFn,

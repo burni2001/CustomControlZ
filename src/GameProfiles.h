@@ -219,6 +219,20 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
 
             case BehaviorType::LongPress: {
                 LongPressState& s = state[i].longPress;
+                // When outputVk/longOutputVk are 0, resolve from preceding InGameKey siblings:
+                // nearest preceding = tap target, second nearest = hold target.
+                WORD shortVk = desc.outputVk;
+                WORD longVk  = desc.longOutputVk;
+                if (!shortVk || !longVk) {
+                    int foundCount = 0;
+                    for (int j = i - 1; j >= 0; j--) {
+                        if (profile->bindings[j].behavior.type != BehaviorType::InGameKey) continue;
+                        foundCount++;
+                        if (foundCount == 1 && !shortVk) shortVk = localVk[j];
+                        if (foundCount == 2 && !longVk)  longVk  = localVk[j];
+                        if (shortVk && longVk) break;
+                    }
+                }
                 if (keyDown) {
                     if (!s.keyDown) {
                         // Rising edge: record press start
@@ -229,11 +243,11 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
                         // Still held: check if threshold elapsed
                         ULONGLONG elapsed = GetTickCount64() - s.pressTime;
                         if ((int)elapsed >= desc.thresholdMs) {
-                            PressKey(desc.longOutputVk);
-                            tracker.press(desc.longOutputVk);
+                            PressVk(longVk);
+                            tracker.press(longVk);
                             Sleep(30);
-                            ReleaseKey(desc.longOutputVk);
-                            tracker.release(desc.longOutputVk);
+                            ReleaseVk(longVk);
+                            tracker.release(longVk);
                             s.longFired = true;
                         }
                     }
@@ -242,11 +256,11 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
                         // Falling edge
                         if (!s.longFired) {
                             // Tap: fire short output
-                            PressKey(desc.outputVk);
-                            tracker.press(desc.outputVk);
+                            PressVk(shortVk);
+                            tracker.press(shortVk);
                             Sleep(30);
-                            ReleaseKey(desc.outputVk);
-                            tracker.release(desc.outputVk);
+                            ReleaseVk(shortVk);
+                            tracker.release(shortVk);
                         }
                         s.keyDown   = false;
                         s.longFired = false;
