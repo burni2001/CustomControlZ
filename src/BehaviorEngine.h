@@ -48,6 +48,7 @@ enum class BehaviorType : uint8_t {
     InGameKey,       // no-op marker: labels a configurable in-game key; referenced by SimulateKey siblings
     SimulateKey,     // rising edge on inputVk → pulse nearest preceding InGameKey sibling's VK
     HoldAndPulse,    // tap: PressVk(outputVk) → wait durationMs → PressVk(longOutputVk) → wait 50ms → ReleaseVk(longOutputVk) → wait durationMs → ReleaseVk(outputVk)
+    TapComboOrHold,  // tap (< thresholdMs): Block+Jump dodge sequence (outputVk/longOutputVk/durationMs); hold (≥ thresholdMs): hold nearest preceding InGameKey until release
 };
 
 struct BehaviorDescriptor {
@@ -138,6 +139,14 @@ struct HoldAndPulseState {
     bool fired = false; // tracks rising edge (prevents repeat while held)
 };
 
+struct TapComboOrHoldState {
+    bool      keyDown      = false;
+    bool      thresholdHit = false; // true once hold threshold exceeded
+    bool      holdActive   = false; // currently holding the hold output key
+    ULONGLONG pressTime    = 0;
+    WORD      heldVk       = 0;     // VK being held (for correct release on rebind)
+};
+
 struct SprintHoldDashState {
     bool held            = false; // currently holding the dash key via sprint
     WORD pressedVk       = 0;     // VK actually pressed (for correct release when DashKey is rebound)
@@ -164,7 +173,8 @@ union BindingState {
     WalkRunSwapState    walkRunSwap;
     SprintHoldDashState sprintHoldDash;
     SimulateKeyState    simulateKey;
-    HoldAndPulseState   holdAndPulse;
+    HoldAndPulseState      holdAndPulse;
+    TapComboOrHoldState    tapComboOrHold;
     BindingState() { memset(this, 0, sizeof(*this)); }
 };
 

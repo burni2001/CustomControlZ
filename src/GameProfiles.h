@@ -668,6 +668,63 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
                 break;
             }
 
+            case BehaviorType::TapComboOrHold: {
+                TapComboOrHoldState& s = state[i].tapComboOrHold;
+
+                // Resolve hold key from nearest preceding InGameKey sibling if attackVk is 0
+                WORD holdVk = desc.attackVk;
+                if (!holdVk) {
+                    for (int j = i - 1; j >= 0; j--) {
+                        if (profile->bindings[j].behavior.type == BehaviorType::InGameKey) {
+                            holdVk = localVk[j];
+                            break;
+                        }
+                    }
+                }
+
+                if (keyDown) {
+                    if (!s.keyDown) {
+                        s.pressTime    = GetTickCount64();
+                        s.keyDown      = true;
+                        s.thresholdHit = false;
+                    } else if (!s.thresholdHit) {
+                        ULONGLONG elapsed = GetTickCount64() - s.pressTime;
+                        if ((int)elapsed >= desc.thresholdMs && holdVk) {
+                            PressVk(holdVk);
+                            tracker.press(holdVk);
+                            s.holdActive   = true;
+                            s.heldVk       = holdVk;
+                            s.thresholdHit = true;
+                        }
+                    }
+                } else {
+                    if (s.keyDown) {
+                        if (s.holdActive) {
+                            // Hold released: stand up
+                            ReleaseVk(s.heldVk);
+                            tracker.release(s.heldVk);
+                            s.holdActive = false;
+                        } else if (!s.thresholdHit) {
+                            // Tap: Block+Jump dodge roll sequence
+                            PressVk(desc.outputVk);
+                            tracker.press(desc.outputVk);
+                            Sleep(desc.durationMs);
+                            PressVk(desc.longOutputVk);
+                            tracker.press(desc.longOutputVk);
+                            Sleep(50);
+                            ReleaseVk(desc.longOutputVk);
+                            tracker.release(desc.longOutputVk);
+                            Sleep(desc.durationMs);
+                            ReleaseVk(desc.outputVk);
+                            tracker.release(desc.outputVk);
+                        }
+                        s.keyDown      = false;
+                        s.thresholdHit = false;
+                    }
+                }
+                break;
+            }
+
             case BehaviorType::HoldAndPulse: {
                 HoldAndPulseState& s = state[i].holdAndPulse;
                 if (keyDown && !s.fired) {
@@ -718,5 +775,7 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
             ReleaseKey(state[i].sprintHoldDash.pressedVk);
         if (b.type == BehaviorType::SimulateKey && state[i].simulateKey.outputHeld)
             ReleaseVk(state[i].simulateKey.pressedTargetVk);
+        if (b.type == BehaviorType::TapComboOrHold && state[i].tapComboOrHold.holdActive)
+            ReleaseVk(state[i].tapComboOrHold.heldVk);
     }
 }
