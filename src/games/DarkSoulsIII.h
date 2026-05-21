@@ -17,7 +17,8 @@ enum DarkSoulsIIIBinding {
     DS3_KEY_USE_ITEM_ALT       = 12, // SimulateKey: custom key that mirrors Use item
     DS3_KEY_MENU               = 13, // InGameKey: Menu in-game key
     DS3_KEY_MENU_ALT           = 14, // SimulateKey: custom key that mirrors Menu
-    DS3_BINDING_COUNT          = 15
+    DS3_KEY_LONGPRESS_ESC      = 15, // LongPress: tap Esc → Esc; hold Esc → Q
+    DS3_BINDING_COUNT          = 16
 };
 
 static GameProfile g_DarkSoulsIIIProfile = {
@@ -131,6 +132,12 @@ static GameProfile g_DarkSoulsIIIProfile = {
         { L"MenuAltKey", L"Custom Key: Menu Alternative",
           VK_XBUTTON2, VK_XBUTTON2,
           { .type = BehaviorType::SimulateKey },
+          /*isAppOnly=*/true },
+
+        // DS3_KEY_LONGPRESS_ESC: LongPress -- tap → Esc (menu); hold → Q
+        { L"LongPressEscKey", L"Custom Key: Long Press Esc",
+          VK_ESCAPE, VK_ESCAPE,
+          { .type = BehaviorType::LongPress, .outputVk = VK_ESCAPE, .longOutputVk = 'Q' },
           /*isAppOnly=*/true },
     },
     /* logicFn */ GenericLogicThreadFn,
