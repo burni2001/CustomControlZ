@@ -254,8 +254,8 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
                 } else {
                     if (s.keyDown) {
                         // Falling edge
-                        if (!s.longFired) {
-                            // Tap: fire short output
+                        if (!s.longFired && shortVk) {
+                            // Tap: fire short output (skipped if outputVk=0, letting physical key pass through)
                             PressVk(shortVk);
                             tracker.press(shortVk);
                             Sleep(30);

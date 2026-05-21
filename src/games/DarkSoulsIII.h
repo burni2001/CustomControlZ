@@ -137,7 +137,7 @@ static GameProfile g_DarkSoulsIIIProfile = {
         // DS3_KEY_LONGPRESS_ESC: LongPress -- tap → Esc (menu); hold → Q
         { L"LongPressEscKey", L"Custom Key: Long Press Esc",
           VK_ESCAPE, VK_ESCAPE,
-          { .type = BehaviorType::LongPress, .outputVk = VK_ESCAPE, .longOutputVk = 'Q' },
+          { .type = BehaviorType::LongPress, .longOutputVk = 'Q' },
           /*isAppOnly=*/true },
     },
     /* logicFn */ GenericLogicThreadFn,
