@@ -188,8 +188,8 @@ HFONT  g_hFontNormal  = nullptr;
 HFONT  g_hFontButton  = nullptr;
 HFONT  g_hFontImprint = nullptr;
 
-std::thread       g_logicThread;
-std::atomic<bool> g_logicRunning(false);
+std::vector<std::thread> g_logicThreads;
+std::atomic<bool>        g_logicRunning(false);
 int               g_settingsScrollY = 0;  // vertical scroll offset for the settings window
 
 // --- FONT HELPERS ---
@@ -886,19 +886,25 @@ bool IsProcessRunningElevated(const wchar_t* processName) {
 
 // --- GAME LOGIC THREAD MANAGEMENT ---
 
-void StopGameLogicThread() {
+void StopAllGameLogicThreads() {
     if (g_logicRunning) {
         g_logicRunning = false;
-        if (g_logicThread.joinable()) g_logicThread.join();
+        for (auto& t : g_logicThreads)
+            if (t.joinable()) t.join();
+        g_logicThreads.clear();
     }
 }
 
-void StartGameLogicThread(GameProfile* profile) {
-    StopGameLogicThread();
+void StartAllGameLogicThreads() {
+    StopAllGameLogicThreads();
     g_logicRunning = true;
-    g_logicThread = std::thread([profile]() {
-        profile->logicFn(profile, g_logicRunning);
-    });
+    for (int i = 0; i < g_gameProfileCount; ++i) {
+        GameProfile* profile = g_gameProfiles[i];
+        LoadConfig(profile);
+        g_logicThreads.emplace_back([profile]() {
+            profile->logicFn(profile, g_logicRunning);
+        });
+    }
 }
 
 // --- GAME PROFILES (included after utility functions they depend on) ---
@@ -1788,8 +1794,6 @@ bool CreateSettingsWindow(HINSTANCE hInstance, GameProfile* profile) {
 // --- GAME SELECTION WINDOW ---
 
 void OnGameSelected(int profileIndex, bool silent = false) {
-    StopGameLogicThread();
-
     // Persist last game for silent autostart on next launch
     wchar_t idxBuf[8];
     StringCchPrintf(idxBuf, ARRAYSIZE(idxBuf), L"%d", profileIndex);
@@ -1822,13 +1826,9 @@ void OnGameSelected(int profileIndex, bool silent = false) {
         ShowWindow(g_hSettingsWnd, SW_SHOW);
         SetForegroundWindow(g_hSettingsWnd);
     }
-
-    StartGameLogicThread(g_activeProfile);
 }
 
 void ShowChangeGameUI() {
-    StopGameLogicThread();
-
     // Capture position before hiding so game select opens in same spot
     RECT settingsRect = {};
     if (g_hSettingsWnd) {
@@ -2125,7 +2125,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
         break;
 
     case WM_DESTROY:
-        StopGameLogicThread();
+        StopAllGameLogicThreads();
         if (g_hSettingsWnd)   { DestroyWindow(g_hSettingsWnd);   g_hSettingsWnd   = nullptr; }
         if (g_hGameSelectWnd) { DestroyWindow(g_hGameSelectWnd); g_hGameSelectWnd = nullptr; }
         Shell_NotifyIcon(NIM_DELETE, &g_nid);
@@ -2246,7 +2246,7 @@ int APIENTRY wWinMain(
     StringCchCopy(g_nid.szTip, ARRAYSIZE(g_nid.szTip), L"CustomControlZ");
     AddTrayIconWithRetry(&g_nid);
 
-    // If a game was previously selected, resume it silently; otherwise show game selector
+    // If a game was previously selected, open its settings window silently; otherwise show game selector
     int lastGame = GetPrivateProfileInt(L"App", L"LastGame", -1, CONFIG_FILE);
     if (lastGame >= 0 && lastGame < g_gameProfileCount) {
         OnGameSelected(lastGame, true);
@@ -2254,6 +2254,9 @@ int APIENTRY wWinMain(
         ShowWindow(g_hGameSelectWnd, SW_SHOW);
         SetForegroundWindow(g_hGameSelectWnd);
     }
+
+    // All game logic threads run simultaneously; each activates only when its game process is detected
+    StartAllGameLogicThreads();
 
     g_hKbHook = SetWindowsHookEx(WH_KEYBOARD_LL, LLKeyboardProc, nullptr, 0);
 
@@ -2265,7 +2268,7 @@ int APIENTRY wWinMain(
 
     if (g_hKbHook) { UnhookWindowsHookEx(g_hKbHook); g_hKbHook = nullptr; }
     g_isAppRunning = false;
-    StopGameLogicThread();
+    StopAllGameLogicThreads();
     SafeCloseMutex(hMutex);
 
     return static_cast<int>(msg.wParam);
