@@ -5,7 +5,10 @@ enum ValheimBinding {
     VH_KEY_DODGE_ROLL   = 0,  // HoldAndPulse: hold Block + pulse Jump = dodge roll
     VH_KEY_HAMMER_8     = 1,  // InGameKey: item slot 8 / Hammer
     VH_KEY_HAMMER_TIME  = 2,  // SimulateKey: custom key that presses item slot 8
-    VH_BINDING_COUNT    = 3
+    VH_KEY_WEAPON_1     = 3,  // InGameKey: weapon slot 1
+    VH_KEY_WEAPON_2     = 4,  // InGameKey: weapon slot 2
+    VH_KEY_QUICK_SWAP   = 5,  // KeyToggle: custom key that alternates between weapon slot 1 and 2
+    VH_BINDING_COUNT    = 6
 };
 
 static GameProfile g_ValheimProfile = {
@@ -55,6 +58,26 @@ static GameProfile g_ValheimProfile = {
         { L"HammerTimeKey", L"Custom Key: Hammer Time",
           'B', 'B',
           { .type = BehaviorType::SimulateKey },
+          /*isAppOnly=*/true },
+
+        // VH_KEY_WEAPON_1: InGameKey -- weapon slot 1
+        { L"Weapon1Key", L"Weapon slot 1",
+          '1', '1',
+          { BehaviorType::InGameKey },
+          /*isAppOnly=*/false, /*separatorAbove=*/true },
+
+        // VH_KEY_WEAPON_2: InGameKey -- weapon slot 2
+        { L"Weapon2Key", L"Weapon slot 2",
+          '2', '2',
+          { BehaviorType::InGameKey },
+          /*isAppOnly=*/false },
+
+        // VH_KEY_QUICK_SWAP: KeyToggle -- custom key alternating between weapon slot 1 and 2
+        { L"QuickSwapKey", L"Custom Key: Quick Swap Weapons",
+          'Q', 'Q',
+          { .type = BehaviorType::KeyToggle, .outputVk = '1', .longOutputVk = '2',
+            .durationMs = 50,
+            .outputVkLabel = L"Weapon slot 1", .longOutputVkLabel = L"Weapon slot 2" },
           /*isAppOnly=*/true },
     },
     /* logicFn */ GenericLogicThreadFn,
