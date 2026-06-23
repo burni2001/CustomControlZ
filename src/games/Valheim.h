@@ -60,24 +60,22 @@ static GameProfile g_ValheimProfile = {
           { .type = BehaviorType::SimulateKey },
           /*isAppOnly=*/true },
 
-        // VH_KEY_WEAPON_1: InGameKey -- weapon slot 1
-        { L"Weapon1Key", L"Weapon slot 1",
+        // VH_KEY_WEAPON_1: InGameKey -- item slot 1
+        { L"Weapon1Key", L"Item slot 1",
           '1', '1',
           { BehaviorType::InGameKey },
           /*isAppOnly=*/false, /*separatorAbove=*/true },
 
-        // VH_KEY_WEAPON_2: InGameKey -- weapon slot 2
-        { L"Weapon2Key", L"Weapon slot 2",
+        // VH_KEY_WEAPON_2: InGameKey -- item slot 2
+        { L"Weapon2Key", L"Item slot 2",
           '2', '2',
           { BehaviorType::InGameKey },
           /*isAppOnly=*/false },
 
-        // VH_KEY_QUICK_SWAP: KeyToggle -- custom key alternating between weapon slot 1 and 2
-        { L"QuickSwapKey", L"Custom Key: Quick Swap Weapons",
+        // VH_KEY_QUICK_SWAP: KeyToggle -- custom key alternating between the two preceding InGameKey slots
+        { L"QuickSwapKey", L"Custom Key: Quick Swap Items",
           'Q', 'Q',
-          { .type = BehaviorType::KeyToggle, .outputVk = '1', .longOutputVk = '2',
-            .durationMs = 50,
-            .outputVkLabel = L"Weapon slot 1", .longOutputVkLabel = L"Weapon slot 2" },
+          { .type = BehaviorType::KeyToggle, .durationMs = 50 },
           /*isAppOnly=*/true },
     },
     /* logicFn */ GenericLogicThreadFn,

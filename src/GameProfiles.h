@@ -359,6 +359,20 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
 
             case BehaviorType::KeyToggle: {
                 KeyToggleState& s = state[i].keyToggle;
+                // When outputVk/longOutputVk are 0, resolve from preceding InGameKey siblings:
+                // nearest preceding = primary output, second nearest = secondary output.
+                WORD outVk  = desc.outputVk;
+                WORD altVk  = desc.longOutputVk;
+                if (!outVk || !altVk) {
+                    int foundCount = 0;
+                    for (int j = i - 1; j >= 0; j--) {
+                        if (profile->bindings[j].behavior.type != BehaviorType::InGameKey) continue;
+                        foundCount++;
+                        if (foundCount == 1 && !outVk) outVk = localVk[j];
+                        if (foundCount == 2 && !altVk) altVk = localVk[j];
+                        if (outVk && altVk) break;
+                    }
+                }
                 bool hasTertiary = desc.includeTertiaryInCycle && desc.tertiaryOutputVk;
 
                 // Clamp cycleIndex if tertiary was removed from cycle mid-session
@@ -367,9 +381,9 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
 
                 // Sync cycleIndex when the player manually presses a weapon key directly.
                 // Rising edge on a weapon key → set cycleIndex to the NEXT weapon in the cycle.
-                if (desc.outputVk && desc.longOutputVk) {
-                    bool outDown      = IsKeyDown(desc.outputVk);
-                    bool altDown      = IsKeyDown(desc.longOutputVk);
+                if (outVk && altVk) {
+                    bool outDown      = IsKeyDown(outVk);
+                    bool altDown      = IsKeyDown(altVk);
                     bool tertiaryDown = hasTertiary ? IsKeyDown(desc.tertiaryOutputVk) : false;
                     if (outDown      && !s.outWasDown)      s.cycleIndex = 1;                   // on primary → next = secondary
                     if (altDown      && !s.altWasDown)      s.cycleIndex = hasTertiary ? 2 : 0; // on secondary → next = heavy or primary
@@ -381,14 +395,14 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
 
                 if (keyDown && !s.pressed) {
                     WORD vk = (s.cycleIndex == 2) ? desc.tertiaryOutputVk :
-                              (s.cycleIndex == 1) ? desc.longOutputVk : desc.outputVk;
+                              (s.cycleIndex == 1) ? altVk : outVk;
                     PressKey(vk);
                     Sleep(desc.durationMs);
                     ReleaseKey(vk);
                     s.pressed = true;
                     // Prevent the key we just sent from being counted as a manual press on the next tick.
-                    if (vk == desc.outputVk)         s.outWasDown      = true;
-                    if (vk == desc.longOutputVk)     s.altWasDown      = true;
+                    if (vk == outVk)                 s.outWasDown      = true;
+                    if (vk == altVk)                 s.altWasDown      = true;
                     if (vk == desc.tertiaryOutputVk) s.tertiaryWasDown = true;
                     // Sync sibling MeleeBurst's lastUsedWeaponVk — the injected key press happens
                     // inside Sleep so IsKeyDown never sees it, leaving lastUsedWeaponVk stale.
