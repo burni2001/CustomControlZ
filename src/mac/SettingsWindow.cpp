@@ -218,16 +218,16 @@ SettingsWindow::SettingsWindow(GameEngine* engine, QWidget* parent)
     mainLayout->addWidget(m_titleLabel);
 
     // Scroll area for binding rows
-    auto* scroll = new QScrollArea(this);
-    scroll->setWidgetResizable(true);
-    scroll->setFrameShape(QFrame::NoFrame);
+    m_scrollArea = new QScrollArea(this);
+    m_scrollArea->setWidgetResizable(true);
+    m_scrollArea->setFrameShape(QFrame::NoFrame);
 
-    m_rowsWidget = new QWidget(scroll);
+    m_rowsWidget = new QWidget(m_scrollArea);
     m_rowsLayout = new QVBoxLayout(m_rowsWidget);
     m_rowsLayout->setSpacing(2);
     m_rowsLayout->addStretch();
-    scroll->setWidget(m_rowsWidget);
-    mainLayout->addWidget(scroll, 1);
+    m_scrollArea->setWidget(m_rowsWidget);
+    mainLayout->addWidget(m_scrollArea, 1);
 
     // Save button
     m_saveButton = new QPushButton("Save", this);
@@ -286,5 +286,11 @@ void SettingsWindow::refresh() {
         m_rowsLayout->insertWidget(m_rowsLayout->count() - 1, row);
     }
 
+    // Size the dialog to show all rows without a scrollbar.
+    // Force the layout to compute sizes first, then temporarily set the scroll area's
+    // minimum height to the full content height so adjustSize() expands the window.
+    m_rowsLayout->activate();
+    m_scrollArea->setMinimumHeight(m_rowsWidget->sizeHint().height());
     adjustSize();
+    m_scrollArea->setMinimumHeight(0);  // allow manual resize afterwards
 }

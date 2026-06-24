@@ -8,6 +8,7 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QComboBox>
+#include <QScrollArea>
 #include <vector>
 
 class GameEngine;
@@ -45,6 +46,7 @@ public:
 
 private:
     GameEngine*  m_engine       = nullptr;
+    QScrollArea* m_scrollArea   = nullptr;
     QVBoxLayout* m_rowsLayout   = nullptr;
     QWidget*     m_rowsWidget   = nullptr;
     QLabel*      m_titleLabel   = nullptr;

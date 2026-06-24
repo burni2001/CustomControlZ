@@ -49,6 +49,10 @@ public:
 
     // Warning dialog (maps MessageBox calls from GenericLogicThreadFn).
     virtual void showWarning(const wchar_t* title, const wchar_t* text) = 0;
+
+    // Set this from the application layer to receive tray state change notifications.
+    // notifyTrayState() dispatches calls to this on the main thread.
+    std::function<void(bool)> onTrayStateChange;
 };
 
 // Singleton — created once in main_mac.cpp, used everywhere via this pointer.

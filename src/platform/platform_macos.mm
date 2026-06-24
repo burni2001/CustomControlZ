@@ -144,9 +144,6 @@ public:
     // Called from win_types_compat.h SendInput stub
     static UINT sendInputImpl(UINT n, INPUT* inputs, int cbSize);
 
-    // Set from TrayIcon to receive state change notifications
-    std::function<void(bool)> onTrayStateChange;
-
 private:
     std::function<bool(MacKeyEvent)> m_hookCallback;
     CFMachPortRef      m_eventTap    = nullptr;

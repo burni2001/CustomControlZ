@@ -60,7 +60,12 @@ bool IsGameWindowForeground(GameProfile* profile) {
     return false;
 }
 
-void SetTrayIconState(bool active, GameProfile* /*profile*/) {
+void SetTrayIconState(bool active, GameProfile* profile) {
+    // On macOS the menu bar icon is always visible, even while the game is running.
+    // Keep the icon active whenever the game process is running; only go idle when
+    // the game actually stops. The foreground state controls whether bindings fire,
+    // but does not affect the icon (unlike the Windows taskbar tray convention).
+    if (!active && profile && IsGameRunning(profile)) return;
     if (g_platform) g_platform->notifyTrayState(active);
 }
 

@@ -124,6 +124,9 @@ void TrayIcon::onProfileAction(int index) {
     const auto actions = m_gameGroup->actions();
     for (int i = 0; i < actions.size(); i++)
         actions[i]->setChecked(i == index);
+    // Refresh the settings window immediately if it's open
+    if (m_settings && m_settings->isVisible())
+        m_settings->refresh();
 }
 
 void TrayIcon::onSettingsTriggered() {

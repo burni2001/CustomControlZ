@@ -47,13 +47,15 @@ int main(int argc, char* argv[]) {
         return false;  // don't suppress any physical key events
     });
 
-    // Create tray icon (must be after QApplication)
+    // Create tray icon (must be after QApplication).
+    // TrayIcon constructor wires engine.onActiveStateChange → tray.setActive.
     TrayIcon tray(&engine);
 
-    // Connect engine active-state changes to tray icon
-    engine.onActiveStateChange = [&tray](bool active) {
-        QMetaObject::invokeMethod(&tray, [&tray, active]{ tray.setActive(active); },
-                                   Qt::QueuedConnection);
+    // Connect the platform's tray state notification to the engine's active-state callback.
+    // Flow: GenericLogicThreadFn → SetTrayIconState → platform->notifyTrayState
+    //       → platform->onTrayStateChange (here) → engine.onActiveStateChange → tray.setActive
+    platform->onTrayStateChange = [&engine](bool active) {
+        if (engine.onActiveStateChange) engine.onActiveStateChange(active);
     };
 
     // Save last-used game index on profile change
