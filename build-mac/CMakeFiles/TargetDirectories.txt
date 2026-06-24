@@ -1,0 +1,9 @@
+/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CustomControlZ.dir
+/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/edit_cache.dir
+/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/rebuild_cache.dir
+/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/list_install_components.dir
+/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/install.dir
+/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/install/local.dir
+/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/install/strip.dir
+/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CustomControlZ_autogen_timestamp_deps.dir
+/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CustomControlZ_autogen.dir

@@ -1,0 +1,2 @@
+set(__QT_DEPLOY_TARGET_CustomControlZ_FILE /Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CustomControlZ.app/Contents/MacOS/CustomControlZ)
+set(__QT_DEPLOY_TARGET_CustomControlZ_TYPE EXECUTABLE)
