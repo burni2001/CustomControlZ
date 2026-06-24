@@ -72,7 +72,7 @@ CustomControlZ_autogen/timestamp: /opt/homebrew/opt/qt/share/qt/libexec/moc
 CustomControlZ_autogen/timestamp: /opt/homebrew/opt/qt/share/qt/libexec/uic
 CustomControlZ_autogen/timestamp: CMakeFiles/CustomControlZ_autogen.dir/compiler_depend.ts
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir="/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_1) "Automatic MOC and UIC for target CustomControlZ"
-	/opt/homebrew/bin/cmake -E cmake_autogen "/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CustomControlZ_autogen.dir/AutogenInfo.json" Debug
+	/opt/homebrew/bin/cmake -E cmake_autogen "/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CustomControlZ_autogen.dir/AutogenInfo.json" Release
 	/opt/homebrew/bin/cmake -E touch "/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CustomControlZ_autogen/timestamp"
 
 CMakeFiles/CustomControlZ_autogen.dir/codegen:
