@@ -21,7 +21,6 @@ public:
 private slots:
     void onProfileAction(int index);
     void onSettingsTriggered();
-    void onIconActivated(QSystemTrayIcon::ActivationReason reason);
 
 private:
     void rebuildMenu();

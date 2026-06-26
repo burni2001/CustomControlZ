@@ -47,9 +47,6 @@ TrayIcon::TrayIcon(GameEngine* engine, QObject* parent)
     m_tray->setIcon(makeColorIcon(QColor(50, 50, 60), false));
     m_tray->setToolTip("CustomControlZ — Idle");
 
-    connect(m_tray.get(), &QSystemTrayIcon::activated,
-            this, &TrayIcon::onIconActivated);
-
     rebuildMenu();
     m_tray->show();
 
@@ -139,8 +136,3 @@ void TrayIcon::onSettingsTriggered() {
     m_settings->activateWindow();
 }
 
-void TrayIcon::onIconActivated(QSystemTrayIcon::ActivationReason reason) {
-    if (reason == QSystemTrayIcon::Trigger) {
-        onSettingsTriggered();
-    }
-}

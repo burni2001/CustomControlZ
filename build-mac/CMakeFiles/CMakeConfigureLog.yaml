@@ -23,8 +23,8 @@ events:
       - "/opt/homebrew/opt/qt/bin/"
       - "/opt/homebrew/opt/qt/sbin/"
       - "/opt/homebrew/opt/qt/"
-      - "/opt/homebrew/bin/"
       - "/Users/Bernhard/.local/bin/"
+      - "/opt/homebrew/bin/"
       - "/opt/homebrew/sbin/"
       - "/usr/local/bin/"
       - "/System/Cryptexes/App/usr/bin/"
@@ -56,8 +56,8 @@ events:
       - "/opt/homebrew/opt/qt/bin/uname"
       - "/opt/homebrew/opt/qt/sbin/uname"
       - "/opt/homebrew/opt/qt/uname"
-      - "/opt/homebrew/bin/uname"
       - "/Users/Bernhard/.local/bin/uname"
+      - "/opt/homebrew/bin/uname"
       - "/opt/homebrew/sbin/uname"
       - "/usr/local/bin/uname"
       - "/System/Cryptexes/App/usr/bin/uname"
@@ -66,7 +66,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -128,8 +127,8 @@ events:
       - "/opt/homebrew/opt/qt/bin/"
       - "/opt/homebrew/opt/qt/sbin/"
       - "/opt/homebrew/opt/qt/"
-      - "/opt/homebrew/bin/"
       - "/Users/Bernhard/.local/bin/"
+      - "/opt/homebrew/bin/"
       - "/opt/homebrew/sbin/"
       - "/usr/local/bin/"
       - "/System/Cryptexes/App/usr/bin/"
@@ -161,8 +160,8 @@ events:
       - "/opt/homebrew/opt/qt/bin/gmake"
       - "/opt/homebrew/opt/qt/sbin/gmake"
       - "/opt/homebrew/opt/qt/gmake"
-      - "/opt/homebrew/bin/gmake"
       - "/Users/Bernhard/.local/bin/gmake"
+      - "/opt/homebrew/bin/gmake"
       - "/opt/homebrew/sbin/gmake"
       - "/usr/local/bin/gmake"
       - "/System/Cryptexes/App/usr/bin/gmake"
@@ -193,8 +192,8 @@ events:
       - "/opt/homebrew/opt/qt/bin/make"
       - "/opt/homebrew/opt/qt/sbin/make"
       - "/opt/homebrew/opt/qt/make"
-      - "/opt/homebrew/bin/make"
       - "/Users/Bernhard/.local/bin/make"
+      - "/opt/homebrew/bin/make"
       - "/opt/homebrew/sbin/make"
       - "/usr/local/bin/make"
       - "/System/Cryptexes/App/usr/bin/make"
@@ -203,7 +202,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -263,8 +261,8 @@ events:
       - "/opt/homebrew/opt/qt/bin/"
       - "/opt/homebrew/opt/qt/sbin/"
       - "/opt/homebrew/opt/qt/"
-      - "/opt/homebrew/bin/"
       - "/Users/Bernhard/.local/bin/"
+      - "/opt/homebrew/bin/"
       - "/opt/homebrew/sbin/"
       - "/usr/local/bin/"
       - "/System/Cryptexes/App/usr/bin/"
@@ -296,8 +294,8 @@ events:
       - "/opt/homebrew/opt/qt/bin/c++"
       - "/opt/homebrew/opt/qt/sbin/c++"
       - "/opt/homebrew/opt/qt/c++"
-      - "/opt/homebrew/bin/c++"
       - "/Users/Bernhard/.local/bin/c++"
+      - "/opt/homebrew/bin/c++"
       - "/opt/homebrew/sbin/c++"
       - "/usr/local/bin/c++"
       - "/System/Cryptexes/App/usr/bin/c++"
@@ -306,7 +304,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -366,7 +363,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -481,8 +477,8 @@ events:
       - "ar"
     candidate_directories:
       - "/usr/bin/"
-      - "/opt/homebrew/bin/"
       - "/Users/Bernhard/.local/bin/"
+      - "/opt/homebrew/bin/"
       - "/opt/homebrew/sbin/"
       - "/usr/local/bin/"
       - "/System/Cryptexes/App/usr/bin/"
@@ -514,7 +510,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -566,8 +561,8 @@ events:
       - "ranlib"
     candidate_directories:
       - "/usr/bin/"
-      - "/opt/homebrew/bin/"
       - "/Users/Bernhard/.local/bin/"
+      - "/opt/homebrew/bin/"
       - "/opt/homebrew/sbin/"
       - "/usr/local/bin/"
       - "/System/Cryptexes/App/usr/bin/"
@@ -599,7 +594,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -651,8 +645,8 @@ events:
       - "strip"
     candidate_directories:
       - "/usr/bin/"
-      - "/opt/homebrew/bin/"
       - "/Users/Bernhard/.local/bin/"
+      - "/opt/homebrew/bin/"
       - "/opt/homebrew/sbin/"
       - "/usr/local/bin/"
       - "/System/Cryptexes/App/usr/bin/"
@@ -684,7 +678,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -736,8 +729,8 @@ events:
       - "ld"
     candidate_directories:
       - "/usr/bin/"
-      - "/opt/homebrew/bin/"
       - "/Users/Bernhard/.local/bin/"
+      - "/opt/homebrew/bin/"
       - "/opt/homebrew/sbin/"
       - "/usr/local/bin/"
       - "/System/Cryptexes/App/usr/bin/"
@@ -769,7 +762,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -821,8 +813,8 @@ events:
       - "nm"
     candidate_directories:
       - "/usr/bin/"
-      - "/opt/homebrew/bin/"
       - "/Users/Bernhard/.local/bin/"
+      - "/opt/homebrew/bin/"
       - "/opt/homebrew/sbin/"
       - "/usr/local/bin/"
       - "/System/Cryptexes/App/usr/bin/"
@@ -854,7 +846,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -906,8 +897,8 @@ events:
       - "objdump"
     candidate_directories:
       - "/usr/bin/"
-      - "/opt/homebrew/bin/"
       - "/Users/Bernhard/.local/bin/"
+      - "/opt/homebrew/bin/"
       - "/opt/homebrew/sbin/"
       - "/usr/local/bin/"
       - "/System/Cryptexes/App/usr/bin/"
@@ -939,7 +930,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -991,8 +981,8 @@ events:
       - "objcopy"
     candidate_directories:
       - "/usr/bin/"
-      - "/opt/homebrew/bin/"
       - "/Users/Bernhard/.local/bin/"
+      - "/opt/homebrew/bin/"
       - "/opt/homebrew/sbin/"
       - "/usr/local/bin/"
       - "/System/Cryptexes/App/usr/bin/"
@@ -1021,8 +1011,8 @@ events:
       - "/Users/Bernhard/.claude/plugins/cache/claude-plugins-official/claude-md-management/1.0.0/bin/"
     searched_directories:
       - "/usr/bin/objcopy"
-      - "/opt/homebrew/bin/objcopy"
       - "/Users/Bernhard/.local/bin/objcopy"
+      - "/opt/homebrew/bin/objcopy"
       - "/opt/homebrew/sbin/objcopy"
       - "/usr/local/bin/objcopy"
       - "/System/Cryptexes/App/usr/bin/objcopy"
@@ -1054,7 +1044,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -1106,8 +1095,8 @@ events:
       - "readelf"
     candidate_directories:
       - "/usr/bin/"
-      - "/opt/homebrew/bin/"
       - "/Users/Bernhard/.local/bin/"
+      - "/opt/homebrew/bin/"
       - "/opt/homebrew/sbin/"
       - "/usr/local/bin/"
       - "/System/Cryptexes/App/usr/bin/"
@@ -1136,8 +1125,8 @@ events:
       - "/Users/Bernhard/.claude/plugins/cache/claude-plugins-official/claude-md-management/1.0.0/bin/"
     searched_directories:
       - "/usr/bin/readelf"
-      - "/opt/homebrew/bin/readelf"
       - "/Users/Bernhard/.local/bin/readelf"
+      - "/opt/homebrew/bin/readelf"
       - "/opt/homebrew/sbin/readelf"
       - "/usr/local/bin/readelf"
       - "/System/Cryptexes/App/usr/bin/readelf"
@@ -1169,7 +1158,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -1221,8 +1209,8 @@ events:
       - "dlltool"
     candidate_directories:
       - "/usr/bin/"
-      - "/opt/homebrew/bin/"
       - "/Users/Bernhard/.local/bin/"
+      - "/opt/homebrew/bin/"
       - "/opt/homebrew/sbin/"
       - "/usr/local/bin/"
       - "/System/Cryptexes/App/usr/bin/"
@@ -1251,8 +1239,8 @@ events:
       - "/Users/Bernhard/.claude/plugins/cache/claude-plugins-official/claude-md-management/1.0.0/bin/"
     searched_directories:
       - "/usr/bin/dlltool"
-      - "/opt/homebrew/bin/dlltool"
       - "/Users/Bernhard/.local/bin/dlltool"
+      - "/opt/homebrew/bin/dlltool"
       - "/opt/homebrew/sbin/dlltool"
       - "/usr/local/bin/dlltool"
       - "/System/Cryptexes/App/usr/bin/dlltool"
@@ -1284,7 +1272,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -1336,8 +1323,8 @@ events:
       - "addr2line"
     candidate_directories:
       - "/usr/bin/"
-      - "/opt/homebrew/bin/"
       - "/Users/Bernhard/.local/bin/"
+      - "/opt/homebrew/bin/"
       - "/opt/homebrew/sbin/"
       - "/usr/local/bin/"
       - "/System/Cryptexes/App/usr/bin/"
@@ -1366,8 +1353,8 @@ events:
       - "/Users/Bernhard/.claude/plugins/cache/claude-plugins-official/claude-md-management/1.0.0/bin/"
     searched_directories:
       - "/usr/bin/addr2line"
-      - "/opt/homebrew/bin/addr2line"
       - "/Users/Bernhard/.local/bin/addr2line"
+      - "/opt/homebrew/bin/addr2line"
       - "/opt/homebrew/sbin/addr2line"
       - "/usr/local/bin/addr2line"
       - "/System/Cryptexes/App/usr/bin/addr2line"
@@ -1399,7 +1386,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -1451,8 +1437,8 @@ events:
       - "tapi"
     candidate_directories:
       - "/usr/bin/"
-      - "/opt/homebrew/bin/"
       - "/Users/Bernhard/.local/bin/"
+      - "/opt/homebrew/bin/"
       - "/opt/homebrew/sbin/"
       - "/usr/local/bin/"
       - "/System/Cryptexes/App/usr/bin/"
@@ -1481,8 +1467,8 @@ events:
       - "/Users/Bernhard/.claude/plugins/cache/claude-plugins-official/claude-md-management/1.0.0/bin/"
     searched_directories:
       - "/usr/bin/tapi"
-      - "/opt/homebrew/bin/tapi"
       - "/Users/Bernhard/.local/bin/tapi"
+      - "/opt/homebrew/bin/tapi"
       - "/opt/homebrew/sbin/tapi"
       - "/usr/local/bin/tapi"
       - "/System/Cryptexes/App/usr/bin/tapi"
@@ -1514,7 +1500,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -1571,7 +1556,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -1631,7 +1615,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -1748,8 +1731,8 @@ events:
       - "/opt/homebrew/opt/qt/bin/"
       - "/opt/homebrew/opt/qt/sbin/"
       - "/opt/homebrew/opt/qt/"
-      - "/opt/homebrew/bin/"
       - "/Users/Bernhard/.local/bin/"
+      - "/opt/homebrew/bin/"
       - "/opt/homebrew/sbin/"
       - "/usr/local/bin/"
       - "/System/Cryptexes/App/usr/bin/"
@@ -1781,8 +1764,8 @@ events:
       - "/opt/homebrew/opt/qt/bin/install_name_tool"
       - "/opt/homebrew/opt/qt/sbin/install_name_tool"
       - "/opt/homebrew/opt/qt/install_name_tool"
-      - "/opt/homebrew/bin/install_name_tool"
       - "/Users/Bernhard/.local/bin/install_name_tool"
+      - "/opt/homebrew/bin/install_name_tool"
       - "/opt/homebrew/sbin/install_name_tool"
       - "/usr/local/bin/install_name_tool"
       - "/System/Cryptexes/App/usr/bin/install_name_tool"
@@ -1791,7 +1774,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -1832,8 +1814,8 @@ events:
     checks:
       - "Detecting CXX compiler ABI info"
     directories:
-      source: "/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-usvnW5"
-      binary: "/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-usvnW5"
+      source: "/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-pnd0iI"
+      binary: "/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-pnd0iI"
     cmakeVariables:
       CMAKE_CXX_FLAGS: ""
       CMAKE_CXX_FLAGS_DEBUG: "-g"
@@ -1847,19 +1829,19 @@ events:
       variable: "CMAKE_CXX_ABI_COMPILED"
       cached: true
       stdout: |
-        Change Dir: '/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-usvnW5'
+        Change Dir: '/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-pnd0iI'
         
-        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_61470/fast
-        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_61470.dir/build.make CMakeFiles/cmTC_61470.dir/build
-        Building CXX object CMakeFiles/cmTC_61470.dir/CMakeCXXCompilerABI.cpp.o
-        /usr/bin/c++   -arch arm64   -v -Wl,-v -MD -MT CMakeFiles/cmTC_61470.dir/CMakeCXXCompilerABI.cpp.o -MF CMakeFiles/cmTC_61470.dir/CMakeCXXCompilerABI.cpp.o.d -o CMakeFiles/cmTC_61470.dir/CMakeCXXCompilerABI.cpp.o -c /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp
+        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_cd289/fast
+        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_cd289.dir/build.make CMakeFiles/cmTC_cd289.dir/build
+        Building CXX object CMakeFiles/cmTC_cd289.dir/CMakeCXXCompilerABI.cpp.o
+        /usr/bin/c++   -arch arm64   -v -Wl,-v -MD -MT CMakeFiles/cmTC_cd289.dir/CMakeCXXCompilerABI.cpp.o -MF CMakeFiles/cmTC_cd289.dir/CMakeCXXCompilerABI.cpp.o.d -o CMakeFiles/cmTC_cd289.dir/CMakeCXXCompilerABI.cpp.o -c /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp
         Apple clang version 21.0.0 (clang-2100.1.1.101)
         Target: arm64-apple-darwin25.5.0
         Thread model: posix
         InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin
         clang++: warning: -Wl,-v: 'linker' input unused [-Wunused-command-line-argument]
         ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1"
-         "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang" -cc1 -triple arm64-apple-macosx26.0.0 -Wundef-prefix=TARGET_OS_ -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -Werror=implicit-function-declaration -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCXXCompilerABI.cpp -mrelocation-model pic -pic-level 2 -mframe-pointer=non-leaf -fno-strict-return -ffp-contract=on -fno-rounding-math -funwind-tables=1 -fobjc-msgsend-selector-stubs -fno-sized-deallocation -target-sdk-version=26.5 -fvisibility-inlines-hidden-static-local-var -fno-modulemap-allow-subdirectory-search -fdefine-target-os-macros -fno-assume-unique-vtables -fno-modulemap-allow-subdirectory-search -enable-tlsdesc -target-cpu apple-m1 -target-feature +v8.5a -target-feature +aes -target-feature +altnzcv -target-feature +ccdp -target-feature +ccpp -target-feature +complxnum -target-feature +crc -target-feature +dotprod -target-feature +flagm -target-feature +fp-armv8 -target-feature +fp16fml -target-feature +fptoint -target-feature +fullfp16 -target-feature +jsconv -target-feature +lse -target-feature +neon -target-feature +pauth -target-feature +perfmon -target-feature +predres -target-feature +ras -target-feature +rcpc -target-feature +rdm -target-feature +sb -target-feature +sha2 -target-feature +sha3 -target-feature +specrestrict -target-feature +ssbs -target-abi darwinpcs -debugger-tuning=lldb "-fdebug-compilation-dir=/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-usvnW5" -target-linker-version 1267 -v "-fcoverage-compilation-dir=/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-usvnW5" -resource-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21 -dependency-file CMakeFiles/cmTC_61470.dir/CMakeCXXCompilerABI.cpp.o.d -skip-unused-modulemap-deps -MT CMakeFiles/cmTC_61470.dir/CMakeCXXCompilerABI.cpp.o -sys-header-deps -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -I/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1 -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/SubFrameworks -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Library/Frameworks -Wno-elaborated-enum-base -fdeprecated-macro -ferror-limit 19 -stack-protector 1 -fstack-check -mdarwin-stkchk-strong-link -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fgnuc-version=4.2.1 -fskip-odr-check-in-gmf -fcxx-exceptions -fexceptions -fmax-type-align=16 -fcommon -clang-vendor-feature=+disableNonDependentMemberExprInCurrentInstantiation -fno-odr-hash-protocols -clang-vendor-feature=+enableAggressiveVLAFolding -clang-vendor-feature=+revert09abecef7bbf -clang-vendor-feature=+thisNoAlignAttr -clang-vendor-feature=+thisNoNullAttr -clang-vendor-feature=+disableAtImportPrivateFrameworkInImplementationError -Wno-error=allocator-wrappers -fdwarf2-cfi-asm -o CMakeFiles/cmTC_61470.dir/CMakeCXXCompilerABI.cpp.o -x c++ /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp
+         "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang" -cc1 -triple arm64-apple-macosx26.0.0 -Wundef-prefix=TARGET_OS_ -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -Werror=implicit-function-declaration -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCXXCompilerABI.cpp -mrelocation-model pic -pic-level 2 -mframe-pointer=non-leaf -fno-strict-return -ffp-contract=on -fno-rounding-math -funwind-tables=1 -fobjc-msgsend-selector-stubs -fno-sized-deallocation -target-sdk-version=26.5 -fvisibility-inlines-hidden-static-local-var -fno-modulemap-allow-subdirectory-search -fdefine-target-os-macros -fno-assume-unique-vtables -fno-modulemap-allow-subdirectory-search -enable-tlsdesc -target-cpu apple-m1 -target-feature +v8.5a -target-feature +aes -target-feature +altnzcv -target-feature +ccdp -target-feature +ccpp -target-feature +complxnum -target-feature +crc -target-feature +dotprod -target-feature +flagm -target-feature +fp-armv8 -target-feature +fp16fml -target-feature +fptoint -target-feature +fullfp16 -target-feature +jsconv -target-feature +lse -target-feature +neon -target-feature +pauth -target-feature +perfmon -target-feature +predres -target-feature +ras -target-feature +rcpc -target-feature +rdm -target-feature +sb -target-feature +sha2 -target-feature +sha3 -target-feature +specrestrict -target-feature +ssbs -target-abi darwinpcs -debugger-tuning=lldb "-fdebug-compilation-dir=/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-pnd0iI" -target-linker-version 1267 -v "-fcoverage-compilation-dir=/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-pnd0iI" -resource-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21 -dependency-file CMakeFiles/cmTC_cd289.dir/CMakeCXXCompilerABI.cpp.o.d -skip-unused-modulemap-deps -MT CMakeFiles/cmTC_cd289.dir/CMakeCXXCompilerABI.cpp.o -sys-header-deps -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -I/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1 -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/SubFrameworks -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Library/Frameworks -Wno-elaborated-enum-base -fdeprecated-macro -ferror-limit 19 -stack-protector 1 -fstack-check -mdarwin-stkchk-strong-link -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fgnuc-version=4.2.1 -fskip-odr-check-in-gmf -fcxx-exceptions -fexceptions -fmax-type-align=16 -fcommon -clang-vendor-feature=+disableNonDependentMemberExprInCurrentInstantiation -fno-odr-hash-protocols -clang-vendor-feature=+enableAggressiveVLAFolding -clang-vendor-feature=+revert09abecef7bbf -clang-vendor-feature=+thisNoAlignAttr -clang-vendor-feature=+thisNoNullAttr -clang-vendor-feature=+disableAtImportPrivateFrameworkInImplementationError -Wno-error=allocator-wrappers -fdwarf2-cfi-asm -o CMakeFiles/cmTC_cd289.dir/CMakeCXXCompilerABI.cpp.o -x c++ /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp
         clang -cc1 version 21.0.0 (clang-2100.1.1.101) default target arm64-apple-darwin25.5.0
         ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/include"
         ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Library/Frameworks"
@@ -1873,13 +1855,13 @@ events:
          /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks (framework directory)
          /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/SubFrameworks (framework directory)
         End of search list.
-        Linking CXX executable cmTC_61470
-        /opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_61470.dir/link.txt --verbose=1
+        Linking CXX executable cmTC_cd289
+        /opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_cd289.dir/link.txt --verbose=1
         Apple clang version 21.0.0 (clang-2100.1.1.101)
         Target: arm64-apple-darwin25.5.0
         Thread model: posix
         InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin
-         "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -dynamic -arch arm64 -platform_version macos 26.0.0 26.5 -syslibroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -mllvm -enable-linkonceodr-outlining -o cmTC_61470 -L/usr/local/lib -v CMakeFiles/cmTC_61470.dir/CMakeCXXCompilerABI.cpp.o -lc++ -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/lib/darwin/libclang_rt.osx.a
+         "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -dynamic -arch arm64 -platform_version macos 26.0.0 26.5 -syslibroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -mllvm -enable-linkonceodr-outlining -o cmTC_cd289 -L/usr/local/lib -v CMakeFiles/cmTC_cd289.dir/CMakeCXXCompilerABI.cpp.o -lc++ -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/lib/darwin/libclang_rt.osx.a
         @(#)PROGRAM:ld PROJECT:ld-1267
         BUILD 18:30:29 Apr 22 2026
         configured to support archs: armv6 armv7 armv7s arm64 arm64e arm64_32 i386 x86_64 x86_64h armv6m armv7k armv7m armv7em armv8m.main armv8.1m.main
@@ -1892,7 +1874,7 @@ events:
         	/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib/swift
         Framework search paths:
         	/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks
-        /usr/bin/c++  -arch arm64  -v -Wl,-v CMakeFiles/cmTC_61470.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_61470
+        /usr/bin/c++  -arch arm64  -v -Wl,-v CMakeFiles/cmTC_cd289.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_cd289
         
       exitCode: 0
   -
@@ -1938,19 +1920,19 @@ events:
       Parsed CXX implicit link information:
         link line regex: [^( *|.*[/\\])(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
         linker tool regex: [^[ 	]*(->|"|[0-9]+>[ 	-]*Build:[ 	0-9]+ ms[ 	]*)?[ 	]*(([^"]*[/\\])?(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)))("|,| |$)]
-        ignore line: [Change Dir: '/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-usvnW5']
+        ignore line: [Change Dir: '/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-pnd0iI']
         ignore line: []
-        ignore line: [Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_61470/fast]
-        ignore line: [/Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_61470.dir/build.make CMakeFiles/cmTC_61470.dir/build]
-        ignore line: [Building CXX object CMakeFiles/cmTC_61470.dir/CMakeCXXCompilerABI.cpp.o]
-        ignore line: [/usr/bin/c++   -arch arm64   -v -Wl -v -MD -MT CMakeFiles/cmTC_61470.dir/CMakeCXXCompilerABI.cpp.o -MF CMakeFiles/cmTC_61470.dir/CMakeCXXCompilerABI.cpp.o.d -o CMakeFiles/cmTC_61470.dir/CMakeCXXCompilerABI.cpp.o -c /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp]
+        ignore line: [Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_cd289/fast]
+        ignore line: [/Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_cd289.dir/build.make CMakeFiles/cmTC_cd289.dir/build]
+        ignore line: [Building CXX object CMakeFiles/cmTC_cd289.dir/CMakeCXXCompilerABI.cpp.o]
+        ignore line: [/usr/bin/c++   -arch arm64   -v -Wl -v -MD -MT CMakeFiles/cmTC_cd289.dir/CMakeCXXCompilerABI.cpp.o -MF CMakeFiles/cmTC_cd289.dir/CMakeCXXCompilerABI.cpp.o.d -o CMakeFiles/cmTC_cd289.dir/CMakeCXXCompilerABI.cpp.o -c /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp]
         ignore line: [Apple clang version 21.0.0 (clang-2100.1.1.101)]
         ignore line: [Target: arm64-apple-darwin25.5.0]
         ignore line: [Thread model: posix]
         ignore line: [InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin]
         ignore line: [clang++: warning: -Wl -v: 'linker' input unused [-Wunused-command-line-argument]]
         ignore line: [ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1"]
-        ignore line: [ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang" -cc1 -triple arm64-apple-macosx26.0.0 -Wundef-prefix=TARGET_OS_ -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -Werror=implicit-function-declaration -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCXXCompilerABI.cpp -mrelocation-model pic -pic-level 2 -mframe-pointer=non-leaf -fno-strict-return -ffp-contract=on -fno-rounding-math -funwind-tables=1 -fobjc-msgsend-selector-stubs -fno-sized-deallocation -target-sdk-version=26.5 -fvisibility-inlines-hidden-static-local-var -fno-modulemap-allow-subdirectory-search -fdefine-target-os-macros -fno-assume-unique-vtables -fno-modulemap-allow-subdirectory-search -enable-tlsdesc -target-cpu apple-m1 -target-feature +v8.5a -target-feature +aes -target-feature +altnzcv -target-feature +ccdp -target-feature +ccpp -target-feature +complxnum -target-feature +crc -target-feature +dotprod -target-feature +flagm -target-feature +fp-armv8 -target-feature +fp16fml -target-feature +fptoint -target-feature +fullfp16 -target-feature +jsconv -target-feature +lse -target-feature +neon -target-feature +pauth -target-feature +perfmon -target-feature +predres -target-feature +ras -target-feature +rcpc -target-feature +rdm -target-feature +sb -target-feature +sha2 -target-feature +sha3 -target-feature +specrestrict -target-feature +ssbs -target-abi darwinpcs -debugger-tuning=lldb "-fdebug-compilation-dir=/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-usvnW5" -target-linker-version 1267 -v "-fcoverage-compilation-dir=/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-usvnW5" -resource-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21 -dependency-file CMakeFiles/cmTC_61470.dir/CMakeCXXCompilerABI.cpp.o.d -skip-unused-modulemap-deps -MT CMakeFiles/cmTC_61470.dir/CMakeCXXCompilerABI.cpp.o -sys-header-deps -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -I/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1 -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/SubFrameworks -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Library/Frameworks -Wno-elaborated-enum-base -fdeprecated-macro -ferror-limit 19 -stack-protector 1 -fstack-check -mdarwin-stkchk-strong-link -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fgnuc-version=4.2.1 -fskip-odr-check-in-gmf -fcxx-exceptions -fexceptions -fmax-type-align=16 -fcommon -clang-vendor-feature=+disableNonDependentMemberExprInCurrentInstantiation -fno-odr-hash-protocols -clang-vendor-feature=+enableAggressiveVLAFolding -clang-vendor-feature=+revert09abecef7bbf -clang-vendor-feature=+thisNoAlignAttr -clang-vendor-feature=+thisNoNullAttr -clang-vendor-feature=+disableAtImportPrivateFrameworkInImplementationError -Wno-error=allocator-wrappers -fdwarf2-cfi-asm -o CMakeFiles/cmTC_61470.dir/CMakeCXXCompilerABI.cpp.o -x c++ /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp]
+        ignore line: [ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang" -cc1 -triple arm64-apple-macosx26.0.0 -Wundef-prefix=TARGET_OS_ -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -Werror=implicit-function-declaration -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCXXCompilerABI.cpp -mrelocation-model pic -pic-level 2 -mframe-pointer=non-leaf -fno-strict-return -ffp-contract=on -fno-rounding-math -funwind-tables=1 -fobjc-msgsend-selector-stubs -fno-sized-deallocation -target-sdk-version=26.5 -fvisibility-inlines-hidden-static-local-var -fno-modulemap-allow-subdirectory-search -fdefine-target-os-macros -fno-assume-unique-vtables -fno-modulemap-allow-subdirectory-search -enable-tlsdesc -target-cpu apple-m1 -target-feature +v8.5a -target-feature +aes -target-feature +altnzcv -target-feature +ccdp -target-feature +ccpp -target-feature +complxnum -target-feature +crc -target-feature +dotprod -target-feature +flagm -target-feature +fp-armv8 -target-feature +fp16fml -target-feature +fptoint -target-feature +fullfp16 -target-feature +jsconv -target-feature +lse -target-feature +neon -target-feature +pauth -target-feature +perfmon -target-feature +predres -target-feature +ras -target-feature +rcpc -target-feature +rdm -target-feature +sb -target-feature +sha2 -target-feature +sha3 -target-feature +specrestrict -target-feature +ssbs -target-abi darwinpcs -debugger-tuning=lldb "-fdebug-compilation-dir=/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-pnd0iI" -target-linker-version 1267 -v "-fcoverage-compilation-dir=/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-pnd0iI" -resource-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21 -dependency-file CMakeFiles/cmTC_cd289.dir/CMakeCXXCompilerABI.cpp.o.d -skip-unused-modulemap-deps -MT CMakeFiles/cmTC_cd289.dir/CMakeCXXCompilerABI.cpp.o -sys-header-deps -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -I/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1 -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/SubFrameworks -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Library/Frameworks -Wno-elaborated-enum-base -fdeprecated-macro -ferror-limit 19 -stack-protector 1 -fstack-check -mdarwin-stkchk-strong-link -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fgnuc-version=4.2.1 -fskip-odr-check-in-gmf -fcxx-exceptions -fexceptions -fmax-type-align=16 -fcommon -clang-vendor-feature=+disableNonDependentMemberExprInCurrentInstantiation -fno-odr-hash-protocols -clang-vendor-feature=+enableAggressiveVLAFolding -clang-vendor-feature=+revert09abecef7bbf -clang-vendor-feature=+thisNoAlignAttr -clang-vendor-feature=+thisNoNullAttr -clang-vendor-feature=+disableAtImportPrivateFrameworkInImplementationError -Wno-error=allocator-wrappers -fdwarf2-cfi-asm -o CMakeFiles/cmTC_cd289.dir/CMakeCXXCompilerABI.cpp.o -x c++ /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp]
         ignore line: [clang -cc1 version 21.0.0 (clang-2100.1.1.101) default target arm64-apple-darwin25.5.0]
         ignore line: [ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/include"]
         ignore line: [ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Library/Frameworks"]
@@ -1964,13 +1946,13 @@ events:
         ignore line: [ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks (framework directory)]
         ignore line: [ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/SubFrameworks (framework directory)]
         ignore line: [End of search list.]
-        ignore line: [Linking CXX executable cmTC_61470]
-        ignore line: [/opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_61470.dir/link.txt --verbose=1]
+        ignore line: [Linking CXX executable cmTC_cd289]
+        ignore line: [/opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_cd289.dir/link.txt --verbose=1]
         ignore line: [Apple clang version 21.0.0 (clang-2100.1.1.101)]
         ignore line: [Target: arm64-apple-darwin25.5.0]
         ignore line: [Thread model: posix]
         ignore line: [InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin]
-        link line: [ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -dynamic -arch arm64 -platform_version macos 26.0.0 26.5 -syslibroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -mllvm -enable-linkonceodr-outlining -o cmTC_61470 -L/usr/local/lib -v CMakeFiles/cmTC_61470.dir/CMakeCXXCompilerABI.cpp.o -lc++ -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/lib/darwin/libclang_rt.osx.a]
+        link line: [ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -dynamic -arch arm64 -platform_version macos 26.0.0 26.5 -syslibroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -mllvm -enable-linkonceodr-outlining -o cmTC_cd289 -L/usr/local/lib -v CMakeFiles/cmTC_cd289.dir/CMakeCXXCompilerABI.cpp.o -lc++ -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/lib/darwin/libclang_rt.osx.a]
           arg [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld] ==> ignore
           arg [-demangle] ==> ignore
           arg [-lto_library] ==> ignore, skip following value
@@ -1987,10 +1969,10 @@ events:
           arg [-mllvm] ==> ignore
           arg [-enable-linkonceodr-outlining] ==> ignore
           arg [-o] ==> ignore
-          arg [cmTC_61470] ==> ignore
+          arg [cmTC_cd289] ==> ignore
           arg [-L/usr/local/lib] ==> dir [/usr/local/lib]
           arg [-v] ==> ignore
-          arg [CMakeFiles/cmTC_61470.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
+          arg [CMakeFiles/cmTC_cd289.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
           arg [-lc++] ==> lib [c++]
           arg [-lSystem] ==> lib [System]
           arg [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/lib/darwin/libclang_rt.osx.a] ==> lib [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/lib/darwin/libclang_rt.osx.a]
@@ -2034,8 +2016,8 @@ events:
     checks:
       - "Detecting OBJCXX compiler ABI info"
     directories:
-      source: "/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-0kZv4F"
-      binary: "/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-0kZv4F"
+      source: "/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-bZ1qZr"
+      binary: "/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-bZ1qZr"
     cmakeVariables:
       CMAKE_CXX_STDLIB_MODULES_JSON: ""
       CMAKE_EXE_LINKER_FLAGS: ""
@@ -2048,19 +2030,19 @@ events:
       variable: "CMAKE_OBJCXX_ABI_COMPILED"
       cached: true
       stdout: |
-        Change Dir: '/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-0kZv4F'
+        Change Dir: '/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-bZ1qZr'
         
-        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_9bbfe/fast
-        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_9bbfe.dir/build.make CMakeFiles/cmTC_9bbfe.dir/build
-        Building OBJCXX object CMakeFiles/cmTC_9bbfe.dir/CMakeOBJCXXCompilerABI.mm.o
-        /usr/bin/c++   -x objective-c++ -arch arm64   -v -Wl,-v -MD -MT CMakeFiles/cmTC_9bbfe.dir/CMakeOBJCXXCompilerABI.mm.o -MF CMakeFiles/cmTC_9bbfe.dir/CMakeOBJCXXCompilerABI.mm.o.d -o CMakeFiles/cmTC_9bbfe.dir/CMakeOBJCXXCompilerABI.mm.o -c /opt/homebrew/share/cmake/Modules/CMakeOBJCXXCompilerABI.mm
+        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_30eda/fast
+        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_30eda.dir/build.make CMakeFiles/cmTC_30eda.dir/build
+        Building OBJCXX object CMakeFiles/cmTC_30eda.dir/CMakeOBJCXXCompilerABI.mm.o
+        /usr/bin/c++   -x objective-c++ -arch arm64   -v -Wl,-v -MD -MT CMakeFiles/cmTC_30eda.dir/CMakeOBJCXXCompilerABI.mm.o -MF CMakeFiles/cmTC_30eda.dir/CMakeOBJCXXCompilerABI.mm.o.d -o CMakeFiles/cmTC_30eda.dir/CMakeOBJCXXCompilerABI.mm.o -c /opt/homebrew/share/cmake/Modules/CMakeOBJCXXCompilerABI.mm
         Apple clang version 21.0.0 (clang-2100.1.1.101)
         Target: arm64-apple-darwin25.5.0
         Thread model: posix
         InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin
         clang++: warning: -Wl,-v: 'linker' input unused [-Wunused-command-line-argument]
         ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1"
-         "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang" -cc1 -triple arm64-apple-macosx26.0.0 -Wundef-prefix=TARGET_OS_ -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -Werror=implicit-function-declaration -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeOBJCXXCompilerABI.mm -mrelocation-model pic -pic-level 2 -mframe-pointer=non-leaf -fno-strict-return -ffp-contract=on -fno-rounding-math -funwind-tables=1 -fobjc-msgsend-selector-stubs -fno-sized-deallocation -target-sdk-version=26.5 -fvisibility-inlines-hidden-static-local-var -fno-modulemap-allow-subdirectory-search -fdefine-target-os-macros -fno-assume-unique-vtables -fno-modulemap-allow-subdirectory-search -enable-tlsdesc -target-cpu apple-m1 -target-feature +v8.5a -target-feature +aes -target-feature +altnzcv -target-feature +ccdp -target-feature +ccpp -target-feature +complxnum -target-feature +crc -target-feature +dotprod -target-feature +flagm -target-feature +fp-armv8 -target-feature +fp16fml -target-feature +fptoint -target-feature +fullfp16 -target-feature +jsconv -target-feature +lse -target-feature +neon -target-feature +pauth -target-feature +perfmon -target-feature +predres -target-feature +ras -target-feature +rcpc -target-feature +rdm -target-feature +sb -target-feature +sha2 -target-feature +sha3 -target-feature +specrestrict -target-feature +ssbs -target-abi darwinpcs -debugger-tuning=lldb "-fdebug-compilation-dir=/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-0kZv4F" -target-linker-version 1267 -v "-fcoverage-compilation-dir=/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-0kZv4F" -resource-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21 -dependency-file CMakeFiles/cmTC_9bbfe.dir/CMakeOBJCXXCompilerABI.mm.o.d -skip-unused-modulemap-deps -MT CMakeFiles/cmTC_9bbfe.dir/CMakeOBJCXXCompilerABI.mm.o -sys-header-deps -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -I/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1 -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/SubFrameworks -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Library/Frameworks -Wno-elaborated-enum-base -fdeprecated-macro -ferror-limit 19 -stack-protector 1 -fstack-check -mdarwin-stkchk-strong-link -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fgnuc-version=4.2.1 -fskip-odr-check-in-gmf -fobjc-runtime=macosx-26.0.0 -fobjc-exceptions -fcxx-exceptions -fexceptions -fmax-type-align=16 -fcommon -clang-vendor-feature=+disableNonDependentMemberExprInCurrentInstantiation -fno-odr-hash-protocols -clang-vendor-feature=+enableAggressiveVLAFolding -clang-vendor-feature=+revert09abecef7bbf -clang-vendor-feature=+thisNoAlignAttr -clang-vendor-feature=+thisNoNullAttr -clang-vendor-feature=+disableAtImportPrivateFrameworkInImplementationError -Wno-error=allocator-wrappers -fdwarf2-cfi-asm -o CMakeFiles/cmTC_9bbfe.dir/CMakeOBJCXXCompilerABI.mm.o -x objective-c++ /opt/homebrew/share/cmake/Modules/CMakeOBJCXXCompilerABI.mm
+         "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang" -cc1 -triple arm64-apple-macosx26.0.0 -Wundef-prefix=TARGET_OS_ -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -Werror=implicit-function-declaration -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeOBJCXXCompilerABI.mm -mrelocation-model pic -pic-level 2 -mframe-pointer=non-leaf -fno-strict-return -ffp-contract=on -fno-rounding-math -funwind-tables=1 -fobjc-msgsend-selector-stubs -fno-sized-deallocation -target-sdk-version=26.5 -fvisibility-inlines-hidden-static-local-var -fno-modulemap-allow-subdirectory-search -fdefine-target-os-macros -fno-assume-unique-vtables -fno-modulemap-allow-subdirectory-search -enable-tlsdesc -target-cpu apple-m1 -target-feature +v8.5a -target-feature +aes -target-feature +altnzcv -target-feature +ccdp -target-feature +ccpp -target-feature +complxnum -target-feature +crc -target-feature +dotprod -target-feature +flagm -target-feature +fp-armv8 -target-feature +fp16fml -target-feature +fptoint -target-feature +fullfp16 -target-feature +jsconv -target-feature +lse -target-feature +neon -target-feature +pauth -target-feature +perfmon -target-feature +predres -target-feature +ras -target-feature +rcpc -target-feature +rdm -target-feature +sb -target-feature +sha2 -target-feature +sha3 -target-feature +specrestrict -target-feature +ssbs -target-abi darwinpcs -debugger-tuning=lldb "-fdebug-compilation-dir=/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-bZ1qZr" -target-linker-version 1267 -v "-fcoverage-compilation-dir=/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-bZ1qZr" -resource-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21 -dependency-file CMakeFiles/cmTC_30eda.dir/CMakeOBJCXXCompilerABI.mm.o.d -skip-unused-modulemap-deps -MT CMakeFiles/cmTC_30eda.dir/CMakeOBJCXXCompilerABI.mm.o -sys-header-deps -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -I/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1 -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/SubFrameworks -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Library/Frameworks -Wno-elaborated-enum-base -fdeprecated-macro -ferror-limit 19 -stack-protector 1 -fstack-check -mdarwin-stkchk-strong-link -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fgnuc-version=4.2.1 -fskip-odr-check-in-gmf -fobjc-runtime=macosx-26.0.0 -fobjc-exceptions -fcxx-exceptions -fexceptions -fmax-type-align=16 -fcommon -clang-vendor-feature=+disableNonDependentMemberExprInCurrentInstantiation -fno-odr-hash-protocols -clang-vendor-feature=+enableAggressiveVLAFolding -clang-vendor-feature=+revert09abecef7bbf -clang-vendor-feature=+thisNoAlignAttr -clang-vendor-feature=+thisNoNullAttr -clang-vendor-feature=+disableAtImportPrivateFrameworkInImplementationError -Wno-error=allocator-wrappers -fdwarf2-cfi-asm -o CMakeFiles/cmTC_30eda.dir/CMakeOBJCXXCompilerABI.mm.o -x objective-c++ /opt/homebrew/share/cmake/Modules/CMakeOBJCXXCompilerABI.mm
         clang -cc1 version 21.0.0 (clang-2100.1.1.101) default target arm64-apple-darwin25.5.0
         ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/include"
         ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Library/Frameworks"
@@ -2074,13 +2056,13 @@ events:
          /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks (framework directory)
          /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/SubFrameworks (framework directory)
         End of search list.
-        Linking OBJCXX executable cmTC_9bbfe
-        /opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_9bbfe.dir/link.txt --verbose=1
+        Linking OBJCXX executable cmTC_30eda
+        /opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_30eda.dir/link.txt --verbose=1
         Apple clang version 21.0.0 (clang-2100.1.1.101)
         Target: arm64-apple-darwin25.5.0
         Thread model: posix
         InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin
-         "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -dynamic -arch arm64 -platform_version macos 26.0.0 26.5 -syslibroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -mllvm -enable-linkonceodr-outlining -o cmTC_9bbfe -L/usr/local/lib -v CMakeFiles/cmTC_9bbfe.dir/CMakeOBJCXXCompilerABI.mm.o -lc++ -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/lib/darwin/libclang_rt.osx.a
+         "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -dynamic -arch arm64 -platform_version macos 26.0.0 26.5 -syslibroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -mllvm -enable-linkonceodr-outlining -o cmTC_30eda -L/usr/local/lib -v CMakeFiles/cmTC_30eda.dir/CMakeOBJCXXCompilerABI.mm.o -lc++ -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/lib/darwin/libclang_rt.osx.a
         @(#)PROGRAM:ld PROJECT:ld-1267
         BUILD 18:30:29 Apr 22 2026
         configured to support archs: armv6 armv7 armv7s arm64 arm64e arm64_32 i386 x86_64 x86_64h armv6m armv7k armv7m armv7em armv8m.main armv8.1m.main
@@ -2093,7 +2075,7 @@ events:
         	/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib/swift
         Framework search paths:
         	/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks
-        /usr/bin/c++  -arch arm64  -v -Wl,-v CMakeFiles/cmTC_9bbfe.dir/CMakeOBJCXXCompilerABI.mm.o -o cmTC_9bbfe
+        /usr/bin/c++  -arch arm64  -v -Wl,-v CMakeFiles/cmTC_30eda.dir/CMakeOBJCXXCompilerABI.mm.o -o cmTC_30eda
         
       exitCode: 0
   -
@@ -2139,19 +2121,19 @@ events:
       Parsed OBJCXX implicit link information:
         link line regex: [^( *|.*[/\\])(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
         linker tool regex: [^[ 	]*(->|"|[0-9]+>[ 	-]*Build:[ 	0-9]+ ms[ 	]*)?[ 	]*(([^"]*[/\\])?(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)))("|,| |$)]
-        ignore line: [Change Dir: '/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-0kZv4F']
+        ignore line: [Change Dir: '/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-bZ1qZr']
         ignore line: []
-        ignore line: [Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_9bbfe/fast]
-        ignore line: [/Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_9bbfe.dir/build.make CMakeFiles/cmTC_9bbfe.dir/build]
-        ignore line: [Building OBJCXX object CMakeFiles/cmTC_9bbfe.dir/CMakeOBJCXXCompilerABI.mm.o]
-        ignore line: [/usr/bin/c++   -x objective-c++ -arch arm64   -v -Wl -v -MD -MT CMakeFiles/cmTC_9bbfe.dir/CMakeOBJCXXCompilerABI.mm.o -MF CMakeFiles/cmTC_9bbfe.dir/CMakeOBJCXXCompilerABI.mm.o.d -o CMakeFiles/cmTC_9bbfe.dir/CMakeOBJCXXCompilerABI.mm.o -c /opt/homebrew/share/cmake/Modules/CMakeOBJCXXCompilerABI.mm]
+        ignore line: [Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_30eda/fast]
+        ignore line: [/Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_30eda.dir/build.make CMakeFiles/cmTC_30eda.dir/build]
+        ignore line: [Building OBJCXX object CMakeFiles/cmTC_30eda.dir/CMakeOBJCXXCompilerABI.mm.o]
+        ignore line: [/usr/bin/c++   -x objective-c++ -arch arm64   -v -Wl -v -MD -MT CMakeFiles/cmTC_30eda.dir/CMakeOBJCXXCompilerABI.mm.o -MF CMakeFiles/cmTC_30eda.dir/CMakeOBJCXXCompilerABI.mm.o.d -o CMakeFiles/cmTC_30eda.dir/CMakeOBJCXXCompilerABI.mm.o -c /opt/homebrew/share/cmake/Modules/CMakeOBJCXXCompilerABI.mm]
         ignore line: [Apple clang version 21.0.0 (clang-2100.1.1.101)]
         ignore line: [Target: arm64-apple-darwin25.5.0]
         ignore line: [Thread model: posix]
         ignore line: [InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin]
         ignore line: [clang++: warning: -Wl -v: 'linker' input unused [-Wunused-command-line-argument]]
         ignore line: [ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1"]
-        ignore line: [ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang" -cc1 -triple arm64-apple-macosx26.0.0 -Wundef-prefix=TARGET_OS_ -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -Werror=implicit-function-declaration -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeOBJCXXCompilerABI.mm -mrelocation-model pic -pic-level 2 -mframe-pointer=non-leaf -fno-strict-return -ffp-contract=on -fno-rounding-math -funwind-tables=1 -fobjc-msgsend-selector-stubs -fno-sized-deallocation -target-sdk-version=26.5 -fvisibility-inlines-hidden-static-local-var -fno-modulemap-allow-subdirectory-search -fdefine-target-os-macros -fno-assume-unique-vtables -fno-modulemap-allow-subdirectory-search -enable-tlsdesc -target-cpu apple-m1 -target-feature +v8.5a -target-feature +aes -target-feature +altnzcv -target-feature +ccdp -target-feature +ccpp -target-feature +complxnum -target-feature +crc -target-feature +dotprod -target-feature +flagm -target-feature +fp-armv8 -target-feature +fp16fml -target-feature +fptoint -target-feature +fullfp16 -target-feature +jsconv -target-feature +lse -target-feature +neon -target-feature +pauth -target-feature +perfmon -target-feature +predres -target-feature +ras -target-feature +rcpc -target-feature +rdm -target-feature +sb -target-feature +sha2 -target-feature +sha3 -target-feature +specrestrict -target-feature +ssbs -target-abi darwinpcs -debugger-tuning=lldb "-fdebug-compilation-dir=/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-0kZv4F" -target-linker-version 1267 -v "-fcoverage-compilation-dir=/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-0kZv4F" -resource-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21 -dependency-file CMakeFiles/cmTC_9bbfe.dir/CMakeOBJCXXCompilerABI.mm.o.d -skip-unused-modulemap-deps -MT CMakeFiles/cmTC_9bbfe.dir/CMakeOBJCXXCompilerABI.mm.o -sys-header-deps -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -I/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1 -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/SubFrameworks -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Library/Frameworks -Wno-elaborated-enum-base -fdeprecated-macro -ferror-limit 19 -stack-protector 1 -fstack-check -mdarwin-stkchk-strong-link -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fgnuc-version=4.2.1 -fskip-odr-check-in-gmf -fobjc-runtime=macosx-26.0.0 -fobjc-exceptions -fcxx-exceptions -fexceptions -fmax-type-align=16 -fcommon -clang-vendor-feature=+disableNonDependentMemberExprInCurrentInstantiation -fno-odr-hash-protocols -clang-vendor-feature=+enableAggressiveVLAFolding -clang-vendor-feature=+revert09abecef7bbf -clang-vendor-feature=+thisNoAlignAttr -clang-vendor-feature=+thisNoNullAttr -clang-vendor-feature=+disableAtImportPrivateFrameworkInImplementationError -Wno-error=allocator-wrappers -fdwarf2-cfi-asm -o CMakeFiles/cmTC_9bbfe.dir/CMakeOBJCXXCompilerABI.mm.o -x objective-c++ /opt/homebrew/share/cmake/Modules/CMakeOBJCXXCompilerABI.mm]
+        ignore line: [ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang" -cc1 -triple arm64-apple-macosx26.0.0 -Wundef-prefix=TARGET_OS_ -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -Werror=implicit-function-declaration -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeOBJCXXCompilerABI.mm -mrelocation-model pic -pic-level 2 -mframe-pointer=non-leaf -fno-strict-return -ffp-contract=on -fno-rounding-math -funwind-tables=1 -fobjc-msgsend-selector-stubs -fno-sized-deallocation -target-sdk-version=26.5 -fvisibility-inlines-hidden-static-local-var -fno-modulemap-allow-subdirectory-search -fdefine-target-os-macros -fno-assume-unique-vtables -fno-modulemap-allow-subdirectory-search -enable-tlsdesc -target-cpu apple-m1 -target-feature +v8.5a -target-feature +aes -target-feature +altnzcv -target-feature +ccdp -target-feature +ccpp -target-feature +complxnum -target-feature +crc -target-feature +dotprod -target-feature +flagm -target-feature +fp-armv8 -target-feature +fp16fml -target-feature +fptoint -target-feature +fullfp16 -target-feature +jsconv -target-feature +lse -target-feature +neon -target-feature +pauth -target-feature +perfmon -target-feature +predres -target-feature +ras -target-feature +rcpc -target-feature +rdm -target-feature +sb -target-feature +sha2 -target-feature +sha3 -target-feature +specrestrict -target-feature +ssbs -target-abi darwinpcs -debugger-tuning=lldb "-fdebug-compilation-dir=/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-bZ1qZr" -target-linker-version 1267 -v "-fcoverage-compilation-dir=/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-bZ1qZr" -resource-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21 -dependency-file CMakeFiles/cmTC_30eda.dir/CMakeOBJCXXCompilerABI.mm.o.d -skip-unused-modulemap-deps -MT CMakeFiles/cmTC_30eda.dir/CMakeOBJCXXCompilerABI.mm.o -sys-header-deps -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -I/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1 -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/SubFrameworks -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Library/Frameworks -Wno-elaborated-enum-base -fdeprecated-macro -ferror-limit 19 -stack-protector 1 -fstack-check -mdarwin-stkchk-strong-link -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fgnuc-version=4.2.1 -fskip-odr-check-in-gmf -fobjc-runtime=macosx-26.0.0 -fobjc-exceptions -fcxx-exceptions -fexceptions -fmax-type-align=16 -fcommon -clang-vendor-feature=+disableNonDependentMemberExprInCurrentInstantiation -fno-odr-hash-protocols -clang-vendor-feature=+enableAggressiveVLAFolding -clang-vendor-feature=+revert09abecef7bbf -clang-vendor-feature=+thisNoAlignAttr -clang-vendor-feature=+thisNoNullAttr -clang-vendor-feature=+disableAtImportPrivateFrameworkInImplementationError -Wno-error=allocator-wrappers -fdwarf2-cfi-asm -o CMakeFiles/cmTC_30eda.dir/CMakeOBJCXXCompilerABI.mm.o -x objective-c++ /opt/homebrew/share/cmake/Modules/CMakeOBJCXXCompilerABI.mm]
         ignore line: [clang -cc1 version 21.0.0 (clang-2100.1.1.101) default target arm64-apple-darwin25.5.0]
         ignore line: [ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/include"]
         ignore line: [ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Library/Frameworks"]
@@ -2165,13 +2147,13 @@ events:
         ignore line: [ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks (framework directory)]
         ignore line: [ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/SubFrameworks (framework directory)]
         ignore line: [End of search list.]
-        ignore line: [Linking OBJCXX executable cmTC_9bbfe]
-        ignore line: [/opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_9bbfe.dir/link.txt --verbose=1]
+        ignore line: [Linking OBJCXX executable cmTC_30eda]
+        ignore line: [/opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_30eda.dir/link.txt --verbose=1]
         ignore line: [Apple clang version 21.0.0 (clang-2100.1.1.101)]
         ignore line: [Target: arm64-apple-darwin25.5.0]
         ignore line: [Thread model: posix]
         ignore line: [InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin]
-        link line: [ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -dynamic -arch arm64 -platform_version macos 26.0.0 26.5 -syslibroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -mllvm -enable-linkonceodr-outlining -o cmTC_9bbfe -L/usr/local/lib -v CMakeFiles/cmTC_9bbfe.dir/CMakeOBJCXXCompilerABI.mm.o -lc++ -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/lib/darwin/libclang_rt.osx.a]
+        link line: [ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -dynamic -arch arm64 -platform_version macos 26.0.0 26.5 -syslibroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -mllvm -enable-linkonceodr-outlining -o cmTC_30eda -L/usr/local/lib -v CMakeFiles/cmTC_30eda.dir/CMakeOBJCXXCompilerABI.mm.o -lc++ -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/lib/darwin/libclang_rt.osx.a]
           arg [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld] ==> ignore
           arg [-demangle] ==> ignore
           arg [-lto_library] ==> ignore, skip following value
@@ -2188,10 +2170,10 @@ events:
           arg [-mllvm] ==> ignore
           arg [-enable-linkonceodr-outlining] ==> ignore
           arg [-o] ==> ignore
-          arg [cmTC_9bbfe] ==> ignore
+          arg [cmTC_30eda] ==> ignore
           arg [-L/usr/local/lib] ==> dir [/usr/local/lib]
           arg [-v] ==> ignore
-          arg [CMakeFiles/cmTC_9bbfe.dir/CMakeOBJCXXCompilerABI.mm.o] ==> ignore
+          arg [CMakeFiles/cmTC_30eda.dir/CMakeOBJCXXCompilerABI.mm.o] ==> ignore
           arg [-lc++] ==> lib [c++]
           arg [-lSystem] ==> lib [System]
           arg [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/lib/darwin/libclang_rt.osx.a] ==> lib [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/lib/darwin/libclang_rt.osx.a]
@@ -2242,8 +2224,8 @@ events:
     checks:
       - "Performing Test CMAKE_HAVE_LIBC_PTHREAD"
     directories:
-      source: "/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-cyGmEE"
-      binary: "/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-cyGmEE"
+      source: "/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-PxZOBO"
+      binary: "/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-PxZOBO"
     cmakeVariables:
       CMAKE_CXX_FLAGS: ""
       CMAKE_CXX_FLAGS_DEBUG: "-g"
@@ -2257,15 +2239,15 @@ events:
       variable: "CMAKE_HAVE_LIBC_PTHREAD"
       cached: true
       stdout: |
-        Change Dir: '/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-cyGmEE'
+        Change Dir: '/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-PxZOBO'
         
-        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_049d2/fast
-        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_049d2.dir/build.make CMakeFiles/cmTC_049d2.dir/build
-        Building CXX object CMakeFiles/cmTC_049d2.dir/src.cxx.o
-        /usr/bin/c++ -DCMAKE_HAVE_LIBC_PTHREAD  -std=gnu++20 -arch arm64 -MD -MT CMakeFiles/cmTC_049d2.dir/src.cxx.o -MF CMakeFiles/cmTC_049d2.dir/src.cxx.o.d -o CMakeFiles/cmTC_049d2.dir/src.cxx.o -c "/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-cyGmEE/src.cxx"
-        Linking CXX executable cmTC_049d2
-        /opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_049d2.dir/link.txt --verbose=1
-        /usr/bin/c++  -arch arm64 CMakeFiles/cmTC_049d2.dir/src.cxx.o -o cmTC_049d2
+        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_96bac/fast
+        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_96bac.dir/build.make CMakeFiles/cmTC_96bac.dir/build
+        Building CXX object CMakeFiles/cmTC_96bac.dir/src.cxx.o
+        /usr/bin/c++ -DCMAKE_HAVE_LIBC_PTHREAD  -std=gnu++20 -arch arm64 -MD -MT CMakeFiles/cmTC_96bac.dir/src.cxx.o -MF CMakeFiles/cmTC_96bac.dir/src.cxx.o.d -o CMakeFiles/cmTC_96bac.dir/src.cxx.o -c "/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-PxZOBO/src.cxx"
+        Linking CXX executable cmTC_96bac
+        /opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_96bac.dir/link.txt --verbose=1
+        /usr/bin/c++  -arch arm64 CMakeFiles/cmTC_96bac.dir/src.cxx.o -o cmTC_96bac
         
       exitCode: 0
   -
@@ -2284,8 +2266,8 @@ events:
     checks:
       - "Performing Test HAVE_STDATOMIC"
     directories:
-      source: "/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-8n2UUd"
-      binary: "/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-8n2UUd"
+      source: "/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-4q87J3"
+      binary: "/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-4q87J3"
     cmakeVariables:
       CMAKE_CXX_FLAGS: ""
       CMAKE_CXX_FLAGS_DEBUG: "-g"
@@ -2299,15 +2281,15 @@ events:
       variable: "HAVE_STDATOMIC"
       cached: true
       stdout: |
-        Change Dir: '/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-8n2UUd'
+        Change Dir: '/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-4q87J3'
         
-        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_86a53/fast
-        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_86a53.dir/build.make CMakeFiles/cmTC_86a53.dir/build
-        Building CXX object CMakeFiles/cmTC_86a53.dir/src.cxx.o
-        /usr/bin/c++ -DHAVE_STDATOMIC  -std=gnu++20 -arch arm64 -MD -MT CMakeFiles/cmTC_86a53.dir/src.cxx.o -MF CMakeFiles/cmTC_86a53.dir/src.cxx.o.d -o CMakeFiles/cmTC_86a53.dir/src.cxx.o -c "/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-8n2UUd/src.cxx"
-        Linking CXX executable cmTC_86a53
-        /opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_86a53.dir/link.txt --verbose=1
-        /usr/bin/c++  -arch arm64 CMakeFiles/cmTC_86a53.dir/src.cxx.o -o cmTC_86a53
+        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_54227/fast
+        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_54227.dir/build.make CMakeFiles/cmTC_54227.dir/build
+        Building CXX object CMakeFiles/cmTC_54227.dir/src.cxx.o
+        /usr/bin/c++ -DHAVE_STDATOMIC  -std=gnu++20 -arch arm64 -MD -MT CMakeFiles/cmTC_54227.dir/src.cxx.o -MF CMakeFiles/cmTC_54227.dir/src.cxx.o.d -o CMakeFiles/cmTC_54227.dir/src.cxx.o -c "/Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding Projects/CustomControlZ/build-mac/CMakeFiles/CMakeScratch/TryCompile-4q87J3/src.cxx"
+        Linking CXX executable cmTC_54227
+        /opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_54227.dir/link.txt --verbose=1
+        /usr/bin/c++  -arch arm64 CMakeFiles/cmTC_54227.dir/src.cxx.o -o cmTC_54227
         
       exitCode: 0
   -
@@ -2432,7 +2414,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -2513,8 +2494,8 @@ events:
       - "/opt/homebrew/opt/qt/sbin/"
       - "/opt/homebrew/opt/qt/"
       - "/opt/homebrew/opt/qt/bin/"
-      - "/opt/homebrew/bin/"
       - "/Users/Bernhard/.local/bin/"
+      - "/opt/homebrew/bin/"
       - "/opt/homebrew/sbin/"
       - "/usr/local/bin/"
       - "/System/Cryptexes/App/usr/bin/"
@@ -2580,7 +2561,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -2754,7 +2734,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -2934,7 +2913,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -3111,7 +3089,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -3200,8 +3177,8 @@ events:
     candidate_directories:
       - "/opt/homebrew/opt/qt/lib/"
       - "/opt/homebrew/opt/qt/"
-      - "/opt/homebrew/bin/"
       - "/Users/Bernhard/.local/bin/"
+      - "/opt/homebrew/bin/"
       - "/opt/homebrew/sbin/"
       - "/usr/local/bin/"
       - "/System/Cryptexes/App/usr/bin/"
@@ -3230,7 +3207,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -3321,8 +3297,8 @@ events:
     candidate_directories:
       - "/opt/homebrew/opt/qt/lib/"
       - "/opt/homebrew/opt/qt/"
-      - "/opt/homebrew/bin/"
       - "/Users/Bernhard/.local/bin/"
+      - "/opt/homebrew/bin/"
       - "/opt/homebrew/sbin/"
       - "/usr/local/bin/"
       - "/System/Cryptexes/App/usr/bin/"
@@ -3351,7 +3327,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -3442,8 +3417,8 @@ events:
     candidate_directories:
       - "/opt/homebrew/opt/qt/include/"
       - "/opt/homebrew/opt/qt/"
-      - "/opt/homebrew/bin/"
       - "/Users/Bernhard/.local/bin/"
+      - "/opt/homebrew/bin/"
       - "/opt/homebrew/sbin/"
       - "/usr/local/bin/"
       - "/System/Cryptexes/App/usr/bin/"
@@ -3503,8 +3478,8 @@ events:
     searched_directories:
       - "/opt/homebrew/opt/qt/include/OpenGL.framework/Headers/gl.h"
       - "/opt/homebrew/opt/qt/OpenGL.framework/Headers/gl.h"
-      - "/opt/homebrew/bin/OpenGL.framework/Headers/gl.h"
       - "/Users/Bernhard/.local/bin/OpenGL.framework/Headers/gl.h"
+      - "/opt/homebrew/bin/OpenGL.framework/Headers/gl.h"
       - "/opt/homebrew/sbin/OpenGL.framework/Headers/gl.h"
       - "/usr/local/bin/OpenGL.framework/Headers/gl.h"
       - "/System/Cryptexes/App/usr/bin/OpenGL.framework/Headers/gl.h"
@@ -3560,7 +3535,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -3651,8 +3625,8 @@ events:
     candidate_directories:
       - "/opt/homebrew/opt/qt/include/"
       - "/opt/homebrew/opt/qt/"
-      - "/opt/homebrew/bin/"
       - "/Users/Bernhard/.local/bin/"
+      - "/opt/homebrew/bin/"
       - "/opt/homebrew/sbin/"
       - "/usr/local/bin/"
       - "/System/Cryptexes/App/usr/bin/"
@@ -3712,8 +3686,8 @@ events:
     searched_directories:
       - "/opt/homebrew/opt/qt/include/OpenGL.framework/Headers/glu.h"
       - "/opt/homebrew/opt/qt/OpenGL.framework/Headers/glu.h"
-      - "/opt/homebrew/bin/OpenGL.framework/Headers/glu.h"
       - "/Users/Bernhard/.local/bin/OpenGL.framework/Headers/glu.h"
+      - "/opt/homebrew/bin/OpenGL.framework/Headers/glu.h"
       - "/opt/homebrew/sbin/OpenGL.framework/Headers/glu.h"
       - "/usr/local/bin/OpenGL.framework/Headers/glu.h"
       - "/System/Cryptexes/App/usr/bin/OpenGL.framework/Headers/glu.h"
@@ -3769,7 +3743,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -3857,8 +3830,8 @@ events:
     candidate_directories:
       - "/opt/homebrew/opt/qt/include/"
       - "/opt/homebrew/opt/qt/"
-      - "/opt/homebrew/bin/"
       - "/Users/Bernhard/.local/bin/"
+      - "/opt/homebrew/bin/"
       - "/opt/homebrew/sbin/"
       - "/usr/local/bin/"
       - "/System/Cryptexes/App/usr/bin/"
@@ -3918,8 +3891,8 @@ events:
     searched_directories:
       - "/opt/homebrew/opt/qt/include/vulkan.framework/Headers/vulkan.h"
       - "/opt/homebrew/opt/qt/vulkan.framework/Headers/vulkan.h"
-      - "/opt/homebrew/bin/vulkan.framework/Headers/vulkan.h"
       - "/Users/Bernhard/.local/bin/vulkan.framework/Headers/vulkan.h"
+      - "/opt/homebrew/bin/vulkan.framework/Headers/vulkan.h"
       - "/opt/homebrew/sbin/vulkan.framework/Headers/vulkan.h"
       - "/usr/local/bin/vulkan.framework/Headers/vulkan.h"
       - "/System/Cryptexes/App/usr/bin/vulkan.framework/Headers/vulkan.h"
@@ -3978,8 +3951,8 @@ events:
       - "/System/Library/Frameworks/vulkan.framework/Headers/vulkan.h"
       - "/opt/homebrew/opt/qt/include/vulkan/vulkan.h"
       - "/opt/homebrew/opt/qt/vulkan/vulkan.h"
-      - "/opt/homebrew/bin/vulkan/vulkan.h"
       - "/Users/Bernhard/.local/bin/vulkan/vulkan.h"
+      - "/opt/homebrew/bin/vulkan/vulkan.h"
       - "/opt/homebrew/sbin/vulkan/vulkan.h"
       - "/usr/local/bin/vulkan/vulkan.h"
       - "/System/Cryptexes/App/usr/bin/vulkan/vulkan.h"
@@ -4041,7 +4014,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -4129,8 +4101,8 @@ events:
     candidate_directories:
       - "/opt/homebrew/opt/qt/lib/"
       - "/opt/homebrew/opt/qt/"
-      - "/opt/homebrew/bin/"
       - "/Users/Bernhard/.local/bin/"
+      - "/opt/homebrew/bin/"
       - "/opt/homebrew/sbin/"
       - "/usr/local/bin/"
       - "/System/Cryptexes/App/usr/bin/"
@@ -4157,8 +4129,8 @@ events:
     searched_directories:
       - "/opt/homebrew/opt/qt/lib/"
       - "/opt/homebrew/opt/qt/"
-      - "/opt/homebrew/bin/"
       - "/Users/Bernhard/.local/bin/"
+      - "/opt/homebrew/bin/"
       - "/opt/homebrew/sbin/"
       - "/usr/local/bin/"
       - "/System/Cryptexes/App/usr/bin/"
@@ -4187,7 +4159,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -4276,8 +4247,8 @@ events:
       - "/opt/homebrew/opt/qt/bin/"
       - "/opt/homebrew/opt/qt/sbin/"
       - "/opt/homebrew/opt/qt/"
-      - "/opt/homebrew/bin/"
       - "/Users/Bernhard/.local/bin/"
+      - "/opt/homebrew/bin/"
       - "/opt/homebrew/sbin/"
       - "/usr/local/bin/"
       - "/System/Cryptexes/App/usr/bin/"
@@ -4342,8 +4313,8 @@ events:
       - "/opt/homebrew/opt/qt/bin/glslc"
       - "/opt/homebrew/opt/qt/sbin/glslc"
       - "/opt/homebrew/opt/qt/glslc"
-      - "/opt/homebrew/bin/glslc"
       - "/Users/Bernhard/.local/bin/glslc"
+      - "/opt/homebrew/bin/glslc"
       - "/opt/homebrew/sbin/glslc"
       - "/usr/local/bin/glslc"
       - "/System/Cryptexes/App/usr/bin/glslc"
@@ -4409,7 +4380,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -4491,8 +4461,8 @@ events:
       - "/opt/homebrew/opt/qt/bin/"
       - "/opt/homebrew/opt/qt/sbin/"
       - "/opt/homebrew/opt/qt/"
-      - "/opt/homebrew/bin/"
       - "/Users/Bernhard/.local/bin/"
+      - "/opt/homebrew/bin/"
       - "/opt/homebrew/sbin/"
       - "/usr/local/bin/"
       - "/System/Cryptexes/App/usr/bin/"
@@ -4557,8 +4527,8 @@ events:
       - "/opt/homebrew/opt/qt/bin/glslangValidator"
       - "/opt/homebrew/opt/qt/sbin/glslangValidator"
       - "/opt/homebrew/opt/qt/glslangValidator"
-      - "/opt/homebrew/bin/glslangValidator"
       - "/Users/Bernhard/.local/bin/glslangValidator"
+      - "/opt/homebrew/bin/glslangValidator"
       - "/opt/homebrew/sbin/glslangValidator"
       - "/usr/local/bin/glslangValidator"
       - "/System/Cryptexes/App/usr/bin/glslangValidator"
@@ -4624,7 +4594,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -4806,7 +4775,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -4982,7 +4950,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -5153,7 +5120,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -5316,7 +5282,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -8261,7 +8226,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -8340,8 +8304,8 @@ events:
     candidate_directories:
       - "/opt/homebrew/opt/qt/lib/"
       - "/opt/homebrew/opt/qt/"
-      - "/opt/homebrew/bin/"
       - "/Users/Bernhard/.local/bin/"
+      - "/opt/homebrew/bin/"
       - "/opt/homebrew/sbin/"
       - "/usr/local/bin/"
       - "/System/Cryptexes/App/usr/bin/"
@@ -8370,7 +8334,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -8447,8 +8410,8 @@ events:
     candidate_directories:
       - "/opt/homebrew/opt/qt/lib/"
       - "/opt/homebrew/opt/qt/"
-      - "/opt/homebrew/bin/"
       - "/Users/Bernhard/.local/bin/"
+      - "/opt/homebrew/bin/"
       - "/opt/homebrew/sbin/"
       - "/usr/local/bin/"
       - "/System/Cryptexes/App/usr/bin/"
@@ -8477,7 +8440,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -8554,8 +8516,8 @@ events:
     candidate_directories:
       - "/opt/homebrew/opt/qt/lib/"
       - "/opt/homebrew/opt/qt/"
-      - "/opt/homebrew/bin/"
       - "/Users/Bernhard/.local/bin/"
+      - "/opt/homebrew/bin/"
       - "/opt/homebrew/sbin/"
       - "/usr/local/bin/"
       - "/System/Cryptexes/App/usr/bin/"
@@ -8584,7 +8546,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"
@@ -8661,8 +8622,8 @@ events:
     candidate_directories:
       - "/opt/homebrew/opt/qt/lib/"
       - "/opt/homebrew/opt/qt/"
-      - "/opt/homebrew/bin/"
       - "/Users/Bernhard/.local/bin/"
+      - "/opt/homebrew/bin/"
       - "/opt/homebrew/sbin/"
       - "/usr/local/bin/"
       - "/System/Cryptexes/App/usr/bin/"
@@ -8691,7 +8652,6 @@ events:
       CMAKE_PREFIX_PATH:
         - "/opt/homebrew/opt/qt"
       ENV{PATH}:
-        - "/opt/homebrew/bin"
         - "/Users/Bernhard/.local/bin"
         - "/opt/homebrew/bin"
         - "/opt/homebrew/sbin"

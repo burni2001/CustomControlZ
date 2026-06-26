@@ -8,12 +8,10 @@
 #include <QApplication>
 #include <QHBoxLayout>
 #include <QFrame>
-#include <QSizePolicy>
 #include <QFont>
 #include <QKeyEvent>
 #include <QDialog>
 #include <QLabel>
-#include <QDebug>
 #include <mutex>
 
 // ---------------------------------------------------------------------------
@@ -206,28 +204,47 @@ SettingsWindow::SettingsWindow(GameEngine* engine, QWidget* parent)
     setWindowTitle("CustomControlZ — Settings");
     setMinimumWidth(460);
 
-    auto* mainLayout = new QVBoxLayout(this);
+    m_mainLayout = new QVBoxLayout(this);
+    m_mainLayout->setSpacing(8);
+    m_mainLayout->setContentsMargins(12, 12, 12, 12);
 
-    // Title label
+    // Header row: title on left, borderless game selector (•••) on right
+    auto* headerLayout = new QHBoxLayout();
+
     m_titleLabel = new QLabel(this);
     QFont titleFont = m_titleLabel->font();
     titleFont.setPointSize(14);
     titleFont.setBold(true);
     m_titleLabel->setFont(titleFont);
-    m_titleLabel->setAlignment(Qt::AlignCenter);
-    mainLayout->addWidget(m_titleLabel);
+    headerLayout->addWidget(m_titleLabel, 1);
 
-    // Scroll area for binding rows
-    m_scrollArea = new QScrollArea(this);
-    m_scrollArea->setWidgetResizable(true);
-    m_scrollArea->setFrameShape(QFrame::NoFrame);
+    m_gameSelectButton = new QToolButton(this);
+    m_gameSelectButton->setText("•••");
+    m_gameSelectButton->setPopupMode(QToolButton::InstantPopup);
+    m_gameSelectButton->setAutoRaise(true);
+    m_gameSelectButton->setStyleSheet(
+        "QToolButton { border: none; background: transparent; font-size: 16px; }"
+        "QToolButton::menu-indicator { image: none; }");
+    m_gameMenu = new QMenu(this);
+    for (int i = 0; i < m_engine->profileCount(); i++) {
+        GameProfile* p = m_engine->profileAt(i);
+        QAction* act = m_gameMenu->addAction(QString::fromWCharArray(p->displayName));
+        connect(act, &QAction::triggered, this, [this, i] {
+            m_engine->selectProfile(i);
+            refresh();
+        });
+    }
+    m_gameSelectButton->setMenu(m_gameMenu);
+    headerLayout->addWidget(m_gameSelectButton, 0, Qt::AlignRight | Qt::AlignVCenter);
 
-    m_rowsWidget = new QWidget(m_scrollArea);
+    m_mainLayout->addLayout(headerLayout);
+
+    // Rows container — built fresh on each refresh(), window sizes to content
+    m_rowsWidget = new QWidget(this);
     m_rowsLayout = new QVBoxLayout(m_rowsWidget);
     m_rowsLayout->setSpacing(2);
-    m_rowsLayout->addStretch();
-    m_scrollArea->setWidget(m_rowsWidget);
-    mainLayout->addWidget(m_scrollArea, 1);
+    m_rowsLayout->setContentsMargins(0, 0, 0, 0);
+    m_mainLayout->addWidget(m_rowsWidget);
 
     // Save button
     m_saveButton = new QPushButton("Save", this);
@@ -235,62 +252,44 @@ SettingsWindow::SettingsWindow(GameEngine* engine, QWidget* parent)
         m_engine->saveConfig();
         close();
     });
-    mainLayout->addWidget(m_saveButton);
+    m_mainLayout->addWidget(m_saveButton);
 }
 
 void SettingsWindow::refresh() {
-    // Clear existing rows
-    for (auto* r : m_rows) r->deleteLater();
     m_rows.clear();
-    // Remove all items except the trailing stretch
-    while (m_rowsLayout->count() > 1)
-        delete m_rowsLayout->takeAt(0);
+
+    // Replace the rows widget entirely so no stale children survive.
+    // Deleting m_rowsWidget recursively destroys all child widgets (rows, separators, etc.).
+    m_mainLayout->removeWidget(m_rowsWidget);
+    delete m_rowsWidget;
+
+    m_rowsWidget = new QWidget(this);
+    m_rowsLayout = new QVBoxLayout(m_rowsWidget);
+    m_rowsLayout->setSpacing(2);
+    m_rowsLayout->setContentsMargins(0, 0, 0, 0);
+    m_mainLayout->insertWidget(1, m_rowsWidget);  // between header and Save
 
     GameProfile* profile = m_engine->profileAt(m_engine->selectedIndex());
-    if (!profile) return;
+    if (!profile) { adjustSize(); return; }
 
     m_titleLabel->setText(QString::fromWCharArray(profile->settingsTitle));
 
     for (int i = 0; i < profile->bindingCount; i++) {
         const KeyBinding& b = profile->bindings[i];
 
-        // Separator
         if (b.separatorAbove) {
             auto* line = new QFrame(m_rowsWidget);
             line->setFrameShape(QFrame::HLine);
             line->setFrameShadow(QFrame::Sunken);
-            m_rowsLayout->insertWidget(m_rowsLayout->count() - 1, line);
-        }
-
-        // InGameKey, WalkModifier, DashKey: show as read-only info row
-        bool showRebind =
-            b.behavior.type != BehaviorType::WalkModifier &&
-            b.behavior.type != BehaviorType::DashKey;
-
-        if (!showRebind) {
-            auto* row = new QWidget(m_rowsWidget);
-            auto* lay = new QHBoxLayout(row);
-            lay->setContentsMargins(8, 2, 8, 2);
-            lay->addWidget(new QLabel(QString::fromWCharArray(b.label), row));
-            lay->addStretch();
-            lay->addWidget(new QLabel(BindingRow::vkToLabel(b.currentVk), row));
-            m_rowsLayout->insertWidget(m_rowsLayout->count() - 1, row);
-            continue;
+            m_rowsLayout->addWidget(line);
         }
 
         auto* row = new BindingRow(profile, i, m_rowsWidget);
-        connect(row, &BindingRow::bindingChanged, this, [] {
-            // No-op: changes are live; Save button persists them
-        });
         m_rows.push_back(row);
-        m_rowsLayout->insertWidget(m_rowsLayout->count() - 1, row);
+        m_rowsLayout->addWidget(row);
     }
 
-    // Size the dialog to show all rows without a scrollbar.
-    // Force the layout to compute sizes first, then temporarily set the scroll area's
-    // minimum height to the full content height so adjustSize() expands the window.
-    m_rowsLayout->activate();
-    m_scrollArea->setMinimumHeight(m_rowsWidget->sizeHint().height());
+    // Let Qt compute natural sizes then snap the window to fit.
+    m_mainLayout->activate();
     adjustSize();
-    m_scrollArea->setMinimumHeight(0);  // allow manual resize afterwards
 }

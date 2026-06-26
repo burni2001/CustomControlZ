@@ -1243,13 +1243,10 @@ CMakeFiles/CustomControlZ.dir/CustomControlZ_autogen/mocs_compilation.cpp.o: \
   /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/qlayout.h \
   /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/qlayoutitem.h \
   /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/qgridlayout.h \
-  /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/QScrollArea \
-  /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/qscrollarea.h \
-  /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/qabstractscrollarea.h \
-  /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/qframe.h \
   /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/QWidget \
   /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/QLabel \
   /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/qlabel.h \
+  /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/qframe.h \
   /opt/homebrew/opt/qt/lib/QtGui.framework/Headers/qpicture.h \
   /opt/homebrew/opt/qt/lib/QtCore.framework/Headers/qiodevice.h \
   /opt/homebrew/opt/qt/lib/QtGui.framework/Headers/qtextdocument.h \
@@ -1257,21 +1254,10 @@ CMakeFiles/CustomControlZ.dir/CustomControlZ_autogen/mocs_compilation.cpp.o: \
   /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/QPushButton \
   /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/qpushbutton.h \
   /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/qabstractbutton.h \
-  /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/QComboBox \
-  /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/qcombobox.h \
-  /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/qabstractitemdelegate.h \
-  /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/qstyleoption.h \
-  /opt/homebrew/opt/qt/lib/QtCore.framework/Headers/qlocale.h \
-  /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/qabstractspinbox.h \
-  /opt/homebrew/opt/qt/lib/QtGui.framework/Headers/qvalidator.h \
-  /opt/homebrew/opt/qt/lib/QtCore.framework/Headers/qregularexpression.h \
-  /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/qslider.h \
-  /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/qabstractslider.h \
-  /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/qstyle.h \
-  /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/qtabbar.h \
-  /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/qtabwidget.h \
-  /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/qrubberband.h \
-  /opt/homebrew/opt/qt/lib/QtCore.framework/Headers/qabstractitemmodel.h \
+  /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/QToolButton \
+  /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/qtoolbutton.h \
+  /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/QMenu \
+  /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/qmenu.h \
   /opt/homebrew/opt/qt/lib/QtGui.framework/Headers/qtextcursor.h \
   /opt/homebrew/opt/qt/lib/QtGui.framework/Headers/qtextformat.h \
   /opt/homebrew/opt/qt/lib/QtGui.framework/Headers/qpen.h \
@@ -1283,8 +1269,6 @@ CMakeFiles/CustomControlZ.dir/CustomControlZ_autogen/mocs_compilation.cpp.o: \
   /Users/Bernhard/Library/CloudStorage/OneDrive-Personal/Coding\ Projects/CustomControlZ/build-mac/CustomControlZ_autogen/S2RWXIVC6I/../../../src/mac/TrayIcon.h \
   /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/QSystemTrayIcon \
   /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/qsystemtrayicon.h \
-  /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/QMenu \
-  /opt/homebrew/opt/qt/lib/QtWidgets.framework/Headers/qmenu.h \
   /opt/homebrew/opt/qt/lib/QtGui.framework/Headers/QAction \
   /opt/homebrew/opt/qt/lib/QtGui.framework/Headers/QActionGroup \
   /opt/homebrew/opt/qt/lib/QtGui.framework/Headers/qactiongroup.h

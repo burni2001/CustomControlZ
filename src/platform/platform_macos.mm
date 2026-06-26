@@ -10,6 +10,7 @@
 
 #include <array>
 #include <atomic>
+#include <chrono>
 #include <functional>
 #include <string>
 #include <mutex>
@@ -151,12 +152,24 @@ private:
 
     // Physical keyboard state indexed by CGKeyCode (0-255)
     mutable std::mutex m_stateMutex;
-    bool m_physDown[256] = {};  // set by event tap from hardware events
+    bool     m_physDown[256]      = {};  // set by event tap from hardware events
+    uint64_t m_stickyUntilMs[256] = {};  // press-latch: keeps key "down" for at least kStickyMs
 
     static CGEventRef eventTapCB(CGEventTapProxy, CGEventType, CGEventRef, void*);
 
     static NSString* processToMatch(const wchar_t* processName);
 };
+
+// ---------------------------------------------------------------------------
+// Monotonic millisecond clock (used for press-latch)
+// ---------------------------------------------------------------------------
+static constexpr uint64_t kStickyMs = 30;  // minimum apparent press duration in ms
+
+static uint64_t nowMs() {
+    using namespace std::chrono;
+    return static_cast<uint64_t>(
+        duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count());
+}
 
 // ---------------------------------------------------------------------------
 // Event tap callback
@@ -180,8 +193,10 @@ CGEventRef MacPlatform::handleEvent(CGEventType type, CGEventRef event) {
     bool      down  = (type == kCGEventKeyDown);
 
     if (cgKey < 256) {
+        uint64_t expiry = down ? (nowMs() + kStickyMs) : 0;
         std::lock_guard<std::mutex> lk(m_stateMutex);
         m_physDown[cgKey] = down;
+        if (down) m_stickyUntilMs[cgKey] = expiry;
     }
 
     if (!m_hookCallback) return event;
@@ -317,7 +332,22 @@ void MacPlatform::injectMouseWheel(int delta) {
 // Key state queries
 // ---------------------------------------------------------------------------
 bool MacPlatform::isKeyDown(int vk) const {
-    return isKeyPhysicallyDown(vk);  // for macOS: no distinction needed (we don't track injected state separately)
+    if (vk <= 0 || vk >= 256) return false;
+    // Mouse buttons via NSEvent (no latch needed — held state is always correct)
+    switch (vk) {
+        case 0x01: return ([NSEvent pressedMouseButtons] & (1 << 0)) != 0;
+        case 0x02: return ([NSEvent pressedMouseButtons] & (1 << 1)) != 0;
+        case 0x04: return ([NSEvent pressedMouseButtons] & (1 << 2)) != 0;
+        case 0x05: return ([NSEvent pressedMouseButtons] & (1 << 3)) != 0;
+        case 0x06: return ([NSEvent pressedMouseButtons] & (1 << 4)) != 0;
+    }
+    uint8_t cgKey = vkToCGKey[vk];
+    if (cgKey == kNone) return false;
+    // Press-latch: a key press stays "down" for at least kStickyMs so the 10ms
+    // polling loop in GenericLogicThreadFn never misses a quick tap.
+    uint64_t now = nowMs();
+    std::lock_guard<std::mutex> lk(m_stateMutex);
+    return m_physDown[cgKey] || (now < m_stickyUntilMs[cgKey]);
 }
 
 bool MacPlatform::isKeyPhysicallyDown(int vk) const {
@@ -332,6 +362,7 @@ bool MacPlatform::isKeyPhysicallyDown(int vk) const {
     }
     uint8_t cgKey = vkToCGKey[vk];
     if (cgKey == kNone) return false;
+    // No latch here — SprintHoldDash needs exact physical state for roll detection.
     std::lock_guard<std::mutex> lk(m_stateMutex);
     return m_physDown[cgKey];
 }

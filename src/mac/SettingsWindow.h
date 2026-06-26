@@ -3,12 +3,11 @@
 
 #include <QDialog>
 #include <QVBoxLayout>
-#include <QScrollArea>
 #include <QWidget>
 #include <QLabel>
 #include <QPushButton>
-#include <QComboBox>
-#include <QScrollArea>
+#include <QToolButton>
+#include <QMenu>
 #include <vector>
 
 class GameEngine;
@@ -45,12 +44,14 @@ public:
     void refresh();
 
 private:
-    GameEngine*  m_engine       = nullptr;
-    QScrollArea* m_scrollArea   = nullptr;
-    QVBoxLayout* m_rowsLayout   = nullptr;
-    QWidget*     m_rowsWidget   = nullptr;
-    QLabel*      m_titleLabel   = nullptr;
-    QPushButton* m_saveButton   = nullptr;
+    GameEngine*  m_engine           = nullptr;
+    QVBoxLayout* m_mainLayout       = nullptr;
+    QVBoxLayout* m_rowsLayout       = nullptr;
+    QWidget*     m_rowsWidget       = nullptr;
+    QLabel*      m_titleLabel       = nullptr;
+    QPushButton* m_saveButton       = nullptr;
+    QToolButton* m_gameSelectButton = nullptr;
+    QMenu*       m_gameMenu         = nullptr;
 
     std::vector<BindingRow*> m_rows;
 };
