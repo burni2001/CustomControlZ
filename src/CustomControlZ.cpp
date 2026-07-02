@@ -53,7 +53,6 @@ void EnableDarkTitleBar(HWND hwnd) {
 #define WM_TRAYICON         (WM_USER + 1)
 #define ID_TRAY_SETTINGS    1001
 #define ID_TRAY_EXIT        1002
-#define ID_TRAY_CHANGE_GAME 1003
 #define ID_TRAY_AUTOSTART   1004
 #define ID_TRAY_TOOLTIPS    1005
 #define ID_TRAY_GAME_BASE   6000  // Game quick-select items: ID_TRAY_GAME_BASE + profile index
@@ -82,15 +81,13 @@ void EnableDarkTitleBar(HWND hwnd) {
 #define BTN_EXIT_SETTINGS           3001
 #define BTN_EXIT_APP                3002
 #define BTN_FONT_SETTINGS           3003
-#define BTN_CHANGE_GAME             3004
+#define BTN_MENU                    3005
 
-// Game selection window control IDs
-#define BTN_GAME_BASE        4000  // Game buttons: BTN_GAME_BASE + profile index
-#define BTN_SELECT_MINIMIZE  4997
-#define BTN_SELECT_CREDITS   4998
-#define BTN_SELECT_EXIT      4999
-#define ID_SELECT_TITLE      5000
-#define ID_SELECT_SUBTITLE   5001
+// Hamburger dropdown menu command IDs
+#define ID_MENU_ABOUT       5100
+#define ID_MENU_MINIMIZE    5101
+#define ID_MENU_EXIT        5102
+#define ID_MENU_GAME_BASE   5200  // Game items: ID_MENU_GAME_BASE + profile index
 
 // --- TIMING & BUFFER CONSTANTS ---
 
@@ -137,14 +134,6 @@ constexpr int LAYOUT_CLEAR_BUTTON_GAP     = 6;   // Gap between bind button and 
 constexpr int LAYOUT_SEPARATOR_PADDING    = 11;  // Extra vertical space above and below a separator line
 constexpr int LAYOUT_LABEL_INDENT         = 10;  // Left indent on key-row labels to clear the triangle indicator
 
-// Game select window layout
-constexpr int SELECT_TITLE_Y       = 19;
-constexpr int SELECT_SUBTITLE_Y    = 68;
-constexpr int SELECT_FIRST_BTN_Y   = 119;
-constexpr int SELECT_BTN_MARGIN_X  = 37;
-constexpr int SELECT_GAME_BTN_HEIGHT  = 79;  // Height of each game selection button
-constexpr int SELECT_GAME_BTN_SPACING = 90;  // Spacing between game buttons (height + 11px gap)
-
 // --- GAME PROFILE ARCHITECTURE ---
 
 #include "GameProfiles.h"
@@ -160,7 +149,6 @@ wchar_t g_fontName[FONT_NAME_BUFFER] = L"Palatino Linotype";
 HINSTANCE g_hInstance     = nullptr;
 HWND g_hMainWindow        = nullptr;
 HWND g_hSettingsWnd       = nullptr;
-HWND g_hGameSelectWnd     = nullptr;
 NOTIFYICONDATA g_nid      = {};
 std::atomic<bool> g_isAppRunning(true);
 std::atomic<int>  g_waitingForBindID(0);
@@ -171,8 +159,13 @@ bool  g_customIconsLoaded = false;
 bool  g_tooltipsEnabled  = true;
 
 HWND    g_hSettingsTooltip = nullptr;
-HWND    g_hSelectTooltip   = nullptr;
 WNDPROC g_origButtonProc   = nullptr;
+
+static const wchar_t CREDITS_TEXT[] =
+    L"Idea and development: B\u00f6rni (burni2001)\n\n"
+    L"Development tools:\n"
+    L"Claude Code, Visual Studio Code, GitHub Copilot\n\n"
+    L"Version: " APP_VERSION;
 
 GameProfile* g_activeProfile = nullptr;
 
@@ -249,7 +242,7 @@ void UpdateAllControlFonts(HWND hwnd) {
     }
 
     InvalidateRect(GetDlgItem(hwnd, BTN_FONT_SETTINGS), nullptr, TRUE);
-    InvalidateRect(GetDlgItem(hwnd, BTN_CHANGE_GAME),   nullptr, TRUE);
+    InvalidateRect(GetDlgItem(hwnd, BTN_MENU),          nullptr, TRUE);
     InvalidateRect(hwnd, nullptr, TRUE);
     UpdateWindow(hwnd);
 }
@@ -357,9 +350,8 @@ HMENU CreateTrayMenu() {
             AppendMenu(hMenu, flags, ID_TRAY_GAME_BASE + i, g_gameProfiles[i]->displayName);
         }
         AppendMenu(hMenu, MF_SEPARATOR, 0, nullptr);
-        if (g_activeProfile && g_hSettingsWnd)
+        if (g_hSettingsWnd)
             AppendMenu(hMenu, MF_STRING, ID_TRAY_SETTINGS, L"Settings");
-        AppendMenu(hMenu, MF_STRING, ID_TRAY_CHANGE_GAME, L"Select Game");
         AppendMenu(hMenu, MF_SEPARATOR, 0, nullptr);
         AppendMenu(hMenu, MF_STRING | (IsAutostartEnabled() ? MF_CHECKED : MF_UNCHECKED),
                    ID_TRAY_AUTOSTART, L"Start with Windows");
@@ -924,10 +916,29 @@ GameProfile* g_gameProfiles[] = {
 };
 const int g_gameProfileCount = static_cast<int>(ARRAYSIZE(g_gameProfiles));
 
+// Profile indices sorted alphabetically by displayName (built once on first use)
+static const int* SortedGameIndices() {
+    static int  order[ARRAYSIZE(g_gameProfiles)];
+    static bool built = false;
+    if (!built) {
+        for (int i = 0; i < g_gameProfileCount; i++) order[i] = i;
+        for (int i = 1; i < g_gameProfileCount; i++) {
+            int v = order[i], j = i - 1;
+            while (j >= 0 && _wcsicmp(g_gameProfiles[order[j]]->displayName,
+                                      g_gameProfiles[v]->displayName) > 0) {
+                order[j + 1] = order[j];
+                j--;
+            }
+            order[j + 1] = v;
+        }
+        built = true;
+    }
+    return order;
+}
+
 // --- SETTINGS WINDOW ---
 
-void ShowChangeGameUI(); // Forward declaration
-
+void OnGameSelected(int profileIndex, bool silent = false); // Forward declaration
 
 static int ComputeSettingsContentHeight(const GameProfile* profile) {
     int rowY = LAYOUT_TITLE_START + LAYOUT_TITLE_SPACING;
@@ -963,12 +974,14 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         g_hSettingsTooltip = CreateTooltipWnd(hwnd);
 
         // Top buttons
-        HWND hBtnChangeGame = CreateWindow(L"BUTTON", L"Back",
+        HWND hBtnMenu = CreateWindow(L"BUTTON", L"",
             WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
-            11, 11, LAYOUT_FONT_BUTTON_WIDTH, LAYOUT_FONT_BUTTON_HEIGHT,
-            hwnd, (HMENU)(INT_PTR)BTN_CHANGE_GAME, nullptr, nullptr);
-        SubclassButton(hBtnChangeGame);
-        AddTooltip(g_hSettingsTooltip, hBtnChangeGame, L"Switch to a different game profile");
+            11, 11, 44, LAYOUT_FONT_BUTTON_HEIGHT,
+            hwnd, (HMENU)(INT_PTR)BTN_MENU, nullptr, nullptr);
+        SubclassButton(hBtnMenu);
+        AddTooltip(g_hSettingsTooltip, hBtnMenu, L"Open menu");
+
+        if (!profile) break;
 
         HWND hBtnFont = CreateWindow(L"BUTTON", L"Font",
             WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
@@ -1389,6 +1402,55 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             SelectObject(hdc, hOldPen);
             DeleteObject(hLinePen);
             DeleteObject(hRowBrush);
+        } else {
+            // Empty state: no game selected yet
+            RECT cr;
+            GetClientRect(hwnd, &cr);
+            SetBkMode(hdc, TRANSPARENT);
+
+            const COLORREF accent = RGB(70, 130, 200);
+
+            // Credits, centered
+            HFONT hOldFont = (HFONT)SelectObject(hdc, g_hFontNormal);
+            SetTextColor(hdc, RGB(200, 200, 200));
+            RECT tr = { 0, 0, cr.right, 0 };
+            DrawText(hdc, CREDITS_TEXT, -1, &tr, DT_CENTER | DT_NOPREFIX | DT_CALCRECT);
+            int textH = tr.bottom;
+            RECT cRect = { 0, (cr.bottom - textH) / 2, cr.right, (cr.bottom + textH) / 2 };
+            DrawText(hdc, CREDITS_TEXT, -1, &cRect, DT_CENTER | DT_NOPREFIX);
+            SelectObject(hdc, hOldFont);
+
+            // Hand-drawn-style curved arrow pointing at the hamburger button
+            HPEN hArrowPen = CreatePen(PS_SOLID, 3, accent);
+            HPEN hOldPen   = (HPEN)SelectObject(hdc, hArrowPen);
+            POINT curve[7] = {
+                { 320, cRect.top - 30 },
+                { 262, cRect.top - 95 },
+                { 205, 165 },
+                { 158, 125 },
+                { 112,  86 },
+                { 100,  72 },
+                {  72,  52 }
+            };
+            PolyBezier(hdc, curve, 7);
+            MoveToEx(hdc, 72, 52, nullptr);
+            LineTo(hdc, 90, 68);
+            MoveToEx(hdc, 72, 52, nullptr);
+            LineTo(hdc, 96, 51);
+            SelectObject(hdc, hOldPen);
+            DeleteObject(hArrowPen);
+
+            // "Segoe Script" may not exist on stripped-down systems; CreateFont then
+            // silently substitutes another face, which still renders fine.
+            HFONT hScript = CreateFont(30, 0, 120, 120, FW_NORMAL, FALSE, FALSE, FALSE,
+                DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
+                CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Segoe Script");
+            hOldFont = (HFONT)SelectObject(hdc, hScript);
+            SetTextColor(hdc, accent);
+            static const wchar_t hint[] = L"Choose a game to start";
+            TextOut(hdc, 205, 130, hint, ARRAYSIZE(hint) - 1);
+            SelectObject(hdc, hOldFont);
+            DeleteObject(hScript);
         }
 
         // "More content below" indicator — drawn in physical coords, unaffected by scroll
@@ -1460,6 +1522,29 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             HDC hdc = pDIS->hDC;
             RECT rc = pDIS->rcItem;
 
+            if (pDIS->CtlID == BTN_MENU) {
+                // Hamburger: three lines on the window background, no border or fill
+                COLORREF bg = g_activeProfile ? g_activeProfile->theme.bg : RGB(20, 20, 20);
+                HBRUSH hBg = CreateSolidBrush(bg);
+                FillRect(hdc, &rc, hBg);
+                DeleteObject(hBg);
+
+                bool hovered = (GetProp(pDIS->hwndItem, L"CCZ_Hov") != nullptr);
+                COLORREF lineC = g_activeProfile ? g_activeProfile->theme.accent : RGB(200, 200, 200);
+                if (hovered) lineC = LightenColor(lineC, 45);
+                HPEN hPen    = CreatePen(PS_SOLID, 2, lineC);
+                HPEN hOldPen = (HPEN)SelectObject(hdc, hPen);
+                int cx = (rc.left + rc.right) / 2;
+                int cy = (rc.top + rc.bottom) / 2;
+                for (int k = -1; k <= 1; k++) {
+                    MoveToEx(hdc, cx - 10, cy + k * 7, nullptr);
+                    LineTo(hdc, cx + 10, cy + k * 7);
+                }
+                SelectObject(hdc, hOldPen);
+                DeleteObject(hPen);
+                return TRUE;
+            }
+
             ButtonStyle style = GetButtonStyle(pDIS->CtlID);
             {
                 bool hovered = (GetProp(pDIS->hwndItem, L"CCZ_Hov") != nullptr);
@@ -1491,8 +1576,43 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
     case WM_COMMAND: {
         int id = LOWORD(wParam);
-        if (id == BTN_CHANGE_GAME) {
-            ShowChangeGameUI();
+        if (id == BTN_MENU) {
+            HMENU hMenu = CreatePopupMenu();
+            if (hMenu) {
+                AppendMenu(hMenu, MF_STRING, ID_MENU_ABOUT, L"About");
+                AppendMenu(hMenu, MF_SEPARATOR, 0, nullptr);
+                const int* order = SortedGameIndices();
+                for (int i = 0; i < g_gameProfileCount; i++) {
+                    int idx = order[i];
+                    UINT flags = MF_STRING;
+                    if (g_activeProfile == g_gameProfiles[idx]) flags |= MF_CHECKED;
+                    AppendMenu(hMenu, flags, ID_MENU_GAME_BASE + idx, g_gameProfiles[idx]->displayName);
+                }
+                AppendMenu(hMenu, MF_SEPARATOR, 0, nullptr);
+                AppendMenu(hMenu, MF_STRING, ID_MENU_MINIMIZE, L"Minimize");
+                AppendMenu(hMenu, MF_STRING, ID_MENU_EXIT, L"Exit");
+
+                RECT br = {};
+                GetWindowRect(GetDlgItem(hwnd, BTN_MENU), &br);
+                int cmd = TrackPopupMenuEx(hMenu,
+                    TPM_LEFTALIGN | TPM_TOPALIGN | TPM_RETURNCMD,
+                    br.left, br.bottom, hwnd, nullptr);
+                DestroyMenu(hMenu);
+
+                if (cmd == ID_MENU_ABOUT) {
+                    MessageBox(hwnd, CREDITS_TEXT, L"About CustomControlZ",
+                               MB_OK | MB_ICONINFORMATION);
+                } else if (cmd >= ID_MENU_GAME_BASE && cmd < ID_MENU_GAME_BASE + g_gameProfileCount) {
+                    OnGameSelected(cmd - ID_MENU_GAME_BASE);
+                    return 0; // hwnd was destroyed and rebuilt by OnGameSelected
+                } else if (cmd == ID_MENU_MINIMIZE) {
+                    ShowWindow(hwnd, SW_HIDE);
+                    g_waitingForBindID = 0;
+                } else if (cmd == ID_MENU_EXIT) {
+                    SendMessage(hwnd, WM_CLOSE, 0, 0);
+                    return 0;
+                }
+            }
         } else if (id == BTN_FONT_SETTINGS) {
             CycleFontToNext();
             RecreateAllFonts();
@@ -1781,7 +1901,7 @@ bool CreateSettingsWindow(HINSTANCE hInstance, GameProfile* profile) {
     g_hSettingsWnd = CreateWindowEx(
         WS_EX_DLGMODALFRAME,
         L"CustomControlZSettingsClass",
-        profile->settingsTitle,
+        profile ? profile->settingsTitle : L"CustomControlZ",
         WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
         CW_USEDEFAULT, CW_USEDEFAULT,
         rcAdj.right - rcAdj.left, rcAdj.bottom - rcAdj.top,
@@ -1791,17 +1911,13 @@ bool CreateSettingsWindow(HINSTANCE hInstance, GameProfile* profile) {
     return g_hSettingsWnd != nullptr;
 }
 
-// --- GAME SELECTION WINDOW ---
+// --- GAME SELECTION ---
 
-void OnGameSelected(int profileIndex, bool silent = false) {
+void OnGameSelected(int profileIndex, bool silent) {
     // Persist last game for silent autostart on next launch
     wchar_t idxBuf[8];
     StringCchPrintf(idxBuf, ARRAYSIZE(idxBuf), L"%d", profileIndex);
     WritePrivateProfileString(L"App", L"LastGame", idxBuf, CONFIG_FILE);
-
-    // Capture position before hiding so settings window opens in same spot
-    RECT selectRect = {};
-    if (g_hGameSelectWnd) GetWindowRect(g_hGameSelectWnd, &selectRect);
 
     g_activeProfile = g_gameProfiles[profileIndex];
     LoadConfig(g_activeProfile);
@@ -1814,257 +1930,10 @@ void OnGameSelected(int profileIndex, bool silent = false) {
 
     if (!CreateSettingsWindow(g_hInstance, g_activeProfile)) return;
 
-    ShowWindow(g_hGameSelectWnd, SW_HIDE);
-
     if (!silent) {
-        // Place settings window at same screen position as game select window
-        if (selectRect.left != 0 || selectRect.top != 0) {
-            SetWindowPos(g_hSettingsWnd, nullptr,
-                         selectRect.left, selectRect.top, 0, 0,
-                         SWP_NOSIZE | SWP_NOZORDER);
-        }
         ShowWindow(g_hSettingsWnd, SW_SHOW);
         SetForegroundWindow(g_hSettingsWnd);
     }
-}
-
-void ShowChangeGameUI() {
-    // Capture position before hiding so game select opens in same spot
-    RECT settingsRect = {};
-    if (g_hSettingsWnd) {
-        GetWindowRect(g_hSettingsWnd, &settingsRect);
-        ShowWindow(g_hSettingsWnd, SW_HIDE);
-    }
-
-    if (g_hGameSelectWnd) {
-        if (settingsRect.left != 0 || settingsRect.top != 0) {
-            SetWindowPos(g_hGameSelectWnd, nullptr,
-                         settingsRect.left, settingsRect.top, 0, 0,
-                         SWP_NOSIZE | SWP_NOZORDER);
-        }
-        ShowWindow(g_hGameSelectWnd, SW_SHOW);
-        SetForegroundWindow(g_hGameSelectWnd);
-    }
-}
-
-LRESULT CALLBACK GameSelectProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-    switch (uMsg) {
-    case WM_CREATE: {
-        EnableDarkTitleBar(hwnd);
-
-        HFONT hFontTitle   = CreateFont(32, 0, 0, 0, FW_BOLD,   FALSE, FALSE, FALSE,
-                                        DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-                                        CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
-        HFONT hFontGameBtn = CreateFont(40, 0, 0, 0, FW_BOLD,   FALSE, FALSE, FALSE,
-                                        DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-                                        CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
-        HFONT hFontNormal  = CreateFont(20, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE,
-                                        DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS,
-                                        CLEARTYPE_QUALITY, DEFAULT_PITCH | FF_DONTCARE, L"Segoe UI");
-
-        // Store fonts in GWLP_USERDATA for cleanup: [0]=title, [1]=game button bold, [2]=normal
-        HFONT* fonts = new HFONT[3]{ hFontTitle, hFontGameBtn, hFontNormal };
-        SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)fonts);
-
-        HWND hTitle = CreateWindow(L"STATIC", L"CustomControlZ",
-            WS_VISIBLE | WS_CHILD | SS_CENTER,
-            0, SELECT_TITLE_Y, WINDOW_WIDTH, 55, hwnd,
-            (HMENU)(INT_PTR)ID_SELECT_TITLE, nullptr, nullptr);
-        SendMessage(hTitle, WM_SETFONT, (WPARAM)hFontTitle, TRUE);
-
-        HWND hSub = CreateWindow(L"STATIC", L"Game Selector",
-            WS_VISIBLE | WS_CHILD | SS_CENTER,
-            0, SELECT_SUBTITLE_Y, WINDOW_WIDTH, 37, hwnd,
-            (HMENU)(INT_PTR)ID_SELECT_SUBTITLE, nullptr, nullptr);
-        SendMessage(hSub, WM_SETFONT, (WPARAM)hFontNormal, TRUE);
-
-        g_hSelectTooltip = CreateTooltipWnd(hwnd);
-
-        // Game selection buttons — bold text, themed
-        for (int i = 0; i < g_gameProfileCount; i++) {
-            int btnY = SELECT_FIRST_BTN_Y + i * SELECT_GAME_BTN_SPACING;
-            HWND hB = CreateWindow(L"BUTTON", g_gameProfiles[i]->displayName,
-                WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
-                SELECT_BTN_MARGIN_X, btnY,
-                WINDOW_WIDTH - 2 * SELECT_BTN_MARGIN_X, SELECT_GAME_BTN_HEIGHT,
-                hwnd, (HMENU)(INT_PTR)(BTN_GAME_BASE + i), nullptr, nullptr);
-            SubclassButton(hB);
-            AddTooltip(g_hSelectTooltip, hB, g_gameProfiles[i]->displayName);
-        }
-
-        // Credits button (bottom-left)
-        int bottomY = WINDOW_HEIGHT - LAYOUT_BOTTOM_SPACING;
-        {
-            HWND hB = CreateWindow(L"BUTTON", L"Credits",
-                WS_VISIBLE | WS_CHILD | BS_OWNERDRAW,
-                11, bottomY, LAYOUT_FONT_BUTTON_WIDTH, LAYOUT_BOTTOM_BUTTON_HEIGHT,
-                hwnd, (HMENU)(INT_PTR)BTN_SELECT_CREDITS, nullptr, nullptr);
-            SubclassButton(hB);
-            AddTooltip(g_hSelectTooltip, hB, L"About CustomControlZ");
-        }
-        break;
-    }
-
-    case WM_ERASEBKGND: {
-        HDC hdc = (HDC)wParam;
-        RECT rc;
-        GetClientRect(hwnd, &rc);
-        HBRUSH hDark = CreateSolidBrush(RGB(20, 20, 20));
-        FillRect(hdc, &rc, hDark);
-        DeleteObject(hDark);
-        return 1;
-    }
-
-    case WM_CTLCOLORSTATIC: {
-        HDC hdcStatic = (HDC)wParam;
-        SetTextColor(hdcStatic, RGB(240, 240, 240));
-        SetBkMode(hdcStatic, TRANSPARENT);
-        return (LRESULT)GetStockObject(NULL_BRUSH);
-    }
-
-    case WM_DRAWITEM: {
-        LPDRAWITEMSTRUCT pDIS = (LPDRAWITEMSTRUCT)lParam;
-        if (pDIS->CtlType != ODT_BUTTON) break;
-
-        HDC  hdc = pDIS->hDC;
-        RECT rc  = pDIS->rcItem;
-        HFONT* fonts = (HFONT*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
-
-        bool hovered = (GetProp(pDIS->hwndItem, L"CCZ_Hov") != nullptr);
-
-        if (pDIS->CtlID == BTN_SELECT_EXIT) {
-            // Exit: dark red
-            COLORREF fillC = hovered ? LightenColor(RGB(140, 30, 30)) : RGB(140, 30, 30);
-            HBRUSH hBr = CreateSolidBrush(fillC);
-            FillRect(hdc, &rc, hBr);
-            DeleteObject(hBr);
-            HPEN hPen    = CreatePen(PS_SOLID, 2, RGB(200, 70, 70));
-            HPEN hOldPen = (HPEN)SelectObject(hdc, hPen);
-            HBRUSH hOldBr = (HBRUSH)SelectObject(hdc, GetStockObject(NULL_BRUSH));
-            Rectangle(hdc, rc.left, rc.top, rc.right, rc.bottom);
-            SelectObject(hdc, hOldPen); SelectObject(hdc, hOldBr);
-            DeleteObject(hPen);
-            if (fonts && fonts[2]) SelectObject(hdc, fonts[2]);
-            SetTextColor(hdc, RGB(255, 210, 210));
-            SetBkMode(hdc, TRANSPARENT);
-            DrawText(hdc, L"Exit", -1, &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-
-        } else if (pDIS->CtlID == BTN_SELECT_MINIMIZE || pDIS->CtlID == BTN_SELECT_CREDITS) {
-            // Minimize / Credits: neutral dark
-            COLORREF fillC = hovered ? LightenColor(RGB(40, 40, 40)) : RGB(40, 40, 40);
-            HBRUSH hBr = CreateSolidBrush(fillC);
-            FillRect(hdc, &rc, hBr);
-            DeleteObject(hBr);
-            HPEN hPen    = CreatePen(PS_SOLID, 2, RGB(100, 100, 100));
-            HPEN hOldPen = (HPEN)SelectObject(hdc, hPen);
-            HBRUSH hOldBr = (HBRUSH)SelectObject(hdc, GetStockObject(NULL_BRUSH));
-            Rectangle(hdc, rc.left, rc.top, rc.right, rc.bottom);
-            SelectObject(hdc, hOldPen); SelectObject(hdc, hOldBr);
-            DeleteObject(hPen);
-            if (fonts && fonts[2]) SelectObject(hdc, fonts[2]);
-            SetTextColor(hdc, RGB(220, 220, 220));
-            SetBkMode(hdc, TRANSPARENT);
-            wchar_t text[64];
-            GetWindowText(pDIS->hwndItem, text, ARRAYSIZE(text));
-            DrawText(hdc, text, -1, &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-
-        } else {
-            // Game button: themed background + bold game name
-            int idx = (int)pDIS->CtlID - BTN_GAME_BASE;
-            if (idx >= 0 && idx < g_gameProfileCount) {
-                GameProfile* gp = g_gameProfiles[idx];
-                COLORREF fillC = hovered ? LightenColor(gp->theme.selectBg) : gp->theme.selectBg;
-                HBRUSH hBr = CreateSolidBrush(fillC);
-                FillRect(hdc, &rc, hBr);
-                DeleteObject(hBr);
-                HPEN hPen    = CreatePen(PS_SOLID, 2, gp->theme.border);
-                HPEN hOldPen = (HPEN)SelectObject(hdc, hPen);
-                HBRUSH hOldBr = (HBRUSH)SelectObject(hdc, GetStockObject(NULL_BRUSH));
-                Rectangle(hdc, rc.left, rc.top, rc.right, rc.bottom);
-                SelectObject(hdc, hOldPen); SelectObject(hdc, hOldBr);
-                DeleteObject(hPen);
-                if (fonts && fonts[1]) SelectObject(hdc, fonts[1]);
-                SetTextColor(hdc, gp->theme.accent);
-                SetBkMode(hdc, TRANSPARENT);
-                wchar_t name[64];
-                wcsncpy_s(name, gp->displayName, ARRAYSIZE(name) - 1);
-                CharUpperW(name);
-                DrawText(hdc, name, -1, &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-            }
-        }
-        return TRUE;
-    }
-
-    case WM_SYSCOMMAND:
-        if ((wParam & 0xFFF0) == SC_MINIMIZE) {
-            ShowWindow(hwnd, SW_HIDE);
-            return 0;
-        }
-        break;
-
-    case WM_COMMAND: {
-        int id = LOWORD(wParam);
-        if (id == BTN_SELECT_CREDITS) {
-            MessageBox(hwnd,
-                L"Idea and development: B\u00f6rni (burni2001)\n\n"
-                L"Development tools:\n"
-                L"Claude Code, Visual Studio Code, GitHub Copilot\n\n"
-                L"Version: " APP_VERSION,
-                L"Credits", MB_OK | MB_ICONINFORMATION);
-        } else if (id >= BTN_GAME_BASE && id < BTN_GAME_BASE + g_gameProfileCount) {
-            OnGameSelected(id - BTN_GAME_BASE);
-        }
-        break;
-    }
-
-    case WM_MOVE:
-        SaveWindowPos(L"SelectWin", hwnd);
-        break;
-
-    case WM_CLOSE:
-        DestroyWindow(g_hMainWindow);
-        return 0;
-
-    case WM_DESTROY: {
-        HFONT* fonts = (HFONT*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
-        if (fonts) {
-            for (int i = 0; i < 3; i++) if (fonts[i]) DeleteObject(fonts[i]);
-            delete[] fonts;
-            SetWindowLongPtr(hwnd, GWLP_USERDATA, 0);
-        }
-        g_hSelectTooltip = nullptr; // child destroyed with the window
-        break;
-    }
-    }
-    return DefWindowProc(hwnd, uMsg, wParam, lParam);
-}
-
-bool CreateGameSelectionWindow(HINSTANCE hInstance) {
-    WNDCLASS wc = {};
-    wc.lpfnWndProc   = GameSelectProc;
-    wc.hInstance     = hInstance;
-    wc.lpszClassName = L"CustomControlZSelectClass";
-    wc.hbrBackground = nullptr;
-    wc.hCursor       = LoadCursor(nullptr, IDC_ARROW);
-    wc.hIcon         = LoadIcon(hInstance, MAKEINTRESOURCE(ICON_ID_EXE));
-    if (!RegisterClass(&wc)) return false;
-
-    RECT rcAdj = { 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT };
-    AdjustWindowRectEx(&rcAdj,
-        WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
-        FALSE, WS_EX_DLGMODALFRAME);
-
-    g_hGameSelectWnd = CreateWindowEx(
-        WS_EX_DLGMODALFRAME,
-        L"CustomControlZSelectClass",
-        L"CustomControlZ",
-        WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
-        CW_USEDEFAULT, CW_USEDEFAULT,
-        rcAdj.right - rcAdj.left, rcAdj.bottom - rcAdj.top,
-        nullptr, nullptr, hInstance, nullptr
-    );
-    if (g_hGameSelectWnd) RestoreOrCenterWindow(L"SelectWin", g_hGameSelectWnd);
-    return g_hGameSelectWnd != nullptr;
 }
 
 // --- MAIN TRAY WINDOW ---
@@ -2073,12 +1942,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
     switch (uMsg) {
     case WM_TRAYICON:
         if (lParam == WM_LBUTTONDBLCLK) {
-            if (g_activeProfile && g_hSettingsWnd) {
+            if (g_hSettingsWnd) {
                 ShowWindow(g_hSettingsWnd, SW_SHOW);
                 SetForegroundWindow(g_hSettingsWnd);
-            } else if (g_hGameSelectWnd) {
-                ShowWindow(g_hGameSelectWnd, SW_SHOW);
-                SetForegroundWindow(g_hGameSelectWnd);
             }
         } else if (lParam == WM_RBUTTONUP) {
             POINT curPoint;
@@ -2098,15 +1964,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                 if (cmd >= ID_TRAY_GAME_BASE && cmd < ID_TRAY_GAME_BASE + g_gameProfileCount) {
                     OnGameSelected(cmd - ID_TRAY_GAME_BASE);
                 } else if (cmd == ID_TRAY_SETTINGS) {
-                    if (g_activeProfile && g_hSettingsWnd) {
+                    if (g_hSettingsWnd) {
                         ShowWindow(g_hSettingsWnd, SW_SHOW);
                         SetForegroundWindow(g_hSettingsWnd);
-                    } else if (g_hGameSelectWnd) {
-                        ShowWindow(g_hGameSelectWnd, SW_SHOW);
-                        SetForegroundWindow(g_hGameSelectWnd);
                     }
-                } else if (cmd == ID_TRAY_CHANGE_GAME) {
-                    ShowChangeGameUI();
                 } else if (cmd == ID_TRAY_AUTOSTART) {
                     SetAutostart(!IsAutostartEnabled());
                 } else if (cmd == ID_TRAY_TOOLTIPS) {
@@ -2114,7 +1975,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                     WritePrivateProfileString(L"App", L"Tooltips",
                         g_tooltipsEnabled ? L"1" : L"0", CONFIG_FILE);
                     if (g_hSettingsTooltip) SendMessage(g_hSettingsTooltip, TTM_ACTIVATE, g_tooltipsEnabled, 0);
-                    if (g_hSelectTooltip)   SendMessage(g_hSelectTooltip,   TTM_ACTIVATE, g_tooltipsEnabled, 0);
                 } else if (cmd == ID_TRAY_EXIT) {
                     DestroyWindow(hwnd);
                 }
@@ -2126,8 +1986,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
     case WM_DESTROY:
         StopAllGameLogicThreads();
-        if (g_hSettingsWnd)   { DestroyWindow(g_hSettingsWnd);   g_hSettingsWnd   = nullptr; }
-        if (g_hGameSelectWnd) { DestroyWindow(g_hGameSelectWnd); g_hGameSelectWnd = nullptr; }
+        if (g_hSettingsWnd) { DestroyWindow(g_hSettingsWnd); g_hSettingsWnd = nullptr; }
         Shell_NotifyIcon(NIM_DELETE, &g_nid);
         CleanupIcons();
         CleanupBrushes();
@@ -2212,12 +2071,6 @@ int APIENTRY wWinMain(
         g_hIconActive = LoadIcon(nullptr, IDI_SHIELD);
     }
 
-    // Create game selection window (shown on launch)
-    if (!CreateGameSelectionWindow(hInstance)) {
-        SafeCloseMutex(hMutex);
-        return -1;
-    }
-
     // Create hidden tray window
     WNDCLASS wcTray = {};
     wcTray.lpfnWndProc   = WindowProc;
@@ -2246,13 +2099,22 @@ int APIENTRY wWinMain(
     StringCchCopy(g_nid.szTip, ARRAYSIZE(g_nid.szTip), L"CustomControlZ");
     AddTrayIconWithRetry(&g_nid);
 
-    // If a game was previously selected, open its settings window silently; otherwise show game selector
+    // If a game was previously selected, open its settings window silently;
+    // otherwise show the settings window in its empty state so the user can pick a game
     int lastGame = GetPrivateProfileInt(L"App", L"LastGame", -1, CONFIG_FILE);
     if (lastGame >= 0 && lastGame < g_gameProfileCount) {
         OnGameSelected(lastGame, true);
     } else {
-        ShowWindow(g_hGameSelectWnd, SW_SHOW);
-        SetForegroundWindow(g_hGameSelectWnd);
+        CleanupBrushes();
+        g_hBrushBg     = CreateSolidBrush(RGB(20, 20, 20));
+        g_hBrushButton = CreateSolidBrush(RGB(40, 40, 40));
+        g_hBrushExit   = CreateSolidBrush(RGB(140, 30, 30));
+        if (!CreateSettingsWindow(hInstance, nullptr)) {
+            SafeCloseMutex(hMutex);
+            return -1;
+        }
+        ShowWindow(g_hSettingsWnd, SW_SHOW);
+        SetForegroundWindow(g_hSettingsWnd);
     }
 
     // All game logic threads run simultaneously; each activates only when its game process is detected
