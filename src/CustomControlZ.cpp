@@ -94,7 +94,6 @@ int DarkMessageBox(HWND hwnd, LPCWSTR text, LPCWSTR caption, UINT type) {
 #define ID_TRAY_EXIT        1002
 #define ID_TRAY_AUTOSTART   1004
 #define ID_TRAY_TOOLTIPS    1005
-#define ID_TRAY_GAME_BASE   6000  // Game quick-select items: ID_TRAY_GAME_BASE + profile index
 
 // Settings window control IDs
 #define BTN_BIND_BASE               2001  // Bind buttons: BTN_BIND_BASE + binding index
@@ -387,15 +386,6 @@ HMENU CreateTrayMenu() {
     if (hMenu) {
         if (g_hSettingsWnd)
             AppendMenu(hMenu, MF_STRING, ID_TRAY_SETTINGS, L"Open");
-        AppendMenu(hMenu, MF_SEPARATOR, 0, nullptr);
-        // Quick game selection, alphabetically sorted
-        const int* order = SortedGameIndices();
-        for (int i = 0; i < g_gameProfileCount; i++) {
-            int idx = order[i];
-            UINT flags = MF_STRING;
-            if (g_activeProfile == g_gameProfiles[idx]) flags |= MF_CHECKED;
-            AppendMenu(hMenu, flags, ID_TRAY_GAME_BASE + idx, g_gameProfiles[idx]->displayName);
-        }
         AppendMenu(hMenu, MF_SEPARATOR, 0, nullptr);
         AppendMenu(hMenu, MF_STRING | (IsAutostartEnabled() ? MF_CHECKED : MF_UNCHECKED),
                    ID_TRAY_AUTOSTART, L"Start with Windows");
@@ -2017,9 +2007,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                 DestroyMenu(hMenu);
                 SetWindowPos(hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
 
-                if (cmd >= ID_TRAY_GAME_BASE && cmd < ID_TRAY_GAME_BASE + g_gameProfileCount) {
-                    OnGameSelected(cmd - ID_TRAY_GAME_BASE);
-                } else if (cmd == ID_TRAY_SETTINGS) {
+                if (cmd == ID_TRAY_SETTINGS) {
                     if (g_hSettingsWnd) {
                         ShowWindow(g_hSettingsWnd, SW_SHOW);
                         SetForegroundWindow(g_hSettingsWnd);
