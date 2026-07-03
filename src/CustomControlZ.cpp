@@ -44,6 +44,19 @@ void EnableDarkTitleBar(HWND hwnd) {
 // Recursively themes a MessageBox dialog and its child controls (buttons, static
 // text) to match the app's dark UI. Standard MessageBox windows aren't touched by
 // SetPreferredAppMode(AllowDark) on their own, so this is applied via a CBT hook.
+static HBRUSH  g_hDarkMsgBoxBrush = nullptr;
+static WNDPROC g_origDlgProc      = nullptr;
+
+static LRESULT CALLBACK DarkMessageBoxDlgProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
+    if (msg == WM_CTLCOLORDLG || msg == WM_CTLCOLORSTATIC) {
+        HDC hdc = (HDC)wp;
+        SetTextColor(hdc, RGB(200, 200, 200));
+        SetBkColor(hdc, RGB(20, 20, 20));
+        return (LRESULT)g_hDarkMsgBoxBrush;
+    }
+    return CallWindowProc(g_origDlgProc, hwnd, msg, wp, lp);
+}
+
 static BOOL CALLBACK DarkenMessageBoxChild(HWND hwnd, LPARAM) {
     wchar_t className[32] = {};
     GetClassName(hwnd, className, ARRAYSIZE(className));
@@ -64,6 +77,9 @@ static LRESULT CALLBACK DarkMessageBoxCbtProc(int code, WPARAM wParam, LPARAM lP
             EnableDarkTitleBar(hDlg);
             SetWindowTheme(hDlg, L"DarkMode_Explorer", nullptr);
             EnumChildWindows(hDlg, DarkenMessageBoxChild, 0);
+            if (!g_hDarkMsgBoxBrush) g_hDarkMsgBoxBrush = CreateSolidBrush(RGB(20, 20, 20));
+            g_origDlgProc = (WNDPROC)(LONG_PTR)GetWindowLongPtr(hDlg, GWLP_WNDPROC);
+            SetWindowLongPtr(hDlg, GWLP_WNDPROC, (LONG_PTR)DarkMessageBoxDlgProc);
         }
     }
     return CallNextHookEx(g_hDarkMsgBoxHook, code, wParam, lParam);
