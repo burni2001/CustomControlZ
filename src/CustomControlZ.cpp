@@ -75,11 +75,22 @@ static LRESULT CALLBACK DarkMessageBoxCbtProc(int code, WPARAM wParam, LPARAM lP
         GetClassName(hDlg, className, ARRAYSIZE(className));
         if (wcscmp(className, L"#32770") == 0) {
             EnableDarkTitleBar(hDlg);
-            SetWindowTheme(hDlg, L"DarkMode_Explorer", nullptr);
+            // Disabling the dialog's own visual style (rather than theming it
+            // DarkMode_Explorer) avoids Windows 11's two-tone button-strip
+            // background, which is painted by theme engine and ignores our
+            // WM_CTLCOLORDLG/WM_CTLCOLORSTATIC handling. Child controls are
+            // still themed dark individually below.
+            SetWindowTheme(hDlg, L"", L"");
             EnumChildWindows(hDlg, DarkenMessageBoxChild, 0);
             if (!g_hDarkMsgBoxBrush) g_hDarkMsgBoxBrush = CreateSolidBrush(RGB(20, 20, 20));
-            g_origDlgProc = (WNDPROC)(LONG_PTR)GetWindowLongPtr(hDlg, GWLP_WNDPROC);
-            SetWindowLongPtr(hDlg, GWLP_WNDPROC, (LONG_PTR)DarkMessageBoxDlgProc);
+            // HCBT_ACTIVATE can fire more than once for the same dialog (e.g. a
+            // screenshot tool briefly stealing and returning focus). Only subclass
+            // once, otherwise the second pass captures our own proc as "original"
+            // and CallWindowProc recurses into itself infinitely (stack overflow).
+            if (GetWindowLongPtr(hDlg, GWLP_WNDPROC) != (LONG_PTR)DarkMessageBoxDlgProc) {
+                g_origDlgProc = (WNDPROC)(LONG_PTR)GetWindowLongPtr(hDlg, GWLP_WNDPROC);
+                SetWindowLongPtr(hDlg, GWLP_WNDPROC, (LONG_PTR)DarkMessageBoxDlgProc);
+            }
         }
     }
     return CallNextHookEx(g_hDarkMsgBoxHook, code, wParam, lParam);
