@@ -67,7 +67,7 @@ static GameProfile g_ValheimProfile = {
           /*isAppOnly=*/false, /*separatorAbove=*/true },
 
         // VH_KEY_WEAPON_2: InGameKey -- item slot 2
-        { L"Item slot",
+        { L"Item slot 1-8",
           '2', '2',
           { BehaviorType::InGameKey },
           /*isAppOnly=*/false },
