@@ -20,7 +20,6 @@ static GameProfile g_DarktideProfile = {
     /* tipActive     */ L"CustomControlZ - Darktide: ACTIVE",
     /* tipIdle       */ L"CustomControlZ: Waiting...",
     /* settingsTitle */ L"Warhammer 40,000: Darktide - Key Bindings",
-    /* posterFile    */ L"assets\\darktide.png",
     /* theme */ {
         RGB(18,  28,  18),  // bg              - dark grey-green (settings background)
         RGB(140, 235, 140), // text             - light green (settings font)

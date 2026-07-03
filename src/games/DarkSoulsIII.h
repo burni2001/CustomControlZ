@@ -30,7 +30,6 @@ static GameProfile g_DarkSoulsIIIProfile = {
     /* tipActive     */ L"CustomControlZ - Dark Souls III: ACTIVE",
     /* tipIdle       */ L"CustomControlZ: Waiting...",
     /* settingsTitle */ L"DARK SOULS\u2122 III - Key Bindings",
-    /* posterFile    */ L"assets\\darksoulsiii.png",
     /* theme */ {
         RGB(12, 11, 10),    // bg              -- near-black (settings window)
         RGB(225, 220, 210), // text            -- warm off-white

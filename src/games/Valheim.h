@@ -20,7 +20,6 @@ static GameProfile g_ValheimProfile = {
     /* tipActive     */ L"CustomControlZ - Valheim: ACTIVE",
     /* tipIdle       */ L"CustomControlZ: Waiting...",
     /* settingsTitle */ L"VALHEIM - Key Bindings",
-    /* posterFile    */ L"assets\\valheim.png",
     /* theme */ {
         RGB(48, 40, 55),    // bg              -- purple-grey (settings window)
         RGB(230, 165, 40),  // text            -- yellow-orange

@@ -22,7 +22,6 @@ static GameProfile g_ToxicCommandoProfile = {
     /* tipActive     */ L"CustomControlZ - Toxic Commando: ACTIVE",
     /* tipIdle       */ L"CustomControlZ: Waiting...",
     /* settingsTitle */ L"Toxic Commando - Key Bindings",
-    /* posterFile    */ L"assets\\toxic.png",
     /* theme */ {
         RGB(0, 0, 0),       // bg         - black
         RGB(255, 255, 255), // text        - white
