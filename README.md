@@ -27,7 +27,7 @@ Main reason for this app is for myself and my unwillingness to learn new button 
 
 ## Screenshots
 
-**Tray Menu**
+**Menu**
 
 ![Tray Menu](src/assets/Screenshot%202026-07-03%20100936.png)
 
