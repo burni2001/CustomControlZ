@@ -44,30 +44,30 @@ static GameProfile g_ValheimProfile = {
             .outputVk = VK_XBUTTON2,
             .longOutputVk = VK_SPACE,
             .durationMs = 0,
-            .outputVkLabel = L"Block key",
+            .outputVkLabel = L"Block",
             .longOutputVkLabel = L"Jump key" },
           /*isAppOnly=*/true },
 
         // VH_KEY_HAMMER_8: InGameKey -- item slot 8
-        { L"HammerKey", L"Item slot 8",
+        { L"Item slot 1-8",
           '8', '8',
           { BehaviorType::InGameKey },
           /*isAppOnly=*/false, /*separatorAbove=*/true },
 
         // VH_KEY_HAMMER_TIME: SimulateKey -- custom key that presses item slot 8
-        { L"HammerTimeKey", L"Custom Key: Item slot 8",
+        { L"Custom Key: Item slot",
           'B', 'B',
           { .type = BehaviorType::SimulateKey },
           /*isAppOnly=*/true },
 
         // VH_KEY_WEAPON_1: InGameKey -- item slot 1
-        { L"Weapon1Key", L"Item slot 1",
+        { L"Item slot 1-8",
           '1', '1',
           { BehaviorType::InGameKey },
           /*isAppOnly=*/false, /*separatorAbove=*/true },
 
         // VH_KEY_WEAPON_2: InGameKey -- item slot 2
-        { L"Weapon2Key", L"Item slot 2",
+        { L"Item slot",
           '2', '2',
           { BehaviorType::InGameKey },
           /*isAppOnly=*/false },
