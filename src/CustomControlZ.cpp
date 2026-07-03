@@ -87,6 +87,8 @@ void EnableDarkTitleBar(HWND hwnd) {
 #define ID_MENU_ABOUT       5100
 #define ID_MENU_MINIMIZE    5101
 #define ID_MENU_EXIT        5102
+#define ID_MENU_AUTOSTART   5103
+#define ID_MENU_TOOLTIPS    5104
 #define ID_MENU_GAME_BASE   5200  // Game items: ID_MENU_GAME_BASE + profile index
 
 // --- TIMING & BUFFER CONSTANTS ---
@@ -172,6 +174,7 @@ GameProfile* g_activeProfile = nullptr;
 // Forward declarations — defined after game headers are included (~line 788)
 extern GameProfile* g_gameProfiles[];
 extern const int    g_gameProfileCount;
+static const int*   SortedGameIndices();
 
 HBRUSH g_hBrushBg     = nullptr;
 HBRUSH g_hBrushButton = nullptr;
@@ -343,15 +346,17 @@ void SetAutostart(bool enable) {
 HMENU CreateTrayMenu() {
     HMENU hMenu = CreatePopupMenu();
     if (hMenu) {
-        // Quick game selection
-        for (int i = 0; i < g_gameProfileCount; i++) {
-            UINT flags = MF_STRING;
-            if (g_activeProfile == g_gameProfiles[i]) flags |= MF_CHECKED;
-            AppendMenu(hMenu, flags, ID_TRAY_GAME_BASE + i, g_gameProfiles[i]->displayName);
-        }
-        AppendMenu(hMenu, MF_SEPARATOR, 0, nullptr);
         if (g_hSettingsWnd)
-            AppendMenu(hMenu, MF_STRING, ID_TRAY_SETTINGS, L"Settings");
+            AppendMenu(hMenu, MF_STRING, ID_TRAY_SETTINGS, L"Open");
+        AppendMenu(hMenu, MF_SEPARATOR, 0, nullptr);
+        // Quick game selection, alphabetically sorted
+        const int* order = SortedGameIndices();
+        for (int i = 0; i < g_gameProfileCount; i++) {
+            int idx = order[i];
+            UINT flags = MF_STRING;
+            if (g_activeProfile == g_gameProfiles[idx]) flags |= MF_CHECKED;
+            AppendMenu(hMenu, flags, ID_TRAY_GAME_BASE + idx, g_gameProfiles[idx]->displayName);
+        }
         AppendMenu(hMenu, MF_SEPARATOR, 0, nullptr);
         AppendMenu(hMenu, MF_STRING | (IsAutostartEnabled() ? MF_CHECKED : MF_UNCHECKED),
                    ID_TRAY_AUTOSTART, L"Start with Windows");
@@ -1258,7 +1263,7 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
         if (g_activeProfile) {
             // Legend: colored squares showing what each stripe color means
-            int legendY = LAYOUT_TITLE_START + LAYOUT_TITLE_HEIGHT + 3;
+            int legendY = LAYOUT_TITLE_START + LAYOUT_TITLE_HEIGHT + 14;
             HFONT hOldFont = (HFONT)SelectObject(hdc, g_hFontImprint);
             SetTextColor(hdc, g_activeProfile->theme.text);
             SetBkMode(hdc, TRANSPARENT);
@@ -1589,6 +1594,11 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                     AppendMenu(hMenu, flags, ID_MENU_GAME_BASE + idx, g_gameProfiles[idx]->displayName);
                 }
                 AppendMenu(hMenu, MF_SEPARATOR, 0, nullptr);
+                AppendMenu(hMenu, MF_STRING | (IsAutostartEnabled() ? MF_CHECKED : MF_UNCHECKED),
+                           ID_MENU_AUTOSTART, L"Start with Windows");
+                AppendMenu(hMenu, MF_STRING | (g_tooltipsEnabled ? MF_CHECKED : MF_UNCHECKED),
+                           ID_MENU_TOOLTIPS, L"Show tooltips");
+                AppendMenu(hMenu, MF_SEPARATOR, 0, nullptr);
                 AppendMenu(hMenu, MF_STRING, ID_MENU_MINIMIZE, L"Minimize");
                 AppendMenu(hMenu, MF_STRING, ID_MENU_EXIT, L"Exit");
 
@@ -1605,6 +1615,13 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                 } else if (cmd >= ID_MENU_GAME_BASE && cmd < ID_MENU_GAME_BASE + g_gameProfileCount) {
                     OnGameSelected(cmd - ID_MENU_GAME_BASE);
                     return 0; // hwnd was destroyed and rebuilt by OnGameSelected
+                } else if (cmd == ID_MENU_AUTOSTART) {
+                    SetAutostart(!IsAutostartEnabled());
+                } else if (cmd == ID_MENU_TOOLTIPS) {
+                    g_tooltipsEnabled = !g_tooltipsEnabled;
+                    WritePrivateProfileString(L"App", L"Tooltips",
+                        g_tooltipsEnabled ? L"1" : L"0", CONFIG_FILE);
+                    if (g_hSettingsTooltip) SendMessage(g_hSettingsTooltip, TTM_ACTIVATE, g_tooltipsEnabled, 0);
                 } else if (cmd == ID_MENU_MINIMIZE) {
                     ShowWindow(hwnd, SW_HIDE);
                     g_waitingForBindID = 0;

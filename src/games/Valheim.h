@@ -55,7 +55,7 @@ static GameProfile g_ValheimProfile = {
           /*isAppOnly=*/false, /*separatorAbove=*/true },
 
         // VH_KEY_HAMMER_TIME: SimulateKey -- custom key that presses item slot 8
-        { L"HammerTimeKey", L"Custom Key: Item slot",
+        { L"HammerTimeKey", L"Custom Key: Quick Select Item slot",
           'B', 'B',
           { .type = BehaviorType::SimulateKey },
           /*isAppOnly=*/true },
