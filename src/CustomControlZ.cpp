@@ -41,6 +41,45 @@ void EnableDarkTitleBar(HWND hwnd) {
     DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &useDarkMode, sizeof(useDarkMode));
 }
 
+// Recursively themes a MessageBox dialog and its child controls (buttons, static
+// text) to match the app's dark UI. Standard MessageBox windows aren't touched by
+// SetPreferredAppMode(AllowDark) on their own, so this is applied via a CBT hook.
+static BOOL CALLBACK DarkenMessageBoxChild(HWND hwnd, LPARAM) {
+    wchar_t className[32] = {};
+    GetClassName(hwnd, className, ARRAYSIZE(className));
+    if (wcscmp(className, L"Button") == 0 || wcscmp(className, L"Static") == 0) {
+        SetWindowTheme(hwnd, L"DarkMode_Explorer", nullptr);
+    }
+    return TRUE;
+}
+
+static HHOOK g_hDarkMsgBoxHook = nullptr;
+
+static LRESULT CALLBACK DarkMessageBoxCbtProc(int code, WPARAM wParam, LPARAM lParam) {
+    if (code == HCBT_ACTIVATE) {
+        HWND hDlg = (HWND)wParam;
+        wchar_t className[32] = {};
+        GetClassName(hDlg, className, ARRAYSIZE(className));
+        if (wcscmp(className, L"#32770") == 0) {
+            EnableDarkTitleBar(hDlg);
+            SetWindowTheme(hDlg, L"DarkMode_Explorer", nullptr);
+            EnumChildWindows(hDlg, DarkenMessageBoxChild, 0);
+        }
+    }
+    return CallNextHookEx(g_hDarkMsgBoxHook, code, wParam, lParam);
+}
+
+// Drop-in replacement for MessageBox() that dark-themes the dialog to match the app.
+int DarkMessageBox(HWND hwnd, LPCWSTR text, LPCWSTR caption, UINT type) {
+    g_hDarkMsgBoxHook = SetWindowsHookEx(WH_CBT, DarkMessageBoxCbtProc, nullptr, GetCurrentThreadId());
+    int result = MessageBox(hwnd, text, caption, type);
+    if (g_hDarkMsgBoxHook) {
+        UnhookWindowsHookEx(g_hDarkMsgBoxHook);
+        g_hDarkMsgBoxHook = nullptr;
+    }
+    return result;
+}
+
 // --- RESOURCE IDs ---
 
 #include "resource.h"
@@ -1610,8 +1649,8 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                 DestroyMenu(hMenu);
 
                 if (cmd == ID_MENU_ABOUT) {
-                    MessageBox(hwnd, CREDITS_TEXT, L"About CustomControlZ",
-                               MB_OK | MB_ICONINFORMATION);
+                    DarkMessageBox(hwnd, CREDITS_TEXT, L"About CustomControlZ",
+                                   MB_OK | MB_ICONINFORMATION);
                 } else if (cmd >= ID_MENU_GAME_BASE && cmd < ID_MENU_GAME_BASE + g_gameProfileCount) {
                     OnGameSelected(cmd - ID_MENU_GAME_BASE);
                     return 0; // hwnd was destroyed and rebuilt by OnGameSelected
@@ -1879,8 +1918,8 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         break;
 
     case WM_CLOSE:
-        if (MessageBox(hwnd, L"Are you sure you want to exit?", L"Exit",
-                       MB_YESNO | MB_ICONQUESTION) == IDYES) {
+        if (DarkMessageBox(hwnd, L"Are you sure you want to exit?", L"Exit",
+                           MB_YESNO | MB_ICONQUESTION) == IDYES) {
             DestroyWindow(g_hMainWindow);
         }
         return 0;
