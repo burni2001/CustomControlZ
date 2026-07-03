@@ -1,5 +1,7 @@
 #include <windows.h>
 #include <shellapi.h>
+#include <shlobj.h>
+#pragma comment(lib, "shell32.lib")
 #include <tlhelp32.h>
 #include <strsafe.h>
 #include <string>
@@ -39,72 +41,6 @@ void EnableWindows11DarkMode() {
 void EnableDarkTitleBar(HWND hwnd) {
     BOOL useDarkMode = TRUE;
     DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &useDarkMode, sizeof(useDarkMode));
-}
-
-// Recursively themes a MessageBox dialog and its child controls (buttons, static
-// text) to match the app's dark UI. Standard MessageBox windows aren't touched by
-// SetPreferredAppMode(AllowDark) on their own, so this is applied via a CBT hook.
-static HBRUSH  g_hDarkMsgBoxBrush = nullptr;
-static WNDPROC g_origDlgProc      = nullptr;
-
-static LRESULT CALLBACK DarkMessageBoxDlgProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
-    if (msg == WM_CTLCOLORDLG || msg == WM_CTLCOLORSTATIC) {
-        HDC hdc = (HDC)wp;
-        SetTextColor(hdc, RGB(200, 200, 200));
-        SetBkColor(hdc, RGB(20, 20, 20));
-        return (LRESULT)g_hDarkMsgBoxBrush;
-    }
-    return CallWindowProc(g_origDlgProc, hwnd, msg, wp, lp);
-}
-
-static BOOL CALLBACK DarkenMessageBoxChild(HWND hwnd, LPARAM) {
-    wchar_t className[32] = {};
-    GetClassName(hwnd, className, ARRAYSIZE(className));
-    if (wcscmp(className, L"Button") == 0 || wcscmp(className, L"Static") == 0) {
-        SetWindowTheme(hwnd, L"DarkMode_Explorer", nullptr);
-    }
-    return TRUE;
-}
-
-static HHOOK g_hDarkMsgBoxHook = nullptr;
-
-static LRESULT CALLBACK DarkMessageBoxCbtProc(int code, WPARAM wParam, LPARAM lParam) {
-    if (code == HCBT_ACTIVATE) {
-        HWND hDlg = (HWND)wParam;
-        wchar_t className[32] = {};
-        GetClassName(hDlg, className, ARRAYSIZE(className));
-        if (wcscmp(className, L"#32770") == 0) {
-            EnableDarkTitleBar(hDlg);
-            // Disabling the dialog's own visual style (rather than theming it
-            // DarkMode_Explorer) avoids Windows 11's two-tone button-strip
-            // background, which is painted by theme engine and ignores our
-            // WM_CTLCOLORDLG/WM_CTLCOLORSTATIC handling. Child controls are
-            // still themed dark individually below.
-            SetWindowTheme(hDlg, L"", L"");
-            EnumChildWindows(hDlg, DarkenMessageBoxChild, 0);
-            if (!g_hDarkMsgBoxBrush) g_hDarkMsgBoxBrush = CreateSolidBrush(RGB(20, 20, 20));
-            // HCBT_ACTIVATE can fire more than once for the same dialog (e.g. a
-            // screenshot tool briefly stealing and returning focus). Only subclass
-            // once, otherwise the second pass captures our own proc as "original"
-            // and CallWindowProc recurses into itself infinitely (stack overflow).
-            if (GetWindowLongPtr(hDlg, GWLP_WNDPROC) != (LONG_PTR)DarkMessageBoxDlgProc) {
-                g_origDlgProc = (WNDPROC)(LONG_PTR)GetWindowLongPtr(hDlg, GWLP_WNDPROC);
-                SetWindowLongPtr(hDlg, GWLP_WNDPROC, (LONG_PTR)DarkMessageBoxDlgProc);
-            }
-        }
-    }
-    return CallNextHookEx(g_hDarkMsgBoxHook, code, wParam, lParam);
-}
-
-// Drop-in replacement for MessageBox() that dark-themes the dialog to match the app.
-int DarkMessageBox(HWND hwnd, LPCWSTR text, LPCWSTR caption, UINT type) {
-    g_hDarkMsgBoxHook = SetWindowsHookEx(WH_CBT, DarkMessageBoxCbtProc, nullptr, GetCurrentThreadId());
-    int result = MessageBox(hwnd, text, caption, type);
-    if (g_hDarkMsgBoxHook) {
-        UnhookWindowsHookEx(g_hDarkMsgBoxHook);
-        g_hDarkMsgBoxHook = nullptr;
-    }
-    return result;
 }
 
 // --- RESOURCE IDs ---
@@ -657,6 +593,233 @@ static void SubclassButton(HWND hBtn) {
     if (!g_origButtonProc)
         g_origButtonProc = (WNDPROC)(LONG_PTR)GetWindowLongPtr(hBtn, GWLP_WNDPROC);
     SetWindowLongPtr(hBtn, GWLP_WNDPROC, (LONG_PTR)ButtonHoverProc);
+}
+
+// --- CUSTOM DARK DIALOG (Exit confirm / About) ---
+//
+// Standard MessageBox() can't be reliably re-skinned: Windows 11 paints the
+// button-strip footer directly in its own window procedure regardless of
+// WM_CTLCOLORDLG/theme overrides. Instead this draws a small owner-built popup
+// window matching the rest of the app's dark UI.
+
+struct DarkDialogState {
+    std::wstring text;
+    bool         isConfirm; // true = Yes/No, false = OK only
+    int          result;    // IDYES/IDNO or IDOK
+    HICON        hIcon;
+};
+
+constexpr int DARKDLG_WIDTH        = 420;
+constexpr int DARKDLG_PADDING      = 20;
+constexpr int DARKDLG_ICON_SIZE    = 32;
+constexpr int DARKDLG_BUTTON_W     = 110;
+constexpr int DARKDLG_BUTTON_H     = 34;
+constexpr int DARKDLG_BUTTON_GAP   = 12;
+constexpr int DARKDLG_BUTTON_AREA_H= 66;
+
+static const wchar_t* DARKDLG_CLASS = L"CCZDarkDialog";
+
+static void DarkDialogButtonRects(HWND hwnd, bool isConfirm, RECT& r1, RECT& r2) {
+    RECT rc;
+    GetClientRect(hwnd, &rc);
+    int btnY = rc.bottom - DARKDLG_BUTTON_AREA_H + (DARKDLG_BUTTON_AREA_H - DARKDLG_BUTTON_H) / 2;
+    if (isConfirm) {
+        int totalW = DARKDLG_BUTTON_W * 2 + DARKDLG_BUTTON_GAP;
+        int x1 = rc.right - DARKDLG_PADDING - totalW;
+        r1 = { x1, btnY, x1 + DARKDLG_BUTTON_W, btnY + DARKDLG_BUTTON_H };
+        int x2 = x1 + DARKDLG_BUTTON_W + DARKDLG_BUTTON_GAP;
+        r2 = { x2, btnY, x2 + DARKDLG_BUTTON_W, btnY + DARKDLG_BUTTON_H };
+    } else {
+        int x1 = rc.right - DARKDLG_PADDING - DARKDLG_BUTTON_W;
+        r1 = { x1, btnY, x1 + DARKDLG_BUTTON_W, btnY + DARKDLG_BUTTON_H };
+        r2 = {};
+    }
+}
+
+static LRESULT CALLBACK DarkDialogProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
+    switch (msg) {
+    case WM_CREATE: {
+        auto* cs    = reinterpret_cast<CREATESTRUCT*>(lp);
+        auto* state = reinterpret_cast<DarkDialogState*>(cs->lpCreateParams);
+        SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)state);
+        EnableDarkTitleBar(hwnd);
+
+        RECT r1, r2;
+        DarkDialogButtonRects(hwnd, state->isConfirm, r1, r2);
+        HWND hBtn1 = CreateWindowEx(0, L"BUTTON", state->isConfirm ? L"Yes" : L"OK",
+            WS_CHILD | WS_VISIBLE | BS_OWNERDRAW,
+            r1.left, r1.top, r1.right - r1.left, r1.bottom - r1.top,
+            hwnd, (HMENU)(INT_PTR)(state->isConfirm ? IDYES : IDOK), g_hInstance, nullptr);
+        SubclassButton(hBtn1);
+        if (state->isConfirm) {
+            HWND hBtn2 = CreateWindowEx(0, L"BUTTON", L"No",
+                WS_CHILD | WS_VISIBLE | BS_OWNERDRAW,
+                r2.left, r2.top, r2.right - r2.left, r2.bottom - r2.top,
+                hwnd, (HMENU)(INT_PTR)IDNO, g_hInstance, nullptr);
+            SubclassButton(hBtn2);
+        }
+        return 0;
+    }
+
+    case WM_ERASEBKGND: {
+        HDC hdc = (HDC)wp;
+        RECT rc;
+        GetClientRect(hwnd, &rc);
+        HBRUSH hBg = CreateSolidBrush(RGB(20, 20, 20));
+        FillRect(hdc, &rc, hBg);
+        DeleteObject(hBg);
+        return 1;
+    }
+
+    case WM_PAINT: {
+        auto* state = reinterpret_cast<DarkDialogState*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+        PAINTSTRUCT ps;
+        HDC hdc = BeginPaint(hwnd, &ps);
+        if (state) {
+            if (state->hIcon)
+                DrawIconEx(hdc, DARKDLG_PADDING, DARKDLG_PADDING, state->hIcon,
+                           DARKDLG_ICON_SIZE, DARKDLG_ICON_SIZE, 0, nullptr, DI_NORMAL);
+
+            RECT rc;
+            GetClientRect(hwnd, &rc);
+            RECT textRc = {
+                DARKDLG_PADDING * 2 + DARKDLG_ICON_SIZE, DARKDLG_PADDING,
+                rc.right - DARKDLG_PADDING, rc.bottom - DARKDLG_BUTTON_AREA_H
+            };
+            SetTextColor(hdc, RGB(220, 220, 220));
+            SetBkMode(hdc, TRANSPARENT);
+            HFONT hOldFont = (HFONT)SelectObject(hdc, g_hFontNormal ? g_hFontNormal : (HFONT)GetStockObject(DEFAULT_GUI_FONT));
+            DrawText(hdc, state->text.c_str(), -1, &textRc, DT_LEFT | DT_WORDBREAK);
+            SelectObject(hdc, hOldFont);
+        }
+        EndPaint(hwnd, &ps);
+        return 0;
+    }
+
+    case WM_DRAWITEM: {
+        LPDRAWITEMSTRUCT pDIS = (LPDRAWITEMSTRUCT)lp;
+        if (pDIS->CtlType == ODT_BUTTON) {
+            HDC  hdc = pDIS->hDC;
+            RECT rc  = pDIS->rcItem;
+            bool hovered = (GetProp(pDIS->hwndItem, L"CCZ_Hov") != nullptr);
+
+            COLORREF fill = hovered ? RGB(58, 58, 58) : RGB(40, 40, 40);
+            HBRUSH hFill = CreateSolidBrush(fill);
+            FillRect(hdc, &rc, hFill);
+            DeleteObject(hFill);
+
+            HPEN hPen    = CreatePen(PS_SOLID, 2, RGB(100, 100, 100));
+            HPEN hOldPen = (HPEN)SelectObject(hdc, hPen);
+            HBRUSH hOldBr = (HBRUSH)SelectObject(hdc, GetStockObject(NULL_BRUSH));
+            Rectangle(hdc, rc.left, rc.top, rc.right, rc.bottom);
+            SelectObject(hdc, hOldPen);
+            SelectObject(hdc, hOldBr);
+            DeleteObject(hPen);
+
+            wchar_t text[64];
+            GetWindowText(pDIS->hwndItem, text, ARRAYSIZE(text));
+            HFONT hOldFont = (HFONT)SelectObject(hdc, g_hFontButton ? g_hFontButton : (HFONT)GetStockObject(DEFAULT_GUI_FONT));
+            SetTextColor(hdc, RGB(200, 200, 200));
+            SetBkMode(hdc, TRANSPARENT);
+            DrawText(hdc, text, -1, &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+            SelectObject(hdc, hOldFont);
+            return TRUE;
+        }
+        return FALSE;
+    }
+
+    case WM_COMMAND: {
+        int id = LOWORD(wp);
+        if (id == IDYES || id == IDNO || id == IDOK) {
+            auto* state = reinterpret_cast<DarkDialogState*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+            if (state) state->result = id;
+            DestroyWindow(hwnd);
+        }
+        return 0;
+    }
+
+    case WM_CLOSE: {
+        auto* state = reinterpret_cast<DarkDialogState*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+        if (state) state->result = state->isConfirm ? IDNO : IDOK;
+        DestroyWindow(hwnd);
+        return 0;
+    }
+    }
+    return DefWindowProc(hwnd, msg, wp, lp);
+}
+
+// Shows a small modal dark-themed dialog matching the app's UI. isConfirm=true shows
+// Yes/No (returns IDYES/IDNO); isConfirm=false shows a single OK button (returns IDOK).
+int ShowDarkDialog(HWND parent, LPCWSTR text, LPCWSTR caption, bool isConfirm) {
+    static bool classRegistered = false;
+    if (!classRegistered) {
+        WNDCLASS wc      = {};
+        wc.lpfnWndProc   = DarkDialogProc;
+        wc.hInstance     = g_hInstance;
+        wc.lpszClassName = DARKDLG_CLASS;
+        wc.hCursor       = LoadCursor(nullptr, IDC_ARROW);
+        RegisterClass(&wc);
+        classRegistered = true;
+    }
+
+    DarkDialogState state;
+    state.text      = text;
+    state.isConfirm = isConfirm;
+    state.result    = isConfirm ? IDNO : IDOK;
+
+    SHSTOCKICONINFO sii = { sizeof(sii) };
+    SHGetStockIconInfo(isConfirm ? SIID_HELP : SIID_INFO, SHGSI_ICON, &sii);
+    state.hIcon = sii.hIcon;
+
+    // Measure wrapped text height to size the window.
+    HDC hdcScreen = GetDC(nullptr);
+    HFONT hOldFont = (HFONT)SelectObject(hdcScreen, g_hFontNormal ? g_hFontNormal : (HFONT)GetStockObject(DEFAULT_GUI_FONT));
+    RECT calcRc = { 0, 0, DARKDLG_WIDTH - DARKDLG_PADDING * 3 - DARKDLG_ICON_SIZE, 0 };
+    DrawText(hdcScreen, text, -1, &calcRc, DT_LEFT | DT_WORDBREAK | DT_CALCRECT);
+    SelectObject(hdcScreen, hOldFont);
+    ReleaseDC(nullptr, hdcScreen);
+
+    int contentHeight = max(DARKDLG_ICON_SIZE, calcRc.bottom - calcRc.top);
+    int clientHeight   = DARKDLG_PADDING * 2 + contentHeight + DARKDLG_BUTTON_AREA_H;
+
+    RECT wr = { 0, 0, DARKDLG_WIDTH, clientHeight };
+    AdjustWindowRectEx(&wr, WS_POPUPWINDOW | WS_CAPTION, FALSE, WS_EX_DLGMODALFRAME);
+    int winW = wr.right - wr.left;
+    int winH = wr.bottom - wr.top;
+
+    RECT prc = {};
+    if (parent) GetWindowRect(parent, &prc);
+    int x = parent ? prc.left + (prc.right - prc.left - winW) / 2 : CW_USEDEFAULT;
+    int y = parent ? prc.top  + (prc.bottom - prc.top - winH) / 2 : CW_USEDEFAULT;
+
+    HWND hDlg = CreateWindowEx(WS_EX_DLGMODALFRAME, DARKDLG_CLASS, caption,
+        WS_POPUPWINDOW | WS_CAPTION,
+        x, y, winW, winH, parent, nullptr, g_hInstance, &state);
+    if (!hDlg) return state.result;
+
+    if (parent) EnableWindow(parent, FALSE);
+    ShowWindow(hDlg, SW_SHOW);
+    UpdateWindow(hDlg);
+
+    MSG msg;
+    while (IsWindow(hDlg) && GetMessage(&msg, nullptr, 0, 0)) {
+        if (msg.message == WM_KEYDOWN && (msg.hwnd == hDlg || GetParent(msg.hwnd) == hDlg)) {
+            if (msg.wParam == VK_ESCAPE) { PostMessage(hDlg, WM_CLOSE, 0, 0); continue; }
+            if (msg.wParam == VK_RETURN) {
+                PostMessage(hDlg, WM_COMMAND, isConfirm ? IDYES : IDOK, 0);
+                continue;
+            }
+        }
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+
+    if (parent) {
+        EnableWindow(parent, TRUE);
+        SetForegroundWindow(parent);
+    }
+    if (state.hIcon) DestroyIcon(state.hIcon);
+    return state.result;
 }
 
 static HWND CreateTooltipWnd(HWND hParent) {
@@ -1666,8 +1829,7 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                 DestroyMenu(hMenu);
 
                 if (cmd == ID_MENU_ABOUT) {
-                    DarkMessageBox(hwnd, CREDITS_TEXT, L"About CustomControlZ",
-                                   MB_OK | MB_ICONINFORMATION);
+                    ShowDarkDialog(hwnd, CREDITS_TEXT, L"About CustomControlZ", false);
                 } else if (cmd >= ID_MENU_GAME_BASE && cmd < ID_MENU_GAME_BASE + g_gameProfileCount) {
                     OnGameSelected(cmd - ID_MENU_GAME_BASE);
                     return 0; // hwnd was destroyed and rebuilt by OnGameSelected
@@ -1935,8 +2097,7 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         break;
 
     case WM_CLOSE:
-        if (DarkMessageBox(hwnd, L"Are you sure you want to exit?", L"Exit",
-                           MB_YESNO | MB_ICONQUESTION) == IDYES) {
+        if (ShowDarkDialog(hwnd, L"Are you sure you want to exit?", L"Exit", true) == IDYES) {
             DestroyWindow(g_hMainWindow);
         }
         return 0;
