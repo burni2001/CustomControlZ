@@ -204,11 +204,43 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
             case BehaviorType::EdgeTrigger: {
                 EdgeTriggerState& s = state[i].edgeTrigger;
                 if (keyDown && !s.fired) {
-                    PressKey(desc.outputVk);
-                    tracker.press(desc.outputVk);
-                    Sleep(desc.durationMs);
-                    ReleaseKey(desc.outputVk);
-                    tracker.release(desc.outputVk);
+                    // If a HoldToToggle binding is currently holding our output key down
+                    // (e.g. a Sprint key sharing the dodge/dash key), the game needs a
+                    // clean key-up/key-down edge to register the pulse. Interrupt the
+                    // hold, fire the pulse, then resume the hold if still active.
+                    int holderIdx = -1;
+                    for (int j = 0; j < profile->bindingCount; j++) {
+                        if (j == i) continue;
+                        if (profile->bindings[j].behavior.type == BehaviorType::HoldToToggle &&
+                            profile->bindings[j].behavior.outputVk == desc.outputVk &&
+                            state[j].holdToggle.active) {
+                            holderIdx = j;
+                            break;
+                        }
+                    }
+                    if (holderIdx >= 0) {
+                        ReleaseKey(desc.outputVk);
+                        tracker.release(desc.outputVk);
+                        Sleep(20);
+                        PressKey(desc.outputVk);
+                        tracker.press(desc.outputVk);
+                        Sleep(desc.durationMs);
+                        ReleaseKey(desc.outputVk);
+                        tracker.release(desc.outputVk);
+                        Sleep(20);
+                        if (IsKeyDown(localVk[holderIdx])) {
+                            PressKey(desc.outputVk);
+                            tracker.press(desc.outputVk);
+                        } else {
+                            state[holderIdx].holdToggle.active = false;
+                        }
+                    } else {
+                        PressKey(desc.outputVk);
+                        tracker.press(desc.outputVk);
+                        Sleep(desc.durationMs);
+                        ReleaseKey(desc.outputVk);
+                        tracker.release(desc.outputVk);
+                    }
                     s.fired = true;
                 } else if (!keyDown) {
                     s.fired = false;
@@ -253,8 +285,10 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
                 } else {
                     if (s.keyDown) {
                         // Falling edge
-                        if (!s.longFired && shortVk) {
-                            // Tap: fire short output (skipped if outputVk=0, letting physical key pass through)
+                        if (!s.longFired && shortVk && shortVk != localVk[i]) {
+                            // Tap: fire short output (skipped if outputVk=0 or equal to the input key —
+                            // the LL hook never blocks the physical key, so it already reached the game;
+                            // re-injecting the same VK here would double-fire, e.g. toggling a menu open then shut)
                             PressVk(shortVk);
                             tracker.press(shortVk);
                             Sleep(30);
