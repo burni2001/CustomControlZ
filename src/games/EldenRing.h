@@ -20,7 +20,7 @@ constexpr int  ER_DODGE_DURATION_MS   = 50;
 // hold sprints. SprintKey must therefore withhold its press until the input has been
 // held past this delay — otherwise a quick tap of the custom sprint key itself reads
 // to the game as a dodge tap.
-constexpr int  ER_SPRINT_HOLD_DELAY_MS = 150;
+constexpr int  ER_SPRINT_HOLD_DELAY_MS = 75;
 
 static GameProfile g_EldenRingProfile = {
     /* id            */ L"EldenRing",
