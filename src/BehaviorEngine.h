@@ -68,12 +68,18 @@ struct BehaviorDescriptor {
     bool           includeTertiaryInCycle = false;   // KeyToggle: include tertiary key in quickswitch cycle
     const wchar_t* checkboxLabel          = nullptr; // If non-null, renders a checkbox row below this binding
     bool           checkboxEnabled        = true;    // Runtime state of the checkbox; default on
+    int            holdDelayMs            = 0;       // HoldToToggle: ms the input must stay held before the output engages.
+                                                       // 0 = engage instantly (default, unchanged behavior). A tap shorter
+                                                       // than this produces no output at all — use to stop quick taps on a
+                                                       // hold-to-sprint key from being read by the game as a separate tap action.
 };
 
 // --- PER-BINDING STATE STRUCTS ---
 
 struct HoldToToggleState {
-    bool active = false;
+    bool      active    = false;
+    bool      pending   = false; // physical key down, waiting out holdDelayMs before engaging
+    ULONGLONG pressTime = 0;
 };
 
 struct EdgeTriggerState {

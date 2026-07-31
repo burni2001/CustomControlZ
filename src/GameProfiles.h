@@ -189,14 +189,25 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
 
             case BehaviorType::HoldToToggle: {
                 HoldToToggleState& s = state[i].holdToggle;
-                if (keyDown && !s.active) {
-                    PressKey(desc.outputVk);
-                    tracker.press(desc.outputVk);
-                    s.active = true;
-                } else if (!keyDown && s.active) {
-                    ReleaseKey(desc.outputVk);
-                    tracker.release(desc.outputVk);
-                    s.active = false;
+                if (keyDown) {
+                    if (!s.active && !s.pending) {
+                        s.pending   = true;
+                        s.pressTime = GetTickCount64();
+                    }
+                    if (s.pending && !s.active &&
+                        (int)(GetTickCount64() - s.pressTime) >= desc.holdDelayMs) {
+                        PressKey(desc.outputVk);
+                        tracker.press(desc.outputVk);
+                        s.active  = true;
+                        s.pending = false;
+                    }
+                } else {
+                    if (s.active) {
+                        ReleaseKey(desc.outputVk);
+                        tracker.release(desc.outputVk);
+                        s.active = false;
+                    }
+                    s.pending = false;
                 }
                 break;
             }

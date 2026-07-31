@@ -16,6 +16,11 @@ constexpr WORD ER_ACTION_VK          = 'Q';
 // Timing constants used as descriptor parameters
 constexpr int  ER_LONG_PRESS_DELAY_MS = 400;
 constexpr int  ER_DODGE_DURATION_MS   = 50;
+// Elden Ring's F key is dual-purpose in-game: a quick tap rolls/dodges, a sustained
+// hold sprints. SprintKey must therefore withhold its press until the input has been
+// held past this delay — otherwise a quick tap of the custom sprint key itself reads
+// to the game as a dodge tap.
+constexpr int  ER_SPRINT_HOLD_DELAY_MS = 150;
 
 static GameProfile g_EldenRingProfile = {
     /* id            */ L"EldenRing",
@@ -55,9 +60,10 @@ static GameProfile g_EldenRingProfile = {
             /*thresholdMs=*/ER_LONG_PRESS_DELAY_MS, /*durationMs=*/ER_DODGE_DURATION_MS },
           /*isAppOnly=*/true },
 
-        // ER_KEY_SPRINT: HoldToToggle — holds the in-game key while input key is held
+        // ER_KEY_SPRINT: HoldToToggle — holds the in-game key while input key is held.
+        // holdDelayMs prevents a quick tap from reading as a dodge (see comment above).
         { L"SprintKey",  L"Custom Key: Dash, Sprint",        VK_CAPITAL, VK_CAPITAL,
-          { BehaviorType::HoldToToggle, /*outputVk=*/'F' },
+          { .type = BehaviorType::HoldToToggle, .outputVk = 'F', .holdDelayMs = ER_SPRINT_HOLD_DELAY_MS },
           /*isAppOnly=*/true },
 
         // ER_KEY_TRIGGER: LongPress — tap fires Escape (close/back), hold fires Q (action)
