@@ -72,6 +72,8 @@ struct BehaviorDescriptor {
                                                        // 0 = engage instantly (default, unchanged behavior). A tap shorter
                                                        // than this produces no output at all — use to stop quick taps on a
                                                        // hold-to-sprint key from being read by the game as a separate tap action.
+    const wchar_t* holdDelayLabel         = nullptr; // If non-null, shows an editable "hold delay (ms)" row in the settings
+                                                       // UI (HoldToToggle only) so holdDelayMs can be tuned without recompiling.
 };
 
 // --- PER-BINDING STATE STRUCTS ---

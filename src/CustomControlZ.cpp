@@ -76,6 +76,7 @@ void EnableDarkTitleBar(HWND hwnd) {
 #define ID_INCLUDE_TERTIARY_BASE        3600  // Combobox: include tertiary in quickswitch cycle: 3600 + binding index
 #define ID_TERTIARY_OUTPUT_LABEL_BASE   3700  // Tertiary output key row labels: 3700 + binding index
 #define ID_CHECKBOX_BASE                3800  // Checkbox controls: 3800 + binding index
+#define ID_TIMING_HOLDDELAY_BASE        3900  // Edit: hold-to-engage delay (holdDelayMs) — 3900 + binding index
 #define ID_TITLE_STATIC             2100
 #define ID_IMPRINT1_STATIC          2101
 #define ID_IMPRINT2_STATIC          2102
@@ -242,6 +243,8 @@ void UpdateAllControlFonts(HWND hwnd) {
             }
             if (beh.checkboxLabel)
                 SendMessage(GetDlgItem(hwnd, ID_CHECKBOX_BASE + i), WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
+            if (beh.holdDelayLabel)
+                SendMessage(GetDlgItem(hwnd, ID_TIMING_HOLDDELAY_BASE + i), WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
         }
     }
 
@@ -396,6 +399,7 @@ void SaveConfig(GameProfile* profile) {
     bool includeTertiaryInCycle[MAX_BINDINGS] = {};
     bool checkboxEnabled[MAX_BINDINGS]      = {};
     ReturnWeapon returnWeapon[MAX_BINDINGS] = {};
+    int  holdDelayMs[MAX_BINDINGS]          = {};
     {
         std::lock_guard<std::mutex> lock(g_configMutex);
         StringCchCopy(localFontName, ARRAYSIZE(localFontName), g_fontName);
@@ -416,6 +420,8 @@ void SaveConfig(GameProfile* profile) {
             }
             if (profile->bindings[i].behavior.checkboxLabel)
                 checkboxEnabled[i] = profile->bindings[i].behavior.checkboxEnabled;
+            if (profile->bindings[i].behavior.holdDelayLabel)
+                holdDelayMs[i] = profile->bindings[i].behavior.holdDelayMs;
         }
     }
 
@@ -468,6 +474,11 @@ void SaveConfig(GameProfile* profile) {
             StringCchPrintf(buf, ARRAYSIZE(buf), L"%d", checkboxEnabled[i] ? 1 : 0);
             WritePrivateProfileString(profile->iniSection, key, buf, CONFIG_FILE);
         }
+        if (profile->bindings[i].behavior.holdDelayLabel) {
+            StringCchPrintf(key, ARRAYSIZE(key), L"%s_HoldDelayMs", profile->bindings[i].iniKey);
+            StringCchPrintf(buf, ARRAYSIZE(buf), L"%d", holdDelayMs[i]);
+            WritePrivateProfileString(profile->iniSection, key, buf, CONFIG_FILE);
+        }
     }
     WritePrivateProfileString(profile->iniSection, L"FontName", localFontName, CONFIG_FILE);
 }
@@ -487,6 +498,7 @@ void LoadConfig(GameProfile* profile) {
     bool checkboxEnabled[MAX_BINDINGS]       = {};
     bool hasCheckbox[MAX_BINDINGS]           = {};
     ReturnWeapon returnWeapon[MAX_BINDINGS]  = {};
+    int  holdDelayMs[MAX_BINDINGS]           = {};
     wchar_t key[64];
 
     for (int i = 0; i < profile->bindingCount; i++) {
@@ -537,6 +549,11 @@ void LoadConfig(GameProfile* profile) {
             int cbVal = GetPrivateProfileInt(profile->iniSection, key, -1, CONFIG_FILE);
             if (cbVal != -1) { checkboxEnabled[i] = (cbVal != 0); hasCheckbox[i] = true; }
         }
+        if (profile->bindings[i].behavior.holdDelayLabel) {
+            StringCchPrintf(key, ARRAYSIZE(key), L"%s_HoldDelayMs", profile->bindings[i].iniKey);
+            holdDelayMs[i] = GetPrivateProfileInt(profile->iniSection, key,
+                                 profile->bindings[i].behavior.holdDelayMs, CONFIG_FILE);
+        }
     }
 
     wchar_t tempFont[FONT_NAME_BUFFER];
@@ -558,6 +575,8 @@ void LoadConfig(GameProfile* profile) {
         if (hasTertiaryOutputVk[i])  profile->bindings[i].behavior.tertiaryOutputVk       = tertiaryOutputVk[i];
         if (hasIncludeTertiary[i])   profile->bindings[i].behavior.includeTertiaryInCycle = includeTertiaryInCycle[i];
         if (hasCheckbox[i])          profile->bindings[i].behavior.checkboxEnabled        = checkboxEnabled[i];
+        if (profile->bindings[i].behavior.holdDelayLabel)
+            profile->bindings[i].behavior.holdDelayMs = max(0, min(2000, holdDelayMs[i]));
     }
     StringCchCopy(g_fontName, ARRAYSIZE(g_fontName), tempFont);
 }
@@ -1181,6 +1200,7 @@ static int ComputeSettingsContentHeight(const GameProfile* profile) {
             if (beh.returnAltVk) rowY += LAYOUT_TIMING_ROW_HEIGHT;
         }
         if (beh.checkboxLabel) rowY += LAYOUT_TIMING_ROW_HEIGHT;
+        if (beh.holdDelayLabel) rowY += LAYOUT_TIMING_ROW_HEIGHT;
     }
     return rowY;
 }
@@ -1436,6 +1456,26 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                 SendMessage(hCBX, BM_SETCHECK, beh.checkboxEnabled ? BST_CHECKED : BST_UNCHECKED, 0);
                 rowY += LAYOUT_TIMING_ROW_HEIGHT;
             }
+
+            // Hold-delay edit row for HoldToToggle bindings that opt in via holdDelayLabel
+            if (beh.holdDelayLabel) {
+                const int editH = LAYOUT_BUTTON_HEIGHT;
+                HWND hL = CreateWindow(L"STATIC", beh.holdDelayLabel,
+                    WS_VISIBLE | WS_CHILD | SS_CENTERIMAGE,
+                    LAYOUT_LEFT_MARGIN + 22, rowY + 6, LAYOUT_LABEL_WIDTH - 22, editH,
+                    hwnd, nullptr, nullptr, nullptr);
+                SendMessage(hL, WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
+
+                wchar_t buf[16];
+                StringCchPrintf(buf, ARRAYSIZE(buf), L"%d", beh.holdDelayMs);
+                HWND hE = CreateWindowEx(WS_EX_CLIENTEDGE, L"EDIT", buf,
+                    WS_VISIBLE | WS_CHILD | ES_NUMBER | ES_CENTER,
+                    buttonX, rowY + 6, LAYOUT_TIMING_EDIT_WIDTH, editH,
+                    hwnd, (HMENU)(INT_PTR)(ID_TIMING_HOLDDELAY_BASE + i), nullptr, nullptr);
+                SendMessage(hE, WM_SETFONT, (WPARAM)g_hFontNormal, TRUE);
+
+                rowY += LAYOUT_TIMING_ROW_HEIGHT;
+            }
         }
 
 
@@ -1621,6 +1661,7 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                     if (beh.returnAltVk) rowY += LAYOUT_TIMING_ROW_HEIGHT;
                 }
                 if (beh.checkboxLabel) rowY += LAYOUT_TIMING_ROW_HEIGHT;
+                if (beh.holdDelayLabel) rowY += LAYOUT_TIMING_ROW_HEIGHT;
             }
 
             SelectObject(hdc, hOldPen);
@@ -1968,6 +2009,21 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                     else          g_activeProfile->bindings[idx].behavior.returnDelayMs = val;
                 }
                 SaveConfig(g_activeProfile);
+            } else if (id >= ID_TIMING_HOLDDELAY_BASE && id < ID_TIMING_HOLDDELAY_BASE + MAX_BINDINGS) {
+                int hdIdx = id - ID_TIMING_HOLDDELAY_BASE;
+                if (hdIdx < g_activeProfile->bindingCount
+                    && g_activeProfile->bindings[hdIdx].behavior.holdDelayLabel) {
+                    wchar_t buf[16];
+                    GetWindowText(GetDlgItem(hwnd, id), buf, ARRAYSIZE(buf));
+                    int val = max(0, min(2000, _wtoi(buf)));
+                    StringCchPrintf(buf, ARRAYSIZE(buf), L"%d", val);
+                    SetWindowText(GetDlgItem(hwnd, id), buf);
+                    {
+                        std::lock_guard<std::mutex> lock(g_configMutex);
+                        g_activeProfile->bindings[hdIdx].behavior.holdDelayMs = val;
+                    }
+                    SaveConfig(g_activeProfile);
+                }
             }
         }
         break;
