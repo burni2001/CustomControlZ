@@ -76,7 +76,8 @@ struct BehaviorDescriptor {
                                                        // UI (HoldToToggle only) so holdDelayMs can be tuned without recompiling.
     bool           requireMovementKey     = false;   // HoldToToggle: only engage (and stay engaged) while a WASD movement
                                                        // key is also physically held. Output releases the instant movement
-                                                       // stops, even if the input key is still held.
+                                                       // stops, even if the input key is still held. Gated live by
+                                                       // checkboxEnabled — pair with checkboxLabel for a settings-UI toggle.
 };
 
 // --- PER-BINDING STATE STRUCTS ---

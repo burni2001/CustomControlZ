@@ -64,7 +64,9 @@ static GameProfile g_EldenRingProfile = {
         // holdDelayMs prevents a quick tap from reading as a dodge (see comment above).
         // holdDelayLabel exposes it as a tunable field in the settings UI.
         { L"SprintKey",  L"Custom Key: Dash, Sprint",        VK_CAPITAL, VK_CAPITAL,
-          { .type = BehaviorType::HoldToToggle, .outputVk = 'F', .holdDelayMs = ER_SPRINT_HOLD_DELAY_MS,
+          { .type = BehaviorType::HoldToToggle, .outputVk = 'F',
+            .checkboxLabel = L"Require movement key (WASD) to sprint", .checkboxEnabled = true,
+            .holdDelayMs = ER_SPRINT_HOLD_DELAY_MS,
             .holdDelayLabel = L"Sprint engage delay (ms):", .requireMovementKey = true },
           /*isAppOnly=*/true },
 

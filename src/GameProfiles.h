@@ -189,7 +189,7 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
 
             case BehaviorType::HoldToToggle: {
                 HoldToToggleState& s = state[i].holdToggle;
-                if (desc.requireMovementKey) {
+                if (desc.requireMovementKey && desc.checkboxEnabled) {
                     bool moving = IsKeyDown('W') || IsKeyDown('A') || IsKeyDown('S') || IsKeyDown('D');
                     keyDown = keyDown && moving;
                 }
