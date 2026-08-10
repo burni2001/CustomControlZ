@@ -65,7 +65,7 @@ static GameProfile g_EldenRingProfile = {
         // holdDelayLabel exposes it as a tunable field in the settings UI.
         { L"SprintKey",  L"Custom Key: Dash, Sprint",        VK_CAPITAL, VK_CAPITAL,
           { .type = BehaviorType::HoldToToggle, .outputVk = 'F', .holdDelayMs = ER_SPRINT_HOLD_DELAY_MS,
-            .holdDelayLabel = L"Sprint engage delay (ms):" },
+            .holdDelayLabel = L"Sprint engage delay (ms):", .requireMovementKey = true },
           /*isAppOnly=*/true },
 
         // ER_KEY_TRIGGER: LongPress — tap fires Escape (close/back), hold fires Q (action)

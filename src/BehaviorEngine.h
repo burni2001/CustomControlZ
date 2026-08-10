@@ -74,6 +74,9 @@ struct BehaviorDescriptor {
                                                        // hold-to-sprint key from being read by the game as a separate tap action.
     const wchar_t* holdDelayLabel         = nullptr; // If non-null, shows an editable "hold delay (ms)" row in the settings
                                                        // UI (HoldToToggle only) so holdDelayMs can be tuned without recompiling.
+    bool           requireMovementKey     = false;   // HoldToToggle: only engage (and stay engaged) while a WASD movement
+                                                       // key is also physically held. Output releases the instant movement
+                                                       // stops, even if the input key is still held.
 };
 
 // --- PER-BINDING STATE STRUCTS ---
