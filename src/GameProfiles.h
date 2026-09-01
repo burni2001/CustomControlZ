@@ -65,6 +65,7 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
     bool         lastForegroundState = false;
     int          missCount          = 0;   // consecutive IsGameRunning()==false count
     bool         elevationWarnShown = false; // only warn once per thread lifetime
+    bool         lastControllerPaused = false; // tracks controller-pause transitions for this thread
     constexpr int MISS_THRESHOLD = 5;    // require 5 consecutive misses (~50ms) before treating game as stopped
 
     while (running) {
@@ -177,6 +178,20 @@ inline void GenericLogicThreadFn(GameProfile* profile, std::atomic<bool>& runnin
             }
             if (s.suspended) suspended = true;
         }
+
+        // Auto-pause while a game controller is active, so this app's keyboard
+        // remapping doesn't fight the controller's own inputs.
+        bool controllerPaused = g_pauseOnControllerEnabled && g_controllerActive;
+        if (controllerPaused != lastControllerPaused) {
+            if (controllerPaused) {
+                tracker.releaseAll();
+                SetTrayIconState(false, profile);
+            } else if (!suspended) {
+                SetTrayIconState(true, profile);
+            }
+            lastControllerPaused = controllerPaused;
+        }
+        if (controllerPaused) suspended = true;
 
         // Per-binding dispatch
         for (int i = 0; i < profile->bindingCount; i++) {

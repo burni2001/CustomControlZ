@@ -26,6 +26,8 @@ void SetTrayIconState(bool active, GameProfile* profile);
 bool IsProcessRunningElevated(const wchar_t* processName);  // FIX-02: UIPI detection
 extern std::mutex g_configMutex;
 extern std::atomic<int> g_waitingForBindID;
+extern std::atomic<bool> g_pauseOnControllerEnabled; // user setting: auto-pause remapping while a controller is active
+extern std::atomic<bool> g_controllerActive;         // set by ControllerPollThreadFn
 
 // --- BEHAVIOR TYPES ---
 

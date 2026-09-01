@@ -8,12 +8,17 @@
 #include <thread>
 #include <atomic>
 #include <mutex>
+#include <cstdlib>
 #include <uxtheme.h>
 #include <dwmapi.h>
 #pragma comment(lib, "uxtheme.lib")
 #pragma comment(lib, "dwmapi.lib")
 #include <commctrl.h>
 #pragma comment(lib, "comctl32.lib")
+#include <xinput.h>
+#pragma comment(lib, "Xinput9_1_0.lib")
+#include <wingdi.h>
+#pragma comment(lib, "msimg32.lib")
 #pragma comment(linker, "/SUBSYSTEM:WINDOWS /ENTRY:wWinMainCRTStartup")
 
 #ifndef APP_VERSION
@@ -57,6 +62,16 @@ void EnableDarkTitleBar(HWND hwnd) {
 #define ID_TRAY_EXIT        1002
 #define ID_TRAY_AUTOSTART   1004
 #define ID_TRAY_TOOLTIPS    1005
+#define ID_TRAY_PAUSE_CONTROLLER 1006
+
+// Status indicator: shining LED in the settings window showing whether remapping is
+// currently active (green) or paused/idle (yellow). Fixed-position, drawn directly
+// in WM_PAINT (not a child control), refreshed on a timer since engine state changes
+// on a background thread.
+#define ID_STATUS_INDICATOR_TIMER 1
+constexpr int STATUS_INDICATOR_SIZE = 20;
+constexpr int STATUS_INDICATOR_X    = 65;  // just right of the hamburger menu button
+constexpr int STATUS_INDICATOR_Y    = 17;
 
 // Settings window control IDs
 #define BTN_BIND_BASE               2001  // Bind buttons: BTN_BIND_BASE + binding index
@@ -91,6 +106,7 @@ void EnableDarkTitleBar(HWND hwnd) {
 #define ID_MENU_EXIT        5102
 #define ID_MENU_AUTOSTART   5103
 #define ID_MENU_TOOLTIPS    5104
+#define ID_MENU_PAUSE_CONTROLLER 5105
 #define ID_MENU_GAME_BASE   5200  // Game items: ID_MENU_GAME_BASE + profile index
 
 // --- TIMING & BUFFER CONSTANTS ---
@@ -161,6 +177,9 @@ HICON g_hIconActive       = nullptr;
 HICON g_hIconExe          = nullptr;
 bool  g_customIconsLoaded = false;
 bool  g_tooltipsEnabled  = true;
+std::atomic<bool> g_pauseOnControllerEnabled(true); // user setting: auto-pause remapping while a controller is active
+std::atomic<bool> g_controllerActive(false);        // set by ControllerPollThreadFn
+std::atomic<bool> g_engineActive(false);            // mirrors the tray icon's active/idle state, for the GUI status LED
 
 HWND    g_hSettingsTooltip = nullptr;
 WNDPROC g_origButtonProc   = nullptr;
@@ -188,6 +207,8 @@ HFONT  g_hFontImprint = nullptr;
 
 std::vector<std::thread> g_logicThreads;
 std::atomic<bool>        g_logicRunning(false);
+std::thread              g_controllerThread;
+std::atomic<bool>        g_controllerThreadRunning(false);
 int               g_settingsScrollY = 0;  // vertical scroll offset for the settings window
 
 // --- FONT HELPERS ---
@@ -357,6 +378,8 @@ HMENU CreateTrayMenu() {
                    ID_TRAY_AUTOSTART, L"Start with Windows");
         AppendMenu(hMenu, MF_STRING | (g_tooltipsEnabled ? MF_CHECKED : MF_UNCHECKED),
                    ID_TRAY_TOOLTIPS, L"Show tooltips");
+        AppendMenu(hMenu, MF_STRING | (g_pauseOnControllerEnabled ? MF_CHECKED : MF_UNCHECKED),
+                   ID_TRAY_PAUSE_CONTROLLER, L"Pause when controller is active");
         AppendMenu(hMenu, MF_SEPARATOR, 0, nullptr);
         AppendMenu(hMenu, MF_STRING, ID_TRAY_EXIT, L"Exit");
     }
@@ -1071,10 +1094,86 @@ inline void PressVk(WORD vk)   { if (IsMouseVk(vk)) PressMouse(vk);   else Press
 inline void ReleaseVk(WORD vk) { if (IsMouseVk(vk)) ReleaseMouse(vk); else ReleaseKey(vk); }
 
 void SetTrayIconState(bool active, GameProfile* profile) {
+    g_engineActive = active;
     g_nid.hIcon = active ? g_hIconActive : g_hIconIdle;
     StringCchCopy(g_nid.szTip, ARRAYSIZE(g_nid.szTip),
                   active ? profile->tipActive : profile->tipIdle);
     Shell_NotifyIcon(NIM_MODIFY, &g_nid);
+}
+
+// --- STATUS INDICATOR (shining LED in the settings window) ---
+
+static COLORREF LightenColor(COLORREF c, double factor) {
+    int r = GetRValue(c), g = GetGValue(c), b = GetBValue(c);
+    r = r + (int)((255 - r) * factor);
+    g = g + (int)((255 - g) * factor);
+    b = b + (int)((255 - b) * factor);
+    return RGB(r, g, b);
+}
+
+// Blends a solid-colored circle of the given radius onto hdcDest at (cx, cy) using a
+// flat alpha, giving a soft glow. Relies on bgColor matching the surrounding background
+// exactly, so the blended halo fades into it rather than showing a hard bitmap edge.
+static void DrawGlowLayer(HDC hdcDest, int cx, int cy, int radius, COLORREF ledColor, COLORREF bgColor, BYTE alpha) {
+    int size = radius * 2;
+    if (size <= 0) return;
+    HDC memDC = CreateCompatibleDC(hdcDest);
+    HBITMAP memBmp = CreateCompatibleBitmap(hdcDest, size, size);
+    HBITMAP oldBmp = (HBITMAP)SelectObject(memDC, memBmp);
+
+    RECT full = { 0, 0, size, size };
+    HBRUSH hBgBrush = CreateSolidBrush(bgColor);
+    FillRect(memDC, &full, hBgBrush);
+    DeleteObject(hBgBrush);
+
+    HBRUSH hLedBrush = CreateSolidBrush(ledColor);
+    HGDIOBJ oldBrush = SelectObject(memDC, hLedBrush);
+    HGDIOBJ oldPen   = SelectObject(memDC, GetStockObject(NULL_PEN));
+    Ellipse(memDC, 0, 0, size, size);
+    SelectObject(memDC, oldPen);
+    SelectObject(memDC, oldBrush);
+    DeleteObject(hLedBrush);
+
+    BLENDFUNCTION bf = { AC_SRC_OVER, 0, alpha, 0 };
+    AlphaBlend(hdcDest, cx - radius, cy - radius, size, size, memDC, 0, 0, size, size, bf);
+
+    SelectObject(memDC, oldBmp);
+    DeleteObject(memBmp);
+    DeleteDC(memDC);
+}
+
+// Draws a small "shining" round LED centered in rect r: green while remapping is
+// active, amber while paused/idle. Two translucent glow layers give it a soft halo,
+// topped with an opaque core and a light highlight for a glossy look.
+void DrawStatusIndicator(HDC hdc, const RECT& r, bool active, COLORREF bgColor) {
+    int cx = (r.left + r.right) / 2;
+    int cy = (r.top + r.bottom) / 2;
+    int outerR = (r.right - r.left) / 2;
+    if (outerR <= 0) return;
+
+    COLORREF ledColor = active ? RGB(52, 199, 89) : RGB(255, 179, 0);
+
+    DrawGlowLayer(hdc, cx, cy, outerR,                   ledColor, bgColor, 50);
+    DrawGlowLayer(hdc, cx, cy, (int)(outerR * 0.72 + 0.5), ledColor, bgColor, 110);
+
+    int coreR = (int)(outerR * 0.5 + 0.5);
+    HBRUSH hCoreBrush = CreateSolidBrush(ledColor);
+    HGDIOBJ oldBrush  = SelectObject(hdc, hCoreBrush);
+    HGDIOBJ oldPen    = SelectObject(hdc, GetStockObject(NULL_PEN));
+    Ellipse(hdc, cx - coreR, cy - coreR, cx + coreR, cy + coreR);
+    SelectObject(hdc, oldPen);
+    SelectObject(hdc, oldBrush);
+    DeleteObject(hCoreBrush);
+
+    COLORREF hlColor = LightenColor(ledColor, 0.65);
+    int hlR  = max(1, (int)(coreR * 0.45));
+    int hlCx = cx - coreR / 3;
+    int hlCy = cy - coreR / 3;
+    HBRUSH hHlBrush = CreateSolidBrush(hlColor);
+    oldBrush = SelectObject(hdc, hHlBrush);
+    Ellipse(hdc, hlCx - hlR, hlCy - hlR, hlCx + hlR, hlCy + hlR);
+    SelectObject(hdc, oldBrush);
+    DeleteObject(hHlBrush);
 }
 
 // Returns true if the named process is running at High integrity (elevated / as Administrator).
@@ -1117,6 +1216,48 @@ bool IsProcessRunningElevated(const wchar_t* processName) {
     }
     CloseHandle(hSnap);
     return elevated;
+}
+
+// --- CONTROLLER PAUSE ---
+//
+// Polls XInput for gamepad activity so GenericLogicThreadFn can suspend keyboard
+// remapping while a controller is in use (avoids fighting the controller's own
+// inputs, e.g. HoldToToggle/sprint logic firing off stale keyboard state).
+// g_controllerActive stays true for CONTROLLER_IDLE_MS after the last detected
+// input so brief pauses between button presses don't flicker remapping on/off.
+
+constexpr int CONTROLLER_IDLE_MS  = 1500;
+constexpr SHORT CONTROLLER_DEADZONE = 7849; // XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE
+
+static bool IsControllerInputActive() {
+    for (DWORD userIdx = 0; userIdx < XUSER_MAX_COUNT; userIdx++) {
+        XINPUT_STATE state = {};
+        if (XInputGetState(userIdx, &state) != ERROR_SUCCESS) continue;
+
+        const XINPUT_GAMEPAD& gp = state.Gamepad;
+        if (gp.wButtons != 0) return true;
+        if (gp.bLeftTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD) return true;
+        if (gp.bRightTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD) return true;
+        if (abs(gp.sThumbLX) > CONTROLLER_DEADZONE) return true;
+        if (abs(gp.sThumbLY) > CONTROLLER_DEADZONE) return true;
+        if (abs(gp.sThumbRX) > CONTROLLER_DEADZONE) return true;
+        if (abs(gp.sThumbRY) > CONTROLLER_DEADZONE) return true;
+    }
+    return false;
+}
+
+void ControllerPollThreadFn() {
+    ULONGLONG lastActiveTick = 0;
+    while (g_controllerThreadRunning) {
+        if (IsControllerInputActive()) {
+            lastActiveTick = GetTickCount64();
+            g_controllerActive = true;
+        } else if (g_controllerActive && (GetTickCount64() - lastActiveTick) >= CONTROLLER_IDLE_MS) {
+            g_controllerActive = false;
+        }
+        Sleep(50);
+    }
+    g_controllerActive = false;
 }
 
 // --- GAME LOGIC THREAD MANAGEMENT ---
@@ -1216,6 +1357,7 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         int rowBaseY = LAYOUT_TITLE_START + LAYOUT_TITLE_SPACING;
 
         g_hSettingsTooltip = CreateTooltipWnd(hwnd);
+        SetTimer(hwnd, ID_STATUS_INDICATOR_TIMER, 200, nullptr);
 
         // Top buttons
         HWND hBtnMenu = CreateWindow(L"BUTTON", L"",
@@ -1517,6 +1659,16 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
     case WM_PAINT: {
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hwnd, &ps);
+
+        // Status LED: fixed in the corner, unaffected by content scrolling, so draw
+        // it before the viewport gets shifted for the scrollable content below.
+        {
+            LOGBRUSH lb = {};
+            GetObject(g_hBrushBg, sizeof(lb), &lb);
+            RECT indRect = { STATUS_INDICATOR_X, STATUS_INDICATOR_Y,
+                              STATUS_INDICATOR_X + STATUS_INDICATOR_SIZE, STATUS_INDICATOR_Y + STATUS_INDICATOR_SIZE };
+            DrawStatusIndicator(hdc, indRect, g_engineActive.load(), lb.lbColor);
+        }
 
         SetViewportOrgEx(hdc, 0, -g_settingsScrollY, nullptr);
 
@@ -1858,6 +2010,8 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                            ID_MENU_AUTOSTART, L"Start with Windows");
                 AppendMenu(hMenu, MF_STRING | (g_tooltipsEnabled ? MF_CHECKED : MF_UNCHECKED),
                            ID_MENU_TOOLTIPS, L"Show tooltips");
+                AppendMenu(hMenu, MF_STRING | (g_pauseOnControllerEnabled ? MF_CHECKED : MF_UNCHECKED),
+                           ID_MENU_PAUSE_CONTROLLER, L"Pause when controller is active");
                 AppendMenu(hMenu, MF_SEPARATOR, 0, nullptr);
                 AppendMenu(hMenu, MF_STRING, ID_MENU_MINIMIZE, L"Minimize");
                 AppendMenu(hMenu, MF_STRING, ID_MENU_EXIT, L"Exit");
@@ -1881,6 +2035,10 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                     WritePrivateProfileString(L"App", L"Tooltips",
                         g_tooltipsEnabled ? L"1" : L"0", CONFIG_FILE);
                     if (g_hSettingsTooltip) SendMessage(g_hSettingsTooltip, TTM_ACTIVATE, g_tooltipsEnabled, 0);
+                } else if (cmd == ID_MENU_PAUSE_CONTROLLER) {
+                    g_pauseOnControllerEnabled = !g_pauseOnControllerEnabled;
+                    WritePrivateProfileString(L"App", L"PauseOnController",
+                        g_pauseOnControllerEnabled ? L"1" : L"0", CONFIG_FILE);
                 } else if (cmd == ID_MENU_MINIMIZE) {
                     ShowWindow(hwnd, SW_HIDE);
                     g_waitingForBindID = 0;
@@ -2111,6 +2269,15 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         break;
     }
 
+    case WM_TIMER:
+        if (wParam == ID_STATUS_INDICATOR_TIMER) {
+            RECT indRect = { STATUS_INDICATOR_X, STATUS_INDICATOR_Y,
+                              STATUS_INDICATOR_X + STATUS_INDICATOR_SIZE, STATUS_INDICATOR_Y + STATUS_INDICATOR_SIZE };
+            InvalidateRect(hwnd, &indRect, TRUE);
+            return 0;
+        }
+        break;
+
     case WM_MOUSEWHEEL: {
         int wheelDelta = GET_WHEEL_DELTA_WPARAM(wParam);
         int lines = max(1, abs(wheelDelta) / WHEEL_DELTA);
@@ -2159,6 +2326,7 @@ LRESULT CALLBACK SettingsProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         return 0;
 
     case WM_DESTROY:
+        KillTimer(hwnd, ID_STATUS_INDICATOR_TIMER);
         CleanupFonts();
         g_hSettingsTooltip = nullptr; // child destroyed with the window
         break;
@@ -2263,6 +2431,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                     WritePrivateProfileString(L"App", L"Tooltips",
                         g_tooltipsEnabled ? L"1" : L"0", CONFIG_FILE);
                     if (g_hSettingsTooltip) SendMessage(g_hSettingsTooltip, TTM_ACTIVATE, g_tooltipsEnabled, 0);
+                } else if (cmd == ID_TRAY_PAUSE_CONTROLLER) {
+                    g_pauseOnControllerEnabled = !g_pauseOnControllerEnabled;
+                    WritePrivateProfileString(L"App", L"PauseOnController",
+                        g_pauseOnControllerEnabled ? L"1" : L"0", CONFIG_FILE);
                 } else if (cmd == ID_TRAY_EXIT) {
                     DestroyWindow(hwnd);
                 }
@@ -2408,6 +2580,10 @@ int APIENTRY wWinMain(
     // All game logic threads run simultaneously; each activates only when its game process is detected
     StartAllGameLogicThreads();
 
+    g_pauseOnControllerEnabled = (GetPrivateProfileInt(L"App", L"PauseOnController", 1, CONFIG_FILE) != 0);
+    g_controllerThreadRunning = true;
+    g_controllerThread = std::thread(ControllerPollThreadFn);
+
     g_hKbHook = SetWindowsHookEx(WH_KEYBOARD_LL, LLKeyboardProc, nullptr, 0);
 
     MSG msg;
@@ -2418,6 +2594,8 @@ int APIENTRY wWinMain(
 
     if (g_hKbHook) { UnhookWindowsHookEx(g_hKbHook); g_hKbHook = nullptr; }
     g_isAppRunning = false;
+    g_controllerThreadRunning = false;
+    if (g_controllerThread.joinable()) g_controllerThread.join();
     StopAllGameLogicThreads();
     SafeCloseMutex(hMutex);
 
